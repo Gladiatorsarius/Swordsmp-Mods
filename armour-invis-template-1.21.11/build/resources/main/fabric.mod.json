@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "armour-invis",
+	"version": "1.0.0",
+	"name": "Armour Invis",
+	"description": "Hides worn armor when a player has Invisibility II. Requires the mod on client to hide visuals.",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/plugin/hidden-armor",
+		"sources": "https://github.com/Gladiatorsarius/Armour-Invis-1.21.11"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/armour-invis/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"armour.invis.swordsmp.ArmourInvis"
+		],
+		"client": [
+			"armour.invis.swordsmp.ArmourInvisClient"
+		]
+	},
+	"mixins": [
+		"armour-invis.mixins.json",
+		{
+			"config": "armour-invis.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

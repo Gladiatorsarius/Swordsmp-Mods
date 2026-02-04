@@ -4,11 +4,17 @@ pluginManagement {
 			name = 'Fabric'
 			url = 'https://maven.fabricmc.net/'
 		}
-		maven {
-			name = 'FabricMC Snapshots'
-			url = 'https://maven.fabricmc.net/snapshots'
-		}
 		mavenCentral()
 		gradlePluginPortal()
+	}
+}
+
+dependencyResolutionManagement {
+	repositories {
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
+		mavenCentral()
 	}
 }
