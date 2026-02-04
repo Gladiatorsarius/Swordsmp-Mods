@@ -3,7 +3,8 @@
 	"package": "armour.invis.swordsmp.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"ExampleClientMixin"
+		"ExampleClientMixin",
+		"ArmorLayerInvisMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
