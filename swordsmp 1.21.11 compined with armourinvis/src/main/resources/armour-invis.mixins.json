@@ -3,7 +3,6 @@
 	"package": "armour.invis.swordsmp.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin",
 		"EntityArmorVisibilityMixin"
 	],
 	"injectors": {
