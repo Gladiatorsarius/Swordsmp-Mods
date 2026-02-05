@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "a",
+    "a",
+    "b"
+  ],
+  "key": {
+    "a": "swordssmp:sharpened_amethyst_shard",
+    "b": "swordssmp:reinforced_stick"
+  },
+  "result": {
+    "id": "swordssmp:amethyst_sword",
+    "count": 1
+  }
+}

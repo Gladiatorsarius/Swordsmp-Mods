@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "armour.invis.swordsmp.mixin.client",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"ExampleClientMixin",
+		"ArmorLayerInvisMixin",
+		"LivingEntityRenderStateMixin",
+		"LivingEntityRendererMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

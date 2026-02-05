@@ -1,0 +1,42 @@
+{
+	"schemaVersion": 1,
+	"id": "swordssmp",
+	"version": "${version}",
+	"name": "SwordsSMP Combined with Armour Invis",
+	"description": "SwordsSMP mod combined with Armour Invis functionality",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://mcreator.net",
+		"sources": ""
+	},
+	"license": "Not specified",
+	"icon": "assets/swordsmp/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.mcreator.swordssmp.SwordssmpMod",
+			"armour.invis.swordsmp.ArmourInvis"
+		],
+		"client": [
+			"net.mcreator.swordssmp.SwordssmpModClient",
+			"armour.invis.swordsmp.ArmourInvisClient"
+		]
+	},
+	"mixins": [
+		"swordssmp.mixins.json",
+		"swordsmp.mixins.json",
+		"armour-invis.mixins.json",
+		{
+			"config": "armour-invis.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

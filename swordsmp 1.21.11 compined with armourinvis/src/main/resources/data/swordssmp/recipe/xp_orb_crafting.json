@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "aaa",
+    "aba",
+    "aaa"
+  ],
+  "key": {
+    "a": "minecraft:experience_bottle",
+    "b": "minecraft:emerald"
+  },
+  "result": {
+    "id": "swordssmp:xp_orb",
+    "count": 1
+  }
+}
