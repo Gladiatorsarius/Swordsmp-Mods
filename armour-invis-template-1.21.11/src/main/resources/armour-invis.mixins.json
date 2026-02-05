@@ -4,7 +4,7 @@
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"ExampleMixin",
-		"LivingEntityArmorVisibilityMixin"
+		"EntityArmorVisibilityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
