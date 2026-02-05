@@ -39,6 +39,16 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	
+	// WebSocket client for Discord bot communication
+	implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+	include 'com.squareup.okhttp3:okhttp:4.12.0'
+	include 'com.squareup.okio:okio:3.6.0'
+	include 'com.squareup.okio:okio-jvm:3.6.0'
+	include 'org.jetbrains.kotlin:kotlin-stdlib:1.9.20'
+	
+	// JSON processing
+	implementation 'com.google.code.gson:gson:2.10.1'
+	include 'com.google.code.gson:gson:2.10.1'
 }
 
 processResources {

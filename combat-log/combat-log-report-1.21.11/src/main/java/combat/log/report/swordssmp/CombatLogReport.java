@@ -1,13 +1,19 @@
 package combat.log.report.swordssmp;
 
+import combat.log.report.swordssmp.config.ModConfig;
+import combat.log.report.swordssmp.socket.SocketClient;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 public class CombatLogReport implements ModInitializer {
 	public static final String MOD_ID = "combat-log-report";
@@ -25,7 +31,13 @@ public class CombatLogReport implements ModInitializer {
 
 		LOGGER.info("Combat Log Report mod initialized!");
 		LOGGER.info("Combat logging tracking is now active");
-		LOGGER.info("Players who disconnect during combat will be reported in chat");
+		LOGGER.info("Players who disconnect during combat will be reported");
+		
+		// Register server start event to load config and connect to Discord bot
+		ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStart);
+		
+		// Register server stop event to disconnect
+		ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStop);
 		
 		// Register damage event to track combat
 		ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
@@ -40,5 +52,30 @@ public class CombatLogReport implements ModInitializer {
 			}
 			return true; // Allow the damage to proceed
 		});
+	}
+	
+	private void onServerStart(MinecraftServer server) {
+		// Load configuration
+		File configFile = new File("config/combat-log-report.json");
+		ModConfig config = ModConfig.load(configFile);
+		
+		// Initialize socket client if enabled
+		if (config.socket.enabled) {
+			SocketClient socketClient = SocketClient.getInstance();
+			socketClient.configure(config.socket.serverUrl);
+			socketClient.connect();
+			LOGGER.info("Attempting to connect to Discord bot at {}", config.socket.serverUrl);
+		} else {
+			LOGGER.info("Socket communication disabled in configuration");
+		}
+	}
+	
+	private void onServerStop(MinecraftServer server) {
+		// Disconnect from Discord bot
+		SocketClient socketClient = SocketClient.getInstance();
+		if (socketClient.isConnected()) {
+			LOGGER.info("Disconnecting from Discord bot...");
+			socketClient.disconnect();
+		}
 	}
 }

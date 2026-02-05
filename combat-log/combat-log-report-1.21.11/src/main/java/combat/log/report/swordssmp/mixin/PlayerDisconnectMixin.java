@@ -5,6 +5,7 @@ import combat.log.report.swordssmp.CombatManager;
 import combat.log.report.swordssmp.incident.CombatLogIncident;
 import combat.log.report.swordssmp.incident.IncidentManager;
 import combat.log.report.swordssmp.punishment.PunishmentManager;
+import combat.log.report.swordssmp.socket.SocketClient;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -45,17 +46,23 @@ public class PlayerDisconnectMixin {
                 true   // shouldKillOnLogin - yes, kill if ticket denied
             );
             
+            // Send incident to Discord bot via WebSocket
+            SocketClient socketClient = SocketClient.getInstance();
+            socketClient.sendIncident(
+                incident.getId(),
+                player.getUUID(),
+                player.getName().getString(),
+                remainingSeconds
+            );
+            
             // Broadcast report message to other players
             PlayerList playerList = (PlayerList) (Object) this;
             playerList.broadcastSystemMessage(
                 Component.literal("§e[Combat Log Report] §c" + player.getName().getString() + 
                     " logged out during combat with " + String.format("%.1f", remainingSeconds) + 
-                    " seconds remaining! Ticket created."), 
+                    " seconds remaining! Ticket will be created in Discord."), 
                 false
             );
-            
-            // TODO: Send to Discord bot via database
-            // The Discord bot will read the incident from the shared database
             
             combatManager.removePlayer(player.getUUID());
         }
