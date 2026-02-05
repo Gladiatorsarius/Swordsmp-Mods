@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "  a",
+    " ab",
+    "a c"
+  ],
+  "key": {
+    "a": "swordssmp:reinforced_stick",
+    "b": "minecraft:string",
+    "c": "minecraft:tnt"
+  },
+  "result": {
+    "id": "swordssmp:tnt_rod",
+    "count": 1
+  }
+}

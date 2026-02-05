@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "swordssmp",
+	"version": "${version}",
+	"name": "SwordsSMP",
+	"description": "",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://mcreator.net",
+		"sources": ""
+	},
+	"license": "Not specified",
+	"icon": "assets/swordsmp/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.mcreator.swordssmp.SwordssmpMod"
+		],
+		"client": [
+			"net.mcreator.swordssmp.SwordssmpModClient"
+		]
+	},
+	"mixins": [
+		"swordssmp.mixins.json",
+		"swordsmp.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

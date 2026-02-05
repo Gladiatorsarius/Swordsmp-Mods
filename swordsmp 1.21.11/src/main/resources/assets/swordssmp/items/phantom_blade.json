@@ -1,0 +1,14 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "swordssmp:item/phantom_blade"
+    },
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "swordssmp:item/phantom_blade_blocking"
+    },
+    "property": "minecraft:using_item"
+  }
+}
