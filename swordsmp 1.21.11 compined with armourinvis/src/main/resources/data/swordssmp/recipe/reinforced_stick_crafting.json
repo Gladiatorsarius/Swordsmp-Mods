@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " a ",
+    "bcb",
+    " d "
+  ],
+  "key": {
+    "a": "minecraft:netherite_ingot",
+    "b": "minecraft:iron_ingot",
+    "c": "minecraft:stick",
+    "d": "minecraft:iron_bars"
+  },
+  "result": {
+    "id": "swordssmp:reinforced_stick",
+    "count": 1
+  }
+}

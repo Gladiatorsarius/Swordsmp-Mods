@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " a ",
+    "aba",
+    " a "
+  ],
+  "key": {
+    "a": "minecraft:diamond",
+    "b": "minecraft:amethyst_shard"
+  },
+  "result": {
+    "id": "swordssmp:sharpened_amethyst_shard",
+    "count": 1
+  }
+}

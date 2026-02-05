@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "abc",
+    "bdb",
+    "ebf"
+  ],
+  "key": {
+    "a": "minecraft:redstone",
+    "b": "minecraft:slime_ball",
+    "c": "minecraft:sugar",
+    "d": "minecraft:lava_bucket",
+    "e": "minecraft:glowstone_dust",
+    "f": "minecraft:gunpowder"
+  },
+  "result": {
+    "id": "swordssmp:corrosive_dust",
+    "count": 1
+  }
+}

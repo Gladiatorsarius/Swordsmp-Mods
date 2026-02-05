@@ -1,0 +1,42 @@
+{
+  "parent": "minecraft:adventure/root",
+  "display": {
+    "icon": {
+      "id": "swordssmp:dual_blade_1"
+    },
+    "title": {
+      "text": "Dual Wielding"
+    },
+    "description": {
+      "text": "Hold both dual blades in inventory"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_both_dual_blades": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "swordssmp:dual_blade_1"
+            ]
+          },
+          {
+            "items": [
+              "swordssmp:dual_blade_2"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_both_dual_blades"
+    ]
+  ]
+}
