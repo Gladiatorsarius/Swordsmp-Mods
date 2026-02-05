@@ -3,6 +3,8 @@ package combat.log.discord;
 import combat.log.discord.commands.TicketCommands;
 import combat.log.discord.config.BotConfig;
 import combat.log.discord.discord.TicketManager;
+import combat.log.discord.interactions.ButtonHandler;
+import combat.log.discord.interactions.ModalHandler;
 import combat.log.discord.websocket.CombatLogWebSocketServer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -55,8 +57,10 @@ public class CombatLogBot {
         // Register slash commands
         registerCommands();
         
-        // Add command listener
+        // Add event listeners
         jda.addEventListener(new TicketCommands(ticketManager));
+        jda.addEventListener(new ButtonHandler(ticketManager));
+        jda.addEventListener(new ModalHandler(ticketManager));
         
         // Start WebSocket server
         logger.info("Starting WebSocket server on port {}...", config.websocket.port);

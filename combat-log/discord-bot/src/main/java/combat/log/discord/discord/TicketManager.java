@@ -11,6 +11,8 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTagSnowflake;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,8 +108,10 @@ public class TicketManager {
             var forumPost = forum.createForumPost(title, builder.build()).complete();
             ThreadChannel thread = forumPost.getThreadChannel();
             
-            // Send instructions
-            thread.sendMessage(buildInstructionsMessage()).queue();
+            // Send instructions with action buttons
+            thread.sendMessage(buildInstructionsMessage())
+                .setComponents(createActionButtons(incident.getIncidentId()))
+                .queue();
             
             // Tag staff if role exists
             if (config.discord.staffRoleId != null && !config.discord.staffRoleId.isEmpty()) {
@@ -142,7 +146,9 @@ public class TicketManager {
             var message = channel.sendMessageEmbeds(embed).complete();
             ThreadChannel thread = message.createThreadChannel(title).complete();
             
-            thread.sendMessage(buildInstructionsMessage()).queue();
+            thread.sendMessage(buildInstructionsMessage())
+                .setComponents(createActionButtons(incident.getIncidentId()))
+                .queue();
             
             return thread.getId();
         } catch (Exception e) {
@@ -197,6 +203,17 @@ public class TicketManager {
         sb.append("• Use `/info <incident_id>` to view ticket details\n");
         
         return sb.toString();
+    }
+
+    /**
+     * Create action buttons for ticket
+     */
+    private ActionRow createActionButtons(String incidentId) {
+        return ActionRow.of(
+            Button.success("approve:" + incidentId, "✅ Approve"),
+            Button.danger("deny:" + incidentId, "❌ Deny"),
+            Button.secondary("extend:" + incidentId, "⏰ Extend")
+        );
     }
 
     /**
