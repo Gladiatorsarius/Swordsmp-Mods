@@ -135,14 +135,14 @@ Should there be a warning before execution?
 How should Minecraft mod and Discord bot communicate?
 - [ ] **HTTP Webhooks** (recommended - simple)
 - [ ] **REST API** (bot provides API)
-- [ ] **Shared Database only** (no direct communication)
+- [x] **Shared Database only** (no direct communication)
 - [ ] **Let you decide** (choose best option)
 
 ---
 
 ### 12. Fallback Behavior?
 What happens if Discord bot is offline?
-- [ ] **Queue incidents** (send when bot comes back)
+- [x] **Queue incidents** (send when bot comes back)
 - [ ] **Log only** (no ticket created)
 - [ ] **Skip Discord** (just use old in-game behavior)
 
@@ -152,14 +152,14 @@ What happens if Discord bot is offline?
 Can players appeal after auto-denial?
 - [ ] **Yes** (create new ticket system for appeals)
 - [ ] **No** (decision is final)
-- [ ] **Manual only** (contact admin directly)
+- [x] **Manual only** (contact admin directly)
 
 ---
 
 ### 14. Statistics/Dashboard?
 - [ ] **Yes, show incident statistics**
 - [ ] **No, keep it simple**
-- [ ] **Maybe later**
+- [x] **Maybe later**
 
 ---
 
@@ -167,7 +167,7 @@ Can players appeal after auto-denial?
 Will this bot serve multiple Minecraft servers?
 - [ ] **Yes** (plan for multi-server from start)
 - [ ] **No** (single server only)
-- [ ] **Maybe in future** (keep option open)
+- [x] **Maybe in future** (keep option open)
 
 ---
 
@@ -177,7 +177,8 @@ Will this bot serve multiple Minecraft servers?
 
 ```
 Your notes:
-
+i want that when the ticket is pending the player gets banned with the reason ticket still pending
+please ask questions if some are open
 
 
 
