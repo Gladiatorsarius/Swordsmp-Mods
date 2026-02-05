@@ -14,7 +14,7 @@ Choose one:
   - Pros: Popular, async by default, good ecosystem
   - Cons: Can be complex for beginners
   
-- [ ] **Java (JDA)** - Same as Minecraft
+- [x] **Java (JDA)** - Same as Minecraft
   - Pros: Type-safe, same language as mod, good IDE support
   - Cons: More verbose, slower development
   
@@ -25,17 +25,17 @@ Choose one:
 ---
 
 ### 2. Bot Hosting Location?
-- [ ] **Same server as Minecraft** (simplest start)
+- [x] **Same server as Minecraft** (simplest start)
 - [ ] **Different local server** (specify)
 - [ ] **Cloud hosting** (Heroku/Railway/AWS/etc.)
 - [ ] **Not sure yet** (we can decide later)
 
-**Your choice:** __________
+**Your choice:**
 
 ---
 
 ### 3. Database Type?
-- [ ] **SQLite** - Recommended for single server
+- [x] **SQLite** - Recommended for single server
   - Simple file-based database
   - Both Minecraft and bot access same file
   - Easy backup (copy file)
@@ -70,7 +70,7 @@ Choose one:
   - Can be messy with many tickets
   - Clear separation
 
-**Your choice:** __________
+**Your choice:** explain all variantes
 
 ---
 
@@ -79,7 +79,7 @@ How do players link their Minecraft account to Discord?
 
 - [ ] **Manual verification** (player runs /verify command)
 - [ ] **Automatic** (via website or existing system)
-- [ ] **Use existing plugin** (like DiscordSRV)
+- [x] **Use existing plugin** (like DiscordSRV)
 - [ ] **No linking** (just use player names, less reliable)
 - [ ] **Not sure** (we can implement basic and improve later)
 
@@ -93,17 +93,17 @@ How do players link their Minecraft account to Discord?
 How long does a player have to submit proof before auto-denial?
 
 - Recommended: **60 minutes** (1 hour)
-- Your preference: _______ minutes
+- Your preference: 60 minutes
 
 ---
 
 ### 7. Accepted Proof Formats?
 Check all that apply:
-- [ ] YouTube links
-- [ ] Twitch clips
-- [ ] Direct Discord video upload
-- [ ] Streamable links
-- [ ] Other platforms: __________
+- [x] YouTube links
+- [x] Twitch clips
+- [x] Direct Discord video upload
+- [x] Streamable links
+- [x] Other platforms: Medal
 
 ---
 
@@ -111,11 +111,11 @@ Check all that apply:
 - [ ] **Single admin role** (simple)
 - [ ] **Multiple levels** (mods can extend, admins can approve/deny)
 - [ ] **Use existing Discord roles** (specify which)
-
+- [x] **Later Make an setting in the bot**
 ---
 
 ### 9. Multiple Offenses?
-- [ ] **Track offense history**
+- [x] **Track offense history**
 - [ ] **Escalating punishments** (1st = warning, 2nd = penalty, 3rd = ban)
 - [ ] **Each incident separate** (no history tracking)
 
@@ -123,7 +123,7 @@ Check all that apply:
 
 ### 10. Grace Period?
 Should there be a warning before execution?
-- [ ] **No grace period** (immediate on next login if auto-denied)
+- [x] **No grace period** (immediate on next login if auto-denied)
 - [ ] **Give warning** (notify but don't punish until second login)
 - [ ] **X minutes** after login: _____ minutes
 
