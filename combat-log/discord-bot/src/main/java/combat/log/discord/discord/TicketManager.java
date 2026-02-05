@@ -1,6 +1,7 @@
 package combat.log.discord.discord;
 
 import combat.log.discord.config.BotConfig;
+import combat.log.discord.integration.DiscordSRVService;
 import combat.log.discord.models.CombatLogIncident;
 import combat.log.discord.models.IncidentDecision;
 import combat.log.discord.models.Ticket;
@@ -9,6 +10,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTagSnowflake;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -34,14 +36,16 @@ public class TicketManager {
     
     private final JDA jda;
     private final BotConfig config;
+    private final DiscordSRVService discordSRVService;
     private CombatLogWebSocketServer webSocketServer;
     
     private final Map<String, Ticket> activeTickets = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public TicketManager(JDA jda, BotConfig config) {
+    public TicketManager(JDA jda, BotConfig config, DiscordSRVService discordSRVService) {
         this.jda = jda;
         this.config = config;
+        this.discordSRVService = discordSRVService;
         
         // Start timeout checker
         scheduler.scheduleAtFixedRate(this::checkTimeouts, 1, 1, TimeUnit.MINUTES);
@@ -100,7 +104,19 @@ public class TicketManager {
 
             String title = String.format("🚨 Combat Log: %s", incident.getPlayerName());
             
-            MessageEmbed embed = createIncidentEmbed(incident);
+            // Look up Discord user if DiscordSRV enabled
+            String discordId = discordSRVService.getDiscordId(incident.getPlayerUuid());
+            User linkedUser = null;
+            if (discordId != null) {
+                try {
+                    linkedUser = jda.retrieveUserById(discordId).complete();
+                    logger.info("Found linked Discord user for {}: {}", incident.getPlayerName(), linkedUser.getName());
+                } catch (Exception e) {
+                    logger.warn("Failed to retrieve Discord user {}: {}", discordId, e.getMessage());
+                }
+            }
+            
+            MessageEmbed embed = createIncidentEmbed(incident, linkedUser);
             
             MessageCreateBuilder builder = new MessageCreateBuilder();
             builder.setEmbeds(embed);
@@ -108,8 +124,25 @@ public class TicketManager {
             var forumPost = forum.createForumPost(title, builder.build()).complete();
             ThreadChannel thread = forumPost.getThreadChannel();
             
+            // Make thread private and add player if linked
+            if (config.ticket.privateThreads && linkedUser != null) {
+                try {
+                    // Add linked player to thread
+                    final User finalLinkedUser = linkedUser;  // Make effectively final for lambda
+                    thread.addThreadMember(linkedUser).queue(
+                        success -> logger.info("Added {} to private thread", finalLinkedUser.getName()),
+                        error -> logger.warn("Failed to add user to thread: {}", error.getMessage())
+                    );
+                    
+                    // Send DM to player
+                    sendPlayerNotification(linkedUser, thread, incident);
+                } catch (Exception e) {
+                    logger.warn("Failed to make thread private: {}", e.getMessage());
+                }
+            }
+            
             // Send instructions with action buttons
-            thread.sendMessage(buildInstructionsMessage())
+            thread.sendMessage(buildInstructionsMessage(linkedUser))
                 .setComponents(createActionButtons(incident.getIncidentId()))
                 .queue();
             
@@ -119,6 +152,11 @@ public class TicketManager {
                 if (staffRole != null) {
                     thread.sendMessage(staffRole.getAsMention() + " - New combat log incident!").queue();
                 }
+            }
+            
+            // Tag linked player in thread
+            if (linkedUser != null) {
+                thread.sendMessage(linkedUser.getAsMention() + " - Please review the incident and submit proof if needed.").queue();
             }
             
             return thread.getId();
@@ -141,12 +179,35 @@ public class TicketManager {
 
             String title = String.format("Combat Log: %s", incident.getPlayerName());
             
-            MessageEmbed embed = createIncidentEmbed(incident);
+            // Look up Discord user if DiscordSRV enabled
+            String discordId = discordSRVService.getDiscordId(incident.getPlayerUuid());
+            User linkedUser = null;
+            if (discordId != null) {
+                try {
+                    linkedUser = jda.retrieveUserById(discordId).complete();
+                } catch (Exception e) {
+                    logger.warn("Failed to retrieve Discord user {}: {}", discordId, e.getMessage());
+                }
+            }
+            
+            MessageEmbed embed = createIncidentEmbed(incident, linkedUser);
             
             var message = channel.sendMessageEmbeds(embed).complete();
             ThreadChannel thread = message.createThreadChannel(title).complete();
             
-            thread.sendMessage(buildInstructionsMessage())
+            // Make thread private if enabled
+            if (config.ticket.privateThreads) {
+                thread.getManager().setInvitable(false).queue();
+            }
+            
+            // Add linked player to thread if available
+            if (linkedUser != null) {
+                thread.addThreadMember(linkedUser).queue();
+                sendPlayerNotification(linkedUser, thread, incident);
+                thread.sendMessage(linkedUser.getAsMention() + " - Please review this incident.").queue();
+            }
+            
+            thread.sendMessage(buildInstructionsMessage(linkedUser))
                 .setComponents(createActionButtons(incident.getIncidentId()))
                 .queue();
             
@@ -160,7 +221,7 @@ public class TicketManager {
     /**
      * Create embed for incident
      */
-    private MessageEmbed createIncidentEmbed(CombatLogIncident incident) {
+    private MessageEmbed createIncidentEmbed(CombatLogIncident incident, User linkedUser) {
         EmbedBuilder embed = new EmbedBuilder();
         embed.setTitle("⚔️ Combat Log Report");
         embed.setColor(Color.RED);
@@ -171,6 +232,13 @@ public class TicketManager {
             "`" + incident.getIncidentId().substring(0, 8) + "...`", true);
         embed.addField("Combat Time Remaining", 
             String.format("%.1f seconds", incident.getCombatTimeRemaining()), true);
+        
+        // Show Discord link status
+        if (linkedUser != null) {
+            embed.addField("Discord Linked", "✅ " + linkedUser.getAsMention(), true);
+        } else {
+            embed.addField("Discord Linked", "❌ Not linked", true);
+        }
         
         embed.addField("Status", "⏳ Pending Proof", true);
         embed.addField("Deadline", 
@@ -185,22 +253,62 @@ public class TicketManager {
     }
 
     /**
+     * Send DM notification to player
+     */
+    private void sendPlayerNotification(User user, ThreadChannel thread, CombatLogIncident incident) {
+        try {
+            user.openPrivateChannel().queue(dm -> {
+                EmbedBuilder embed = new EmbedBuilder();
+                embed.setTitle("🚨 Combat Log Ticket Created");
+                embed.setColor(Color.ORANGE);
+                embed.setDescription("You have disconnected during combat and a ticket has been created.");
+                
+                embed.addField("What happened?", 
+                    "You disconnected while in combat with another player.", false);
+                embed.addField("What do I need to do?", 
+                    "Submit proof (clip/video) showing you disconnected unintentionally (crash, internet issue, etc.)", false);
+                embed.addField("Where?", 
+                    "In the ticket: " + thread.getAsMention(), false);
+                embed.addField("Deadline", 
+                    String.format("You have **%d minutes** to submit proof", config.ticket.timeoutMinutes), false);
+                embed.addField("What if I don't?", 
+                    "You will be killed when you next log into the server.", false);
+                
+                embed.setFooter("Click the link above to open your ticket");
+                embed.setTimestamp(Instant.now());
+                
+                dm.sendMessageEmbeds(embed.build()).queue(
+                    success -> logger.info("Sent DM notification to {}", user.getName()),
+                    error -> logger.warn("Failed to send DM to {}: {}", user.getName(), error.getMessage())
+                );
+            }, error -> logger.warn("Failed to open DM channel for {}: {}", user.getName(), error.getMessage()));
+        } catch (Exception e) {
+            logger.error("Failed to send player notification: {}", e.getMessage());
+        }
+    }
+
+    /**
      * Build instructions message
      */
-    private String buildInstructionsMessage() {
+    private String buildInstructionsMessage(User linkedUser) {
         StringBuilder sb = new StringBuilder();
         sb.append("**📋 Instructions:**\n\n");
-        sb.append("**For the Player:**\n");
+        
+        if (linkedUser != null) {
+            sb.append("**For ").append(linkedUser.getAsMention()).append(":**\n");
+        } else {
+            sb.append("**For the Player:**\n");
+        }
         sb.append("• Upload a clip/video showing you disconnected unintentionally (crash, internet issue, etc.)\n");
         sb.append("• Accepted platforms: YouTube, Twitch, Streamable, Medal.tv, or Discord upload\n");
         sb.append(String.format("• You have **%d minutes** to submit proof\n", config.ticket.timeoutMinutes));
         sb.append("• If no proof is submitted, you will be killed on your next login\n\n");
         
         sb.append("**For Staff:**\n");
-        sb.append("• Use `/approve <incident_id>` to approve the appeal (clears punishment)\n");
-        sb.append("• Use `/deny <incident_id>` to deny the appeal (player gets killed on login)\n");
-        sb.append("• Use `/extend <incident_id> <minutes>` to extend the deadline\n");
-        sb.append("• Use `/info <incident_id>` to view ticket details\n");
+        sb.append("• Click **✅ Approve** to clear the punishment\n");
+        sb.append("• Click **❌ Deny** to confirm the punishment\n");
+        sb.append("• Click **⏰ Extend** to give more time\n");
+        sb.append("• Or use `/info <incident_id>` for details\n");
         
         return sb.toString();
     }

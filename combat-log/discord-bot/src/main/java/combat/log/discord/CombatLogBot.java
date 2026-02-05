@@ -3,6 +3,7 @@ package combat.log.discord;
 import combat.log.discord.commands.TicketCommands;
 import combat.log.discord.config.BotConfig;
 import combat.log.discord.discord.TicketManager;
+import combat.log.discord.integration.DiscordSRVService;
 import combat.log.discord.interactions.ButtonHandler;
 import combat.log.discord.interactions.ModalHandler;
 import combat.log.discord.websocket.CombatLogWebSocketServer;
@@ -24,6 +25,7 @@ public class CombatLogBot {
     
     private final BotConfig config;
     private final JDA jda;
+    private final DiscordSRVService discordSRVService;
     private final TicketManager ticketManager;
     private final CombatLogWebSocketServer webSocketServer;
 
@@ -37,6 +39,9 @@ public class CombatLogBot {
             logger.error("Please set your bot token in config.json!");
             throw new IllegalStateException("Bot token not configured");
         }
+        
+        // Initialize DiscordSRV integration
+        this.discordSRVService = new DiscordSRVService(config.discordSRV);
         
         // Initialize Discord bot
         logger.info("Connecting to Discord...");
@@ -52,7 +57,7 @@ public class CombatLogBot {
         logger.info("Discord bot connected as: {}", jda.getSelfUser().getName());
         
         // Initialize ticket manager
-        this.ticketManager = new TicketManager(jda, config);
+        this.ticketManager = new TicketManager(jda, config, discordSRVService);
         
         // Register slash commands
         registerCommands();

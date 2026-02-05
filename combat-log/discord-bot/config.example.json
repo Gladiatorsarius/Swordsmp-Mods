@@ -13,6 +13,7 @@
   "ticket": {
     "timeoutMinutes": 60,
     "autoDenyEnabled": true,
+    "privateThreads": true,
     "acceptedProofPlatforms": [
       "youtube.com",
       "youtu.be",
@@ -22,5 +23,17 @@
       "medal.tv",
       "discord.com/attachments"
     ]
+  },
+  "discordSRV": {
+    "enabled": false,
+    "databaseType": "sqlite",
+    "databasePath": "/path/to/plugins/DiscordSRV/accounts.db",
+    "mysql": {
+      "host": "localhost",
+      "port": 3306,
+      "database": "discordsrv",
+      "username": "root",
+      "password": "password"
+    }
   }
 }

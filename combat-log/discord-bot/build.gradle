@@ -20,6 +20,10 @@ dependencies {
     // JSON Processing
     implementation 'com.google.code.gson:gson:2.10.1'
     
+    // Database (for DiscordSRV integration)
+    implementation 'org.xerial:sqlite-jdbc:3.45.1.0'
+    implementation 'com.mysql:mysql-connector-j:8.3.0'
+    
     // Logging
     implementation 'org.slf4j:slf4j-api:2.0.9'
     implementation 'ch.qos.logback:logback-classic:1.4.14'

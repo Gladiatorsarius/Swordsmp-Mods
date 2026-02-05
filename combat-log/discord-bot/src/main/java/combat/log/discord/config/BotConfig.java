@@ -22,6 +22,9 @@ public class BotConfig {
     
     // Ticket settings
     public TicketSettings ticket = new TicketSettings();
+    
+    // DiscordSRV integration settings
+    public DiscordSRVSettings discordSRV = new DiscordSRVSettings();
 
     public static class DiscordSettings {
         public String token = "YOUR_BOT_TOKEN_HERE";
@@ -39,6 +42,7 @@ public class BotConfig {
     public static class TicketSettings {
         public long timeoutMinutes = 60;
         public boolean autoDenyEnabled = true;
+        public boolean privateThreads = true; // Create private threads for linked players
         public String[] acceptedProofPlatforms = {
             "youtube.com", "youtu.be",
             "twitch.tv", "clips.twitch.tv",
@@ -46,6 +50,21 @@ public class BotConfig {
             "medal.tv",
             "discord.com/attachments"
         };
+    }
+    
+    public static class DiscordSRVSettings {
+        public boolean enabled = false;
+        public String databaseType = "sqlite"; // "sqlite" or "mysql"
+        public String databasePath = "/path/to/plugins/DiscordSRV/accounts.db";
+        public MySQLSettings mysql = new MySQLSettings();
+    }
+    
+    public static class MySQLSettings {
+        public String host = "localhost";
+        public int port = 3306;
+        public String database = "discordsrv";
+        public String username = "root";
+        public String password = "password";
     }
 
     public static BotConfig load(File configFile) {
