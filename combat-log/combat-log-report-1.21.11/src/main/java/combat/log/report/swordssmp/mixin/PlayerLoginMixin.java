@@ -27,8 +27,10 @@ public class PlayerLoginMixin {
             PendingPunishment punishment = punishmentManager.getPendingPunishment(player.getUUID());
             CombatLogIncident incident = incidentManager.getIncident(punishment.getIncidentId());
             
-            // If player should be banned (ticket still pending)
-            if (punishment.shouldBan()) {
+            // Handle punishment based on incident status
+            boolean shouldKick = punishmentManager.handlePlayerLogin(player, incident);
+            
+            if (shouldKick) {
                 CombatLogReport.LOGGER.warn("Player {} tried to join with pending combat log ticket - kicking",
                     player.getName().getString());
                 
@@ -36,19 +38,6 @@ public class PlayerLoginMixin {
                     Component.literal("§c§lCombat Log Ticket Pending\n\n" +
                         "§eYou have an active combat log ticket in Discord.\n" +
                         "§ePlease submit your proof before joining the server.\n\n" +
-                        "§7Ticket ID: " + (incident != null ? incident.getId().toString().substring(0, 8) : "N/A"))
-                );
-                return;
-            }
-            
-            // Handle punishment based on incident status
-            boolean shouldKick = punishmentManager.handlePlayerLogin(player, incident);
-            
-            if (shouldKick) {
-                player.connection.disconnect(
-                    Component.literal("§c§lCombat Log Ticket Pending\n\n" +
-                        "§eYou must resolve your combat log ticket in Discord\n" +
-                        "§ebefore joining the server.\n\n" +
                         "§7Ticket ID: " + (incident != null ? incident.getId().toString().substring(0, 8) : "N/A"))
                 );
             }

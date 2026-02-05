@@ -74,6 +74,15 @@ public class PunishmentManager {
 
         IncidentStatus status = incident.getStatus();
 
+        // If approved, this should have been cleared already, but handle it just in case
+        if (status == IncidentStatus.APPROVED) {
+            player.sendSystemMessage(Component.literal(
+                "§a§lYour combat log appeal was approved! You may continue playing."
+            ));
+            clearPunishment(playerUuid);
+            return false; // Allow login
+        }
+
         // If still pending, ban them
         if (status == IncidentStatus.PENDING || status == IncidentStatus.CLIP_UPLOADED) {
             if (punishment.shouldBan()) {
@@ -87,15 +96,6 @@ public class PunishmentManager {
                 ));
                 return false;
             }
-        }
-
-        // If approved, clear and allow
-        if (status == IncidentStatus.APPROVED) {
-            player.sendSystemMessage(Component.literal(
-                "§a§lYour combat log appeal was approved! You may continue playing."
-            ));
-            clearPunishment(playerUuid);
-            return false;
         }
 
         // If denied or auto-denied, kill player
@@ -125,11 +125,11 @@ public class PunishmentManager {
             return;
         }
 
-        // If approved, remove ban requirement
+        // If approved, REMOVE punishment entirely
         if (newStatus == IncidentStatus.APPROVED) {
-            punishment.setShouldBan(false);
-            punishment.setShouldKillOnLogin(false);
-            CombatLogReport.LOGGER.info("Updated punishment for player {} - approved", playerUuid);
+            clearPunishment(playerUuid);
+            CombatLogReport.LOGGER.info("Cleared punishment for player {} - ticket approved", playerUuid);
+            return;
         }
         
         // If denied, remove ban but keep kill
