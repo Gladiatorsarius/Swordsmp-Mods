@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " ab",
+    " ca",
+    "c  "
+  ],
+  "key": {
+    "a": "minecraft:feather",
+    "b": "minecraft:writable_book",
+    "c": "swordssmp:reinforced_stick"
+  },
+  "result": {
+    "id": "swordssmp:levitation_wand",
+    "count": 1
+  }
+}

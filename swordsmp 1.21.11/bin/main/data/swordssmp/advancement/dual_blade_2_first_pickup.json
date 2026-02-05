@@ -1,0 +1,37 @@
+{
+  "parent": "minecraft:adventure/root",
+  "display": {
+    "icon": {
+      "id": "swordssmp:dual_blade_2"
+    },
+    "title": {
+      "text": "Dual Blade"
+    },
+    "description": {
+      "text": "Hold a dual blade"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_dual_blade_2": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "swordssmp:dual_blade_2"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_dual_blade_2"
+    ]
+  ]
+}

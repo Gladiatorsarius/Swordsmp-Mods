@@ -1,0 +1,37 @@
+{
+  "parent": "minecraft:adventure/root",
+  "display": {
+    "icon": {
+      "id": "swordssmp:life_stealer"
+    },
+    "title": {
+      "text": "Life Stealer"
+    },
+    "description": {
+      "text": "Hold Life Stealer in your inventory"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_life_stealer": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "swordssmp:life_stealer"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_life_stealer"
+    ]
+  ]
+}

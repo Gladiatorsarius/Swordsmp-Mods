@@ -1,0 +1,37 @@
+{
+  "parent": "minecraft:adventure/root",
+  "display": {
+    "icon": {
+      "id": "swordssmp:phantom_blade"
+    },
+    "title": {
+      "text": "Phantom Blade"
+    },
+    "description": {
+      "text": "Hold Phantom Blade in your inventory"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_phantom_blade": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "swordssmp:phantom_blade"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_phantom_blade"
+    ]
+  ]
+}

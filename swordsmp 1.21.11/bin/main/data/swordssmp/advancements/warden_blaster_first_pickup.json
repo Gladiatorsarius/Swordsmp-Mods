@@ -1,0 +1,37 @@
+{
+  "parent": "minecraft:adventure/root",
+  "display": {
+    "icon": {
+      "id": "swordssmp:warden_blaster"
+    },
+    "title": {
+      "text": "Warden Blaster"
+    },
+    "description": {
+      "text": "Hold Warden Blaster in your inventory"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_warden_blaster": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "swordssmp:warden_blaster"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_warden_blaster"
+    ]
+  ]
+}

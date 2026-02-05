@@ -1,0 +1,37 @@
+{
+  "parent": "minecraft:adventure/root",
+  "display": {
+    "icon": {
+      "id": "swordssmp:earth_wave_sword"
+    },
+    "title": {
+      "text": "Earth Wave Sword"
+    },
+    "description": {
+      "text": "Hold Earth Wave Sword in your inventory"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_earth_wave_sword": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "swordssmp:earth_wave_sword"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_earth_wave_sword"
+    ]
+  ]
+}

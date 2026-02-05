@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "abc",
+    "ded",
+    " e "
+  ],
+  "key": {
+    "a": "minecraft:smoker",
+    "b": "minecraft:furnace",
+    "c": "minecraft:blast_furnace",
+    "d": "minecraft:coal_block",
+    "e": "swordssmp:reinforced_stick"
+  },
+  "result": {
+    "id": "swordssmp:smelter_pickaxe",
+    "count": 1
+  }
+}
