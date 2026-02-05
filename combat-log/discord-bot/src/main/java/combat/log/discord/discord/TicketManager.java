@@ -349,11 +349,25 @@ public class TicketManager {
                 }
                 
                 embed.setTimestamp(Instant.now());
-                thread.sendMessageEmbeds(embed.build()).queue();
                 
                 // Close thread if resolved
-                if (color == Color.GREEN || color == Color.RED || color == Color.DARK_GRAY) {
-                    thread.getManager().setArchived(true).queue();
+                boolean shouldArchive = (color == Color.GREEN || color == Color.RED || color == Color.DARK_GRAY);
+                
+                if (shouldArchive) {
+                    // Send message FIRST, then archive after message is sent successfully
+                    thread.sendMessageEmbeds(embed.build()).queue(
+                        success -> {
+                            // Archive thread after message is sent
+                            thread.getManager().setArchived(true).queue(
+                                archiveSuccess -> logger.debug("Thread {} archived successfully", thread.getId()),
+                                archiveError -> logger.error("Failed to archive thread {}: {}", thread.getId(), archiveError.getMessage())
+                            );
+                        },
+                        error -> logger.error("Failed to send status message to thread {}: {}", thread.getId(), error.getMessage())
+                    );
+                } else {
+                    // Just send the message without archiving
+                    thread.sendMessageEmbeds(embed.build()).queue();
                 }
             }
         } catch (Exception e) {
