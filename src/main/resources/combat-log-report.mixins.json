@@ -3,7 +3,8 @@
 	"package": "combat.log.report.swordssmp.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin"
+		"PlayerDisconnectMixin",
+		"ServerTickMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

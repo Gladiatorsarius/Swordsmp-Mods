@@ -3,9 +3,9 @@
 	"id": "combat-log-report",
 	"version": "${version}",
 	"name": "Combat Log Report",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A combat logging prevention plugin for SwordSMP. Prevents players from logging out during combat to avoid PvP. Similar to Donut SMP's combat log system.",
 	"authors": [
-		"Me!"
+		"SwordSMP"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
