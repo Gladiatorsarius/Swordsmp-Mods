@@ -26,7 +26,7 @@ public class CombatManager {
         combatTimers.put(playerId, currentTime + COMBAT_DURATION);
         
         if (!wasInCombat) {
-            player.sendSystemMessage(Component.literal("§c§lYou are now in combat! Do not log out for 15 seconds!"));
+            player.sendSystemMessage(Component.literal("§e§lYou are now in combat! Logging out will be reported for 15 seconds!"));
             CombatLogReport.LOGGER.info("Player {} entered combat", player.getName().getString());
         }
     }

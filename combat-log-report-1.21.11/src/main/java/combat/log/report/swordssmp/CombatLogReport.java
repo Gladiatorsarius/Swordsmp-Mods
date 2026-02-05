@@ -24,8 +24,8 @@ public class CombatLogReport implements ModInitializer {
 		// Proceed with mild caution.
 
 		LOGGER.info("Combat Log Report mod initialized!");
-		LOGGER.info("Combat logging prevention is now active");
-		LOGGER.info("Players who disconnect during combat will be punished");
+		LOGGER.info("Combat logging tracking is now active");
+		LOGGER.info("Players who disconnect during combat will be reported in chat");
 		
 		// Register damage event to track combat
 		ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {

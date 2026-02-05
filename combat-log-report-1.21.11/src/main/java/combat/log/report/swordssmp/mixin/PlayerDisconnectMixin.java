@@ -23,13 +23,10 @@ public class PlayerDisconnectMixin {
             CombatLogReport.LOGGER.warn("Player {} logged out during combat with {} seconds remaining!", 
                 player.getName().getString(), remainingTime / 1000.0);
             
-            // Kill the player as punishment for combat logging
-            player.hurt(player.damageSources().generic(), Float.MAX_VALUE);
-            
-            // Broadcast to other players
+            // Broadcast report message to other players
             PlayerList playerList = (PlayerList) (Object) this;
             playerList.broadcastSystemMessage(
-                Component.literal("§c" + player.getName().getString() + " logged out during combat!"), 
+                Component.literal("§e[Combat Log Report] §c" + player.getName().getString() + " logged out during combat with " + String.format("%.1f", remainingTime / 1000.0) + " seconds remaining!"), 
                 false
             );
             

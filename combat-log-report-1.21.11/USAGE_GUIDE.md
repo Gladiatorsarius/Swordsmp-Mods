@@ -3,7 +3,7 @@
 ## 🎮 For Players: What You Need to Know
 
 ### What is this mod?
-This mod prevents you from disconnecting during PvP combat. It's designed to keep fights fair by making sure players can't just log out when they're losing.
+This mod tracks when you disconnect during PvP combat and reports it to all players on the server. It doesn't punish you, but everyone will know if you combat logged.
 
 ### When am I "in combat"?
 You're in combat when:
@@ -18,7 +18,7 @@ Both you and your opponent will be tagged in combat **for 15 seconds**.
 You hit another player...
 ┌─────────────────────────────────────────────────┐
 │ ⚠️  You are now in combat!                      │
-│     Do not log out for 15 seconds!              │
+│     Logging out will be reported for 15 seconds!│
 └─────────────────────────────────────────────────┘
 ```
 
@@ -43,31 +43,33 @@ Combat ends in 1 seconds...
 ✅ You are no longer in combat!
 ```
 
-## ⚠️ WARNING: What Happens if I Log Out During Combat?
+## ⚠️ What Happens if I Log Out During Combat?
 
-**YOU WILL DIE!**
+**A REPORT WILL BE BROADCAST!**
 
 If you disconnect while in combat:
-1. 💀 Your character is killed
-2. 🎒 ALL your items drop on the ground
-3. 📢 Everyone on the server is notified
-4. 👥 Your opponent can take all your stuff
+1. 📢 All players on the server are notified
+2. 🕒 The message shows how much combat time was remaining
+3. 👥 Your reputation may be affected
+4. 💼 Your character logs out normally (no death, no item loss)
 
-### Example of Combat Logging Punishment:
+### Example of Combat Logging Report:
 
 ```
 You're losing a fight with Steve...
-You panic and disconnect...
+You disconnect...
 
-❌ PUNISHED!
+📢 SERVER BROADCAST
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Your character dies
-All items dropped at your location
-Server message: "YourName logged out during combat!"
-Steve collects all your items
+[Combat Log Report] YourName logged out during combat 
+with 10.5 seconds remaining!
+
+Everyone on the server sees this message
+Your character logs out normally
+No items are lost
 ```
 
-## ✅ How to Safely Log Out
+## ✅ How to Log Out Without Being Reported
 
 ### Option 1: Wait Out the Timer
 ```
@@ -75,7 +77,7 @@ Steve collects all your items
 2. Run away if needed
 3. Wait 15 seconds
 4. When you see "You are no longer in combat!"
-5. Now you can safely log out
+5. Now you can log out without being reported
 ```
 
 ### Option 2: Defeat Your Opponent
@@ -83,7 +85,7 @@ Steve collects all your items
 1. Win the fight
 2. Wait 15 seconds after the last hit
 3. Receive the "no longer in combat" message
-4. Log out safely
+4. Log out without report
 ```
 
 ### Option 3: Create Distance
@@ -96,14 +98,14 @@ Steve collects all your items
 
 ## 🤔 Frequently Asked Questions
 
-### Can I disconnect if I'm about to die anyway?
-**No.** You'll still be killed and drop your items. There's no benefit to combat logging.
+### What happens if I disconnect during combat?
+A report message is broadcast to all players. You won't die or lose items, but everyone will know you combat logged.
 
 ### What if my game crashes during combat?
-The mod can't tell the difference between a crash and intentionally disconnecting. You'll still be killed and drop items.
+The mod can't tell the difference between a crash and intentionally disconnecting. A report will still be broadcast.
 
 ### What if someone keeps hitting me?
-The timer resets every time either player attacks. You need 15 seconds of NO combat to be safe.
+The timer resets every time either player attacks. You need 15 seconds of NO combat to be clear.
 
 ### Does this apply to PvE (fighting mobs)?
 **No.** Only player vs player combat triggers the combat tag.
@@ -111,8 +113,11 @@ The timer resets every time either player attacks. You need 15 seconds of NO com
 ### What about accidental hits?
 Any player damage counts. Even one accidental hit will tag both players for 15 seconds.
 
-### Can I use /spawn or teleport commands?
-That depends on your server's other plugins. This mod only affects logging out.
+### Will I lose my items if I combat log?
+**No.** This mod only reports the incident. You keep all your items and log out normally.
+
+### Can server admins see the reports?
+Yes, the reports are broadcast to all online players including admins.
 
 ## 💡 Pro Tips
 
@@ -122,11 +127,11 @@ Watch for the combat messages. If you see countdown warnings, you're still tagge
 ### Tip 2: Plan Your Exits
 If you need to log out, finish your fights first or avoid combat zones.
 
-### Tip 3: Keep Valuables Safe
-Don't carry items you can't afford to lose in PvP areas.
+### Tip 3: Maintain Your Reputation
+Being reported for combat logging may affect how other players view you.
 
 ### Tip 4: Communicate
-If you need to leave urgently, try to communicate with your opponent. Some players may let you go.
+If you need to leave urgently, try to communicate with your opponent. Some players may understand.
 
 ### Tip 5: Fight or Flight
 When tagged in combat, decide quickly: fight to win or disengage and wait 15 seconds.
@@ -136,8 +141,8 @@ When tagged in combat, decide quickly: fight to win or disengage and wait 15 sec
 **Simple Rules:**
 1. ⚔️ Fighting another player = 15 second combat tag
 2. ⏱️ Timer resets with each hit
-3. 🚫 DON'T log out during combat
+3. ⚠️ Logging out during combat = Public report to all players
 4. ⏰ WAIT 15 seconds after fighting stops
-5. ✅ Safe to log out when you get the clear message
+5. ✅ No report when you get the clear message
 
-**Remember:** Fair fights make better gameplay for everyone!
+**Remember:** This mod tracks behavior and promotes transparency, not punishment!

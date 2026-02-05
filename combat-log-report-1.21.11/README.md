@@ -1,10 +1,10 @@
-# SwordSMP Combat Log Plugin
+# SwordSMP Combat Log Report
 
-A Fabric mod for Minecraft 1.21.11 that prevents combat logging on multiplayer servers.
+A Fabric mod for Minecraft 1.21.11 that tracks and reports combat logging on multiplayer servers.
 
 ## 🎯 What is Combat Logging?
 
-**Combat logging** is when a player disconnects from the server during PvP combat to avoid death and losing their items. This is considered unfair gameplay. This mod prevents that by applying consequences to players who disconnect while fighting.
+**Combat logging** is when a player disconnects from the server during PvP combat to avoid death and losing their items. This mod tracks these incidents and reports them to all players on the server.
 
 ## ✨ Features
 
@@ -14,21 +14,21 @@ A Fabric mod for Minecraft 1.21.11 that prevents combat logging on multiplayer s
 - Combat timer resets if either player attacks or is attacked again
 
 ### Player Notifications
-- **Combat Entry**: Players receive a warning message when they enter combat: "§c§lYou are now in combat! Do not log out for 15 seconds!"
+- **Combat Entry**: Players receive a warning message when they enter combat: "§e§lYou are now in combat! Logging out will be reported for 15 seconds!"
 - **Combat Countdown**: Players are notified when combat is about to end (at 5, 3, 2, 1 seconds remaining)
 - **Combat Exit**: Players receive a confirmation message when they leave combat: "§aYou are no longer in combat!"
 
-### Combat Logging Prevention
-- If a player disconnects while in combat, they are **killed** as punishment
-- All other players on the server are notified: "§c[Player Name] logged out during combat!"
-- This prevents players from escaping PvP by disconnecting
+### Combat Logging Reporting
+- If a player disconnects while in combat, a report is broadcast to all players
+- Message format: "§e[Combat Log Report] §c[Player Name] logged out during combat with X.X seconds remaining!"
+- This creates transparency and tracks combat logging incidents without punishment
 
 ## 📖 Example Scenarios
 
 ### Scenario 1: Normal Combat Exit
 ```
 1. Player A attacks Player B
-   → Both receive: "§c§lYou are now in combat! Do not log out for 15 seconds!"
+   → Both receive: "§e§lYou are now in combat! Logging out will be reported for 15 seconds!"
 
 2. 10 seconds pass with no further attacks
    → Players receive: "§eCombat ends in 5 seconds..."
@@ -37,18 +37,18 @@ A Fabric mod for Minecraft 1.21.11 that prevents combat logging on multiplayer s
 
 3. 15 seconds total pass
    → Both receive: "§aYou are no longer in combat!"
-   → Players can safely log out
+   → Players can safely log out without reports
 ```
 
-### Scenario 2: Combat Logging Attempt
+### Scenario 2: Combat Logging Report
 ```
 1. Player A attacks Player B
    → Both tagged in combat
 
-2. Player B panics and disconnects after 5 seconds
-   → Player B is killed (drops all items)
-   → Server broadcasts: "§cPlayer B logged out during combat!"
-   → Player A can collect the dropped items
+2. Player B disconnects after 5 seconds
+   → Server broadcasts: "§e[Combat Log Report] §cPlayer B logged out during combat with 10.0 seconds remaining!"
+   → All players see the report
+   → Player B's character remains in-game until normal disconnect
 ```
 
 ### Scenario 3: Extended Combat
@@ -57,7 +57,7 @@ A Fabric mod for Minecraft 1.21.11 that prevents combat logging on multiplayer s
 2. After 10 seconds, Player B hits back
    → Timer resets to 15 seconds for both players
 3. Combat continues with timers resetting on each hit
-4. When fighting stops, 15 seconds must pass before safe logout
+4. When fighting stops, 15 seconds must pass before no report on logout
 ```
 
 ## 🔧 How It Works
@@ -71,8 +71,9 @@ The plugin uses:
 - **Combat Duration**: 15 seconds (15000 milliseconds)
 - **Timer Reset**: Every time a tagged player attacks or is attacked
 - **Countdown Warnings**: Displayed at 5, 3, 2, and 1 seconds remaining
-- **Punishment**: Player is killed using maximum damage (Float.MAX_VALUE)
+- **Reporting**: Broadcasts a message to all players when someone logs out during combat
 - **Thread Safety**: Uses ConcurrentHashMap for safe multi-threaded access
+- **No Punishment**: Players are NOT killed - only reported in chat
 
 ## 📦 Installation
 
@@ -100,10 +101,11 @@ The built JAR will be in `build/libs/combat-log-report-1.0.0.jar`
 ## 🎮 Server Integration
 
 This mod is designed for multiplayer survival servers (SMP) where PvP is enabled. It's particularly useful for:
-- Faction servers
-- Anarchy servers
-- SMP servers with PvP zones
-- Any server where fair PvP is important
+- SMP servers wanting combat transparency
+- Servers that prefer reporting over punishment
+- Community-driven servers with honor systems
+- Servers tracking PvP statistics and behavior
+- Any server where combat logging awareness is important
 
 ## 🔍 Troubleshooting
 
@@ -124,7 +126,7 @@ This mod is designed for multiplayer survival servers (SMP) where PvP is enabled
 
 ## 💡 Similar To
 
-This plugin functions similarly to combat log systems found on popular SMP servers like Donut SMP, where players cannot escape PvP by disconnecting.
+This plugin functions similarly to combat log tracking systems found on various SMP servers, providing transparency about combat logging incidents without applying harsh punishments.
 
 ## 📜 License
 
@@ -135,3 +137,4 @@ See LICENSE file for details.
 - Built with Fabric Mod Loader
 - Uses Fabric API for event handling
 - Designed for SwordSMP server
+- Tracks combat logging for server transparency
