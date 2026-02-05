@@ -2,6 +2,9 @@ package combat.log.report.swordssmp.mixin;
 
 import combat.log.report.swordssmp.CombatLogReport;
 import combat.log.report.swordssmp.CombatManager;
+import combat.log.report.swordssmp.incident.CombatLogIncident;
+import combat.log.report.swordssmp.incident.IncidentManager;
+import combat.log.report.swordssmp.punishment.PunishmentManager;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,21 +19,45 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class PlayerDisconnectMixin {
     @Inject(method = "remove", at = @At("HEAD"))
     private void onPlayerDisconnect(ServerPlayer player, CallbackInfo ci) {
-        CombatManager manager = CombatManager.getInstance();
+        CombatManager combatManager = CombatManager.getInstance();
         
-        if (manager.isInCombat(player.getUUID())) {
-            long remainingTime = manager.getRemainingTime(player.getUUID());
+        if (combatManager.isInCombat(player.getUUID())) {
+            long remainingTime = combatManager.getRemainingTime(player.getUUID());
+            double remainingSeconds = remainingTime / 1000.0;
+            
             CombatLogReport.LOGGER.warn("Player {} logged out during combat with {} seconds remaining!", 
-                player.getName().getString(), remainingTime / 1000.0);
+                player.getName().getString(), remainingSeconds);
+            
+            // Create incident record
+            IncidentManager incidentManager = IncidentManager.getInstance();
+            CombatLogIncident incident = incidentManager.createIncident(
+                player.getUUID(),
+                player.getName().getString(),
+                remainingSeconds
+            );
+            
+            // Add pending punishment (ban while ticket pending, kill on denial)
+            PunishmentManager punishmentManager = PunishmentManager.getInstance();
+            punishmentManager.addPendingPunishment(
+                player.getUUID(),
+                incident.getId(),
+                true,  // shouldBan - yes, ban while ticket pending
+                true   // shouldKillOnLogin - yes, kill if ticket denied
+            );
             
             // Broadcast report message to other players
             PlayerList playerList = (PlayerList) (Object) this;
             playerList.broadcastSystemMessage(
-                Component.literal("§e[Combat Log Report] §c" + player.getName().getString() + " logged out during combat with " + String.format("%.1f", remainingTime / 1000.0) + " seconds remaining!"), 
+                Component.literal("§e[Combat Log Report] §c" + player.getName().getString() + 
+                    " logged out during combat with " + String.format("%.1f", remainingSeconds) + 
+                    " seconds remaining! Ticket created."), 
                 false
             );
             
-            manager.removePlayer(player.getUUID());
+            // TODO: Send to Discord bot via database
+            // The Discord bot will read the incident from the shared database
+            
+            combatManager.removePlayer(player.getUUID());
         }
     }
 }
