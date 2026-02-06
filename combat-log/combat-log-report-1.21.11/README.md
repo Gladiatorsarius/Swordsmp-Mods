@@ -137,6 +137,32 @@ First run creates `config/combat-log-report.json`:
 - `socket.enabled` - Enable/disable Discord integration
 - `socket.serverUrl` - WebSocket URL of Discord bot (default: ws://localhost:8080/combat-log)
 
+### Game Rules
+
+The mod adds custom gamerules that can be configured in-game:
+
+**`bypassCombatLogSystem`** (default: `false`)
+- **Type**: Boolean (true/false)
+- **Category**: Player
+- **Description**: When enabled, completely bypasses the combat log system
+  - ❌ No Discord incidents created
+  - ❌ No player heads spawned
+  - ❌ No punishments applied
+  - ✅ Items drop naturally like a normal death
+  - ✅ Simple broadcast message when player logs during combat
+- **Use Case**: Testing, events, or situations where you want normal death behavior
+- **Command**: `/gamerule bypassCombatLogSystem true` (requires OP)
+- **Server-side only**: No client modifications needed
+
+**Example Usage:**
+```mcfunction
+# Enable bypass (items drop normally, no Discord tickets)
+/gamerule bypassCombatLogSystem true
+
+# Disable bypass (full combat log system active)
+/gamerule bypassCombatLogSystem false
+```
+
 ### Server Log Verification
 
 Check the server log for successful initialization:

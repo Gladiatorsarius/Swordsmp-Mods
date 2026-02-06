@@ -164,3 +164,51 @@ When tagged in combat, decide quickly: fight to win or disengage and wait 15 sec
 5. ✅ No report when you get the clear message
 
 **Remember:** This mod tracks behavior and promotes transparency, not punishment!
+
+---
+
+## 👑 For Server Operators
+
+### Gamerule Commands
+
+The mod provides custom gamerules for server configuration:
+
+#### `bypassCombatLogSystem`
+Completely bypasses the combat log detection system.
+
+**Usage:**
+```mcfunction
+/gamerule bypassCombatLogSystem true   # Enable bypass
+/gamerule bypassCombatLogSystem false  # Disable bypass (default)
+```
+
+**When enabled (true):**
+- ❌ No Discord incidents/tickets created
+- ❌ No player heads spawned
+- ❌ No temporary bans
+- ❌ No punishments on login
+- ✅ Items drop naturally like normal death
+- ✅ Simple broadcast message when player logs during combat
+
+**When disabled (false - default):**
+- ✅ Full combat log system active
+- ✅ Discord tickets created
+- ✅ Player heads with inventory spawned
+- ✅ Temporary bans until ticket resolved
+
+**Use Cases:**
+- Testing the server without triggering the full system
+- Special events where combat logging is allowed
+- Temporary bypass during server issues
+- Situations where you want normal death mechanics
+
+**Example Scenarios:**
+```mcfunction
+# During a special PvP event with no penalties
+/gamerule bypassCombatLogSystem true
+
+# After the event, restore normal combat log enforcement
+/gamerule bypassCombatLogSystem false
+```
+
+**Note:** This is a server-side setting only. No client modification needed.
