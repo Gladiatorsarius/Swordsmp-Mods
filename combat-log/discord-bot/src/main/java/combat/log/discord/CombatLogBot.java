@@ -6,7 +6,6 @@ import combat.log.discord.commands.WhitelistCommands;
 import combat.log.discord.config.BotConfig;
 import combat.log.discord.database.LinkingDatabase;
 import combat.log.discord.discord.TicketManager;
-import combat.log.discord.integration.DiscordSRVService;
 import combat.log.discord.interactions.ButtonHandler;
 import combat.log.discord.interactions.ModalHandler;
 import combat.log.discord.websocket.CombatLogWebSocketServer;
@@ -31,7 +30,6 @@ public class CombatLogBot {
     
     private final BotConfig config;
     private final JDA jda;
-    private final DiscordSRVService discordSRVService;
     private final TicketManager ticketManager;
     private final CombatLogWebSocketServer webSocketServer;
     private final LinkingDatabase linkingDatabase;
@@ -48,9 +46,6 @@ public class CombatLogBot {
             logger.error("Please set your bot token in config.json!");
             throw new IllegalStateException("Bot token not configured");
         }
-        
-        // Initialize DiscordSRV integration
-        this.discordSRVService = new DiscordSRVService(config.discordSRV);
         
         // Initialize linking database
         String dbPath = "./database/whitelist.db";
@@ -74,8 +69,8 @@ public class CombatLogBot {
         this.jda.awaitReady();
         logger.info("Discord bot connected as: {}", jda.getSelfUser().getName());
         
-        // Initialize ticket manager
-        this.ticketManager = new TicketManager(jda, config, discordSRVService, linkingDatabase);
+        // Initialize ticket manager (no longer using DiscordSRV)
+        this.ticketManager = new TicketManager(jda, config, linkingDatabase);
         
         // Initialize whitelist manager
         this.whitelistManager = new WhitelistManager(jda, config, linkingDatabase, mojangAPI);
@@ -94,7 +89,7 @@ public class CombatLogBot {
         
         // Start WebSocket server
         logger.info("Starting WebSocket server on port {}...", config.websocket.port);
-        this.webSocketServer = new CombatLogWebSocketServer(config, ticketManager);
+        this.webSocketServer = new CombatLogWebSocketServer(config, ticketManager, linkingDatabase);
         ticketManager.setWebSocketServer(webSocketServer);
         whitelistManager.setWebSocketServer(webSocketServer);
         webSocketServer.start();

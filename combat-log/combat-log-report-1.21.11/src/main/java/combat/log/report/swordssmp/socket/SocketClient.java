@@ -165,6 +165,9 @@ public class SocketClient {
             } else if ("link_player".equals(baseMessage.getType())) {
                 PlayerLinkMessage linkMsg = gson.fromJson(text, PlayerLinkMessage.class);
                 handlePlayerLink(linkMsg);
+            } else if ("unlink_player".equals(baseMessage.getType())) {
+                UnlinkMessage unlinkMsg = gson.fromJson(text, UnlinkMessage.class);
+                handleUnlink(unlinkMsg);
             } else {
                 CombatLogReport.LOGGER.warn("Unknown message type: {}", baseMessage.getType());
             }
@@ -225,6 +228,18 @@ public class SocketClient {
             message.getPlayerName(),
             message.isWhitelisted()
         );
+    }
+
+    /**
+     * Handle unlink message from Discord bot
+     */
+    private void handleUnlink(UnlinkMessage message) {
+        CombatLogReport.LOGGER.info("Received unlink command for: {} ({})", 
+            message.getPlayerName(), message.getPlayerUuid());
+        
+        // Remove from linking manager
+        PlayerLinkingManager linkManager = PlayerLinkingManager.getInstance();
+        linkManager.removeLink(message.getPlayerUuid());
     }
 
     /**

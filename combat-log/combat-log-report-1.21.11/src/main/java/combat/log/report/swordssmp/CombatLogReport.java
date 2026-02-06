@@ -2,9 +2,11 @@ package combat.log.report.swordssmp;
 
 import combat.log.report.swordssmp.config.ModConfig;
 import combat.log.report.swordssmp.linking.PlayerLinkingManager;
+import combat.log.report.swordssmp.linking.UnlinkCommand;
 import combat.log.report.swordssmp.socket.SocketClient;
 import combat.log.report.swordssmp.whitelist.WhitelistCommandHandler;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
@@ -34,6 +36,11 @@ public class CombatLogReport implements ModInitializer {
 		LOGGER.info("Combat Log Report mod initialized!");
 		LOGGER.info("Combat logging tracking is now active");
 		LOGGER.info("Players who disconnect during combat will be reported");
+		
+		// Register unlink command
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			UnlinkCommand.register(dispatcher);
+		});
 		
 		// Register server start event to load config and connect to Discord bot
 		ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStart);

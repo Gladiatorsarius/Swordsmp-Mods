@@ -1,10 +1,12 @@
 package combat.log.discord.websocket;
 
 import combat.log.discord.config.BotConfig;
+import combat.log.discord.database.LinkingDatabase;
 import combat.log.discord.discord.TicketManager;
 import combat.log.discord.models.CombatLogIncident;
 import combat.log.discord.models.IncidentDecision;
 import combat.log.discord.models.SocketMessage;
+import combat.log.discord.models.UnlinkMessage;
 import com.google.gson.Gson;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -22,12 +24,14 @@ public class CombatLogWebSocketServer extends WebSocketServer {
     private final Gson gson = new Gson();
     private final TicketManager ticketManager;
     private final BotConfig config;
+    private final LinkingDatabase linkingDatabase;
     private WebSocket minecraftConnection;
 
-    public CombatLogWebSocketServer(BotConfig config, TicketManager ticketManager) {
+    public CombatLogWebSocketServer(BotConfig config, TicketManager ticketManager, LinkingDatabase linkingDatabase) {
         super(new InetSocketAddress(config.websocket.host, config.websocket.port));
         this.config = config;
         this.ticketManager = ticketManager;
+        this.linkingDatabase = linkingDatabase;
     }
 
     @Override
@@ -58,6 +62,9 @@ public class CombatLogWebSocketServer extends WebSocketServer {
             } else if ("whitelist_confirmation".equals(baseMessage.getType())) {
                 // Handle whitelist confirmation from Minecraft
                 logger.info("Received whitelist confirmation from Minecraft");
+            } else if ("unlink_player".equals(baseMessage.getType())) {
+                UnlinkMessage unlinkMsg = gson.fromJson(message, UnlinkMessage.class);
+                handleUnlink(unlinkMsg);
             } else {
                 logger.warn("Unknown message type: {}", baseMessage.getType());
             }
@@ -85,6 +92,22 @@ public class CombatLogWebSocketServer extends WebSocketServer {
         
         // Create Discord ticket
         ticketManager.createTicket(incident);
+    }
+
+    /**
+     * Handle unlink message from Minecraft
+     */
+    private void handleUnlink(UnlinkMessage message) {
+        logger.info("Processing unlink request for player {} ({})", 
+            message.getPlayerName(), message.getPlayerUuid());
+        
+        try {
+            // Remove link from database
+            linkingDatabase.removeLink(message.getPlayerUuid());
+            logger.info("Removed link for player {} from database", message.getPlayerName());
+        } catch (Exception e) {
+            logger.error("Failed to remove link for player {}: {}", message.getPlayerName(), e.getMessage(), e);
+        }
     }
 
     /**

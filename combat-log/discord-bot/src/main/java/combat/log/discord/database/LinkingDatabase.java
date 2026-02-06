@@ -111,6 +111,38 @@ public class LinkingDatabase {
     }
 
     /**
+     * Remove a Discord <-> Minecraft link
+     * Returns the Minecraft name if link was found and removed, empty otherwise
+     */
+    public Optional<String> removeLink(String minecraftUuid) throws SQLException {
+        // First get the minecraft name before deleting
+        String selectSql = "SELECT minecraft_name FROM whitelist_links WHERE minecraft_uuid = ?";
+        String minecraftName = null;
+        try (PreparedStatement stmt = connection.prepareStatement(selectSql)) {
+            stmt.setString(1, minecraftUuid);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                minecraftName = rs.getString("minecraft_name");
+            }
+        }
+
+        if (minecraftName != null) {
+            // Delete the link
+            String deleteSql = "DELETE FROM whitelist_links WHERE minecraft_uuid = ?";
+            try (PreparedStatement stmt = connection.prepareStatement(deleteSql)) {
+                stmt.setString(1, minecraftUuid);
+                int deleted = stmt.executeUpdate();
+                if (deleted > 0) {
+                    logger.info("Removed link for Minecraft UUID: {} ({})", minecraftUuid, minecraftName);
+                    return Optional.of(minecraftName);
+                }
+            }
+        }
+        
+        return Optional.empty();
+    }
+
+    /**
      * Get Discord ID from Minecraft UUID
      */
     public Optional<String> getDiscordId(String minecraftUuid) {

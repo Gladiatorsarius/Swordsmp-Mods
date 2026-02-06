@@ -61,6 +61,18 @@ public class PlayerLinkingManager {
     }
 
     /**
+     * Remove a player link by Minecraft UUID
+     */
+    public void removeLink(String minecraftUuid) {
+        PlayerLink link = linksByUuid.remove(minecraftUuid);
+        if (link != null) {
+            linksByDiscord.remove(link.getDiscordId());
+            saveLinks();
+            LOGGER.info("Removed player link for Minecraft UUID: {} ({})", minecraftUuid, link.getMinecraftName());
+        }
+    }
+
+    /**
      * Get Discord ID from Minecraft UUID
      */
     public Optional<String> getDiscordId(String minecraftUuid) {
