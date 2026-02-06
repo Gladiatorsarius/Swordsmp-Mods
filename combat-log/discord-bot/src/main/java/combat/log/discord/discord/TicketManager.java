@@ -320,6 +320,7 @@ public class TicketManager {
         return ActionRow.of(
             Button.success("approve:" + incidentId, "✅ Approve"),
             Button.danger("deny:" + incidentId, "❌ Deny"),
+            Button.primary("admit:" + incidentId, "🔴 I Admit Combat Log"),
             Button.secondary("extend:" + incidentId, "⏰ Extend")
         );
     }

@@ -41,6 +41,7 @@ public class ModalHandler extends ListenerAdapter {
         switch (action) {
             case "approve" -> handleApproveSubmission(event, incidentId);
             case "deny" -> handleDenySubmission(event, incidentId);
+            case "admit" -> handleAdmitSubmission(event, incidentId);
             case "extend" -> handleExtendSubmission(event, incidentId);
             default -> event.reply("❌ Unknown action").setEphemeral(true).queue();
         }
@@ -107,6 +108,51 @@ public class ModalHandler extends ListenerAdapter {
             disableButtons(event);
             
             logger.info("Ticket {} denied by {} via button", incidentId, adminName);
+        } else {
+            event.reply("❌ Ticket not found: " + incidentId).setEphemeral(true).queue();
+        }
+    }
+
+    /**
+     * Handle self-admission modal submission
+     */
+    private void handleAdmitSubmission(ModalInteractionEvent event, String incidentId) {
+        String confirm = event.getValue("confirm") != null ? 
+                event.getValue("confirm").getAsString().trim().toLowerCase() : "";
+        
+        // Validate confirmation text
+        if (!confirm.equals("i admit")) {
+            event.reply("❌ You must type 'I admit' to confirm").setEphemeral(true).queue();
+            return;
+        }
+        
+        String playerName = event.getUser().getName();
+        String reason = "Player self-admitted to combat logging";
+        
+        // Process as denial (same consequences)
+        boolean success = ticketManager.denyTicket(incidentId, "SELF-ADMIT", reason);
+
+        if (success) {
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.setTitle("🔴 Combat Log Admitted");
+            embed.setColor(Color.ORANGE);
+            embed.addField("Incident ID", incidentId, false);
+            embed.addField("Admitted By", playerName, true);
+            embed.addField("Status", "DENIED (Self-Admitted)", false);
+            embed.setDescription("You admitted to combat logging. Same consequences as denial apply:\n" +
+                                "• You WILL be killed on next login\n" +
+                                "• Your items are in a player head at logout location\n" +
+                                "• Opponents can access for 30 minutes\n" +
+                                "• After 30 min, everyone can access\n\n" +
+                                "Thank you for your honesty.");
+            embed.setTimestamp(Instant.now());
+
+            event.replyEmbeds(embed.build()).setEphemeral(true).queue();
+            
+            // Disable buttons on the original message
+            disableButtons(event);
+            
+            logger.info("Ticket {} self-admitted by {}", incidentId, playerName);
         } else {
             event.reply("❌ Ticket not found: " + incidentId).setEphemeral(true).queue();
         }

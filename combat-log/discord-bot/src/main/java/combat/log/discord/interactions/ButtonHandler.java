@@ -37,6 +37,7 @@ public class ButtonHandler extends ListenerAdapter {
         switch (action) {
             case "approve" -> showApproveModal(event, incidentId);
             case "deny" -> showDenyModal(event, incidentId);
+            case "admit" -> showAdmitModal(event, incidentId);
             case "extend" -> showExtendModal(event, incidentId);
             default -> event.reply("❌ Unknown action").setEphemeral(true).queue();
         }
@@ -76,6 +77,25 @@ public class ButtonHandler extends ListenerAdapter {
 
         event.replyModal(modal).queue();
         logger.debug("Showed deny modal for incident {}", incidentId);
+    }
+
+    /**
+     * Show self-admission confirmation modal
+     */
+    private void showAdmitModal(ButtonInteractionEvent event, String incidentId) {
+        TextInput confirmInput = TextInput.create("confirm", "Type 'I admit' to confirm", TextInputStyle.SHORT)
+                .setPlaceholder("Type: I admit")
+                .setRequired(true)
+                .setMinLength(7)
+                .setMaxLength(10)
+                .build();
+
+        Modal modal = Modal.create("admit:" + incidentId, "🔴 Admit Combat Logging")
+                .addActionRow(confirmInput)
+                .build();
+
+        event.replyModal(modal).queue();
+        logger.debug("Showed admit modal for incident {}", incidentId);
     }
 
     /**
