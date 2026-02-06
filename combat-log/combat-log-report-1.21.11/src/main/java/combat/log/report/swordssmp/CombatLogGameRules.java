@@ -16,16 +16,15 @@ public class CombatLogGameRules {
      * - Items drop naturally like normal death
      * - No punishments applied
      */
-    public static GameRule<Boolean> BYPASS_COMBAT_LOG_SYSTEM;
+    public static final GameRule<Boolean> BYPASS_COMBAT_LOG_SYSTEM = GameRuleBuilder.forBoolean(false)
+        .category(GameRuleCategory.PLAYER)
+        .buildAndRegister(Identifier.fromNamespaceAndPath("combat-log-report", "bypassCombatLogSystem"));
     
     /**
      * Initialize game rules (called during mod initialization)
      */
     public static void initialize() {
-        BYPASS_COMBAT_LOG_SYSTEM = GameRuleBuilder.forBoolean(false)
-            .category(GameRuleCategory.PLAYER)
-            .buildAndRegister(Identifier.fromNamespaceAndPath("combat-log-report", "bypassCombatLogSystem"));
-        
+        // Game rules are registered statically above
         CombatLogReport.LOGGER.info("Registered combat log game rules");
     }
 }

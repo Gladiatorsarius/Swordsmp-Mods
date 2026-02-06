@@ -211,4 +211,4 @@ Completely bypasses the combat log detection system.
 /gamerule bypassCombatLogSystem false
 ```
 
-**Note:** This is a server-side setting only. No client modifications needed.
+**Note:** This is a server-side setting only. No client modification needed.
