@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "logon-check",
+	"version": "${version}",
+	"name": "Logon Check",
+	"description": "Tracks player login activity and enforces inactivity penalties. Players must stay online for a minimum time (default 30 min) for sessions to count. Configure with game rules: enableLogonCheck (boolean), inactivityHours (integer), and minimumSessionMinutes (integer). Players inactive beyond the threshold are killed and banned on next login.",
+	"authors": [
+		"SwordSMP Team"
+	],
+	"contact": {
+		"homepage": "https://github.com/Gladiatorsarius/Swordsmp-Mods"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/logon-check/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"logon.check.swordsmp.LogonCheck"
+		],
+		"client": [
+			"logon.check.swordsmp.LogonCheckClient"
+		]
+	},
+	"mixins": [
+		"logon-check.mixins.json",
+		{
+			"config": "logon-check.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
