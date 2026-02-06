@@ -7,16 +7,25 @@ import com.google.gson.annotations.SerializedName;
  */
 public class PlayerLinkMessage extends SocketMessage {
     @SerializedName("discordId")
-    private String discordId;
+    private final String discordId;
     
     @SerializedName("playerUuid")
-    private String playerUuid;
+    private final String playerUuid;
     
     @SerializedName("playerName")
-    private String playerName;
+    private final String playerName;
     
     @SerializedName("whitelisted")
-    private boolean whitelisted;
+    private final boolean whitelisted;
+    
+    // Constructor for GSON deserialization
+    public PlayerLinkMessage(String discordId, String playerUuid, String playerName, boolean whitelisted) {
+        super("link_player");
+        this.discordId = discordId;
+        this.playerUuid = playerUuid;
+        this.playerName = playerName;
+        this.whitelisted = whitelisted;
+    }
 
     public String getDiscordId() {
         return discordId;

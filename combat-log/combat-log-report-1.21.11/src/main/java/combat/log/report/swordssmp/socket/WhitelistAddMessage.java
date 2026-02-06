@@ -7,19 +7,29 @@ import com.google.gson.annotations.SerializedName;
  */
 public class WhitelistAddMessage extends SocketMessage {
     @SerializedName("requestId")
-    private String requestId;
+    private final String requestId;
     
     @SerializedName("playerName")
-    private String playerName;
+    private final String playerName;
     
     @SerializedName("playerUuid")
-    private String playerUuid;
+    private final String playerUuid;
     
     @SerializedName("discordId")
-    private String discordId;
+    private final String discordId;
     
     @SerializedName("requestedBy")
-    private String requestedBy;
+    private final String requestedBy;
+    
+    // Constructor for GSON deserialization
+    public WhitelistAddMessage(String requestId, String playerName, String playerUuid, String discordId, String requestedBy) {
+        super("whitelist_add");
+        this.requestId = requestId;
+        this.playerName = playerName;
+        this.playerUuid = playerUuid;
+        this.discordId = discordId;
+        this.requestedBy = requestedBy;
+    }
 
     public String getRequestId() {
         return requestId;

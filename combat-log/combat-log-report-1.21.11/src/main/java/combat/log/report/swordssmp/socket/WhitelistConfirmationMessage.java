@@ -7,20 +7,19 @@ import com.google.gson.annotations.SerializedName;
  */
 public class WhitelistConfirmationMessage extends SocketMessage {
     @SerializedName("requestId")
-    private String requestId;
+    private final String requestId;
     
     @SerializedName("success")
-    private boolean success;
+    private final boolean success;
     
     @SerializedName("playerName")
-    private String playerName;
+    private final String playerName;
     
     @SerializedName("error")
-    private String error;
+    private final String error;
 
     public WhitelistConfirmationMessage(String requestId, boolean success, String playerName, String error) {
-        setType("whitelist_confirmation");
-        setTimestamp(System.currentTimeMillis());
+        super("whitelist_confirmation");
         this.requestId = requestId;
         this.success = success;
         this.playerName = playerName;

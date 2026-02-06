@@ -3,16 +3,9 @@ package combat.log.report.swordssmp.whitelist;
 import combat.log.report.swordssmp.socket.SocketClient;
 import combat.log.report.swordssmp.socket.WhitelistAddMessage;
 import combat.log.report.swordssmp.socket.WhitelistConfirmationMessage;
-import combat.log.report.swordssmp.linking.PlayerLinkingManager;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.dedicated.DedicatedServer;
-import net.minecraft.server.players.UserWhiteList;
-import net.minecraft.server.players.UserWhiteListEntry;
-import com.mojang.authlib.GameProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.UUID;
 
 /**
  * Handles whitelist commands from Discord bot
@@ -34,16 +27,14 @@ public class WhitelistCommandHandler {
         LOGGER.info("Processing whitelist add for player: {} ({})", message.getPlayerName(), message.getPlayerUuid());
 
         try {
-            // Parse UUID
-            UUID playerUuid = UUID.fromString(message.getPlayerUuid());
-            
-            // Create game profile
-            GameProfile profile = new GameProfile(playerUuid, message.getPlayerName());
-            
-            // Add to whitelist
-            UserWhiteList whitelist = server.getPlayerList().getWhiteList();
-            UserWhiteListEntry entry = new UserWhiteListEntry(profile);
-            whitelist.add(entry);
+            // Execute whitelist command using the server's command dispatcher
+            String command = String.format("whitelist add %s", message.getPlayerName());
+            server.execute(() -> {
+                server.getCommands().performPrefixedCommand(
+                    server.createCommandSourceStack(),
+                    command
+                );
+            });
             
             LOGGER.info("Added {} to whitelist", message.getPlayerName());
             
