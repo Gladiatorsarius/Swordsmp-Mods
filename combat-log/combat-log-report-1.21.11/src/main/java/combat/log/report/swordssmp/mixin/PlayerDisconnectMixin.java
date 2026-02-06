@@ -1,5 +1,6 @@
 package combat.log.report.swordssmp.mixin;
 
+import combat.log.report.swordssmp.CombatHeadManager;
 import combat.log.report.swordssmp.CombatLogReport;
 import combat.log.report.swordssmp.CombatManager;
 import combat.log.report.swordssmp.incident.CombatLogIncident;
@@ -15,6 +16,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Set;
+import java.util.UUID;
 
 @Mixin(PlayerList.class)
 public class PlayerDisconnectMixin {
@@ -36,6 +40,13 @@ public class PlayerDisconnectMixin {
                 player.getName().getString(),
                 remainingSeconds
             );
+            
+            // Get combat opponents before clearing combat tag
+            Set<UUID> opponents = combatManager.getOpponents(player.getUUID());
+            
+            // Create player head with inventory
+            CombatHeadManager headManager = CombatHeadManager.getInstance();
+            headManager.createCombatLogHead(player, incident.getId(), opponents);
             
             // Add pending punishment (ban while ticket pending, kill on denial)
             PunishmentManager punishmentManager = PunishmentManager.getInstance();

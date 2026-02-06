@@ -17,7 +17,6 @@ import java.util.UUID;
 public class ServerTickMixin {
     private int tickCounter = 0;
     private final Map<UUID, Boolean> notifiedPlayers = new HashMap<>();
-    private final Map<UUID, Long> lastNotificationTime = new HashMap<>();
 
     @Inject(method = "tickServer", at = @At("HEAD"))
     private void onServerTick(CallbackInfo ci) {
@@ -30,7 +29,7 @@ public class ServerTickMixin {
             CombatManager manager = CombatManager.getInstance();
             manager.tick();
             
-            // Notify players about combat status
+            // Update action bar for players in combat
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 UUID playerId = player.getUUID();
                 boolean inCombat = manager.isInCombat(playerId);
@@ -39,26 +38,17 @@ public class ServerTickMixin {
                     long remaining = manager.getRemainingTime(playerId);
                     long remainingSeconds = remaining / 1000;
                     
-                    // Notify when combat is about to end (at 5, 3, 2, 1 seconds)
-                    if (remainingSeconds <= 5 && remainingSeconds > 0) {
-                        Long lastNotify = lastNotificationTime.get(playerId);
-                        long currentTime = System.currentTimeMillis();
-                        
-                        // Only notify once per second
-                        if (lastNotify == null || (currentTime - lastNotify) >= 1000) {
-                            player.sendSystemMessage(
-                                Component.literal("§eCombat ends in " + remainingSeconds + " seconds...")
-                            );
-                            lastNotificationTime.put(playerId, currentTime);
-                        }
-                    }
+                    // Update action bar every second with countdown
+                    player.displayClientMessage(
+                        Component.literal("§c§lCOMBAT §f" + remainingSeconds + "s"), 
+                        true
+                    );
                     
                     notifiedPlayers.put(playerId, true);
                 } else if (notifiedPlayers.getOrDefault(playerId, false)) {
-                    // Player just left combat
-                    player.sendSystemMessage(Component.literal("§aYou are no longer in combat!"));
+                    // Player just left combat - send chat message
+                    player.sendSystemMessage(Component.literal("§a§lYou are no longer in combat!"));
                     notifiedPlayers.put(playerId, false);
-                    lastNotificationTime.remove(playerId);
                 }
             }
         }
