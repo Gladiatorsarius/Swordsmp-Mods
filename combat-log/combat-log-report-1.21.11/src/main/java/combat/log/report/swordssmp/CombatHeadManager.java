@@ -8,8 +8,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -133,13 +137,22 @@ public class CombatHeadManager {
             UUID incidentId = headIncidents.get(ownerId);
             if (incidentId != null) {
                 CombatLogIncident incident = IncidentManager.getInstance().getIncident(incidentId);
-                if (incident != null) {
-                    IncidentStatus status = incident.getStatus();
-                    // Only allow access if ticket is resolved (denied/auto-denied) - approved tickets remove the head
-                    if (status == IncidentStatus.PENDING || status == IncidentStatus.CLIP_UPLOADED) {
-                        // Ticket still pending - head is locked
-                        return false;
-                    }
+                if (incident == null) {
+                    // Safety: If incident data is missing, deny access
+                    return false;
+                }
+                
+                IncidentStatus status = incident.getStatus();
+                // Only allow access if ticket is resolved (denied/auto-denied) - approved tickets remove the head
+                if (status == IncidentStatus.PENDING || status == IncidentStatus.CLIP_UPLOADED) {
+                    // Ticket still pending - head is locked
+                    return false;
+                }
+                if (status == IncidentStatus.APPROVED) {
+                    return false;
+                }
+                if (status == IncidentStatus.DENIED || status == IncidentStatus.AUTO_DENIED) {
+                    return true;
                 }
             }
         }
@@ -156,6 +169,32 @@ public class CombatHeadManager {
         // Note: OPs would need permission level check - simplified for compatibility
         Set<UUID> opponents = headOpponents.get(pos);
         return opponents != null && opponents.contains(accessorId);
+    }
+
+    public boolean dropStoredInventory(BlockPos pos, ServerLevel world) {
+        UUID ownerId = headLocations.get(pos);
+        if (ownerId == null) {
+            return false;
+        }
+
+        List<ItemStack> items = storedInventories.remove(ownerId);
+        if (items == null || items.isEmpty()) {
+            return false;
+        }
+
+        double dropX = pos.getX() + 0.5;
+        double dropY = pos.getY() + 1.0;
+        double dropZ = pos.getZ() + 0.5;
+
+        for (ItemStack stack : items) {
+            if (!stack.isEmpty()) {
+                ItemEntity entity = new ItemEntity(world, dropX, dropY, dropZ, stack.copy());
+                world.addFreshEntity(entity);
+            }
+        }
+
+        CombatLogReport.LOGGER.info("Dropped stored inventory for combat log head at {}", pos);
+        return true;
     }
     
     public void removeHead(BlockPos pos) {
@@ -256,5 +295,48 @@ public class CombatHeadManager {
      */
     public boolean hasStoredInventory(UUID playerId) {
         return storedInventories.containsKey(playerId);
+    }
+    
+    /**
+     * Open combat head UI for a player
+     */
+    public void openCombatHeadUI(ServerPlayer player, BlockPos headPos) {
+        UUID ownerId = headLocations.get(headPos);
+        if (ownerId == null) {
+            player.sendSystemMessage(Component.literal("§cCombat log head not found!"));
+            return;
+        }
+        
+        // Check if player can access
+        if (!canAccess(headPos, player)) {
+            player.displayClientMessage(
+                Component.literal("§c§lYou cannot access this combat log head yet!"),
+                true
+            );
+            return;
+        }
+        
+        // Drop stored inventory at head location (one-time destructive access)
+        ServerLevel world = (ServerLevel) player.level();
+        boolean dropped = dropStoredInventory(headPos, world);
+        
+        if (dropped) {
+            player.sendSystemMessage(Component.literal("§aItems from combat log head scattered on the ground!"));
+            CombatLogReport.LOGGER.info("Player {} opened combat head at {} - items dropped", 
+                player.getName().getString(), headPos);
+        } else {
+            player.sendSystemMessage(Component.literal("§eThis combat log head has no items stored."));
+        }
+    }
+    
+    private String getHeadOwnerName(UUID ownerId) {
+        UUID incidentId = headIncidents.get(ownerId);
+        if (incidentId != null) {
+            CombatLogIncident incident = IncidentManager.getInstance().getIncident(incidentId);
+            if (incident != null) {
+                return incident.getPlayerName();
+            }
+        }
+        return ownerId.toString().substring(0, 8);
     }
 }
