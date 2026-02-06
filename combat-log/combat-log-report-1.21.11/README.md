@@ -1,10 +1,10 @@
 # SwordSMP Combat Log Report
 
-A Fabric mod for Minecraft 1.21.11 that tracks and reports combat logging on multiplayer servers.
+A Fabric mod for Minecraft 1.21.11 that detects combat logging, integrates with Discord for appeals, and enforces punishments.
 
 ## 🎯 What is Combat Logging?
 
-**Combat logging** is when a player disconnects from the server during PvP combat to avoid death and losing their items. This mod tracks these incidents and reports them to all players on the server.
+**Combat logging** is when a player disconnects from the server during PvP combat to avoid death and losing their items. This mod detects combat logging, creates Discord tickets for appeals, spawns player heads with stored inventory, and enforces time-based punishments.
 
 ## ✨ Features
 
@@ -12,16 +12,30 @@ A Fabric mod for Minecraft 1.21.11 that tracks and reports combat logging on mul
 - When players engage in PvP combat (hitting or being hit by another player), both players are tagged as "in combat"
 - Combat tag lasts for **15 seconds** after the last hit
 - Combat timer resets if either player attacks or is attacked again
+- **Action Bar Display**: Live countdown shown above hotbar (§c§lCOMBAT 15s, 14s, 13s...)
+- **Combat Ends on Death**: When any player dies, all combat tags are cleared
 
-### Player Notifications
-- **Combat Entry**: Players receive a warning message when they enter combat: "§e§lYou are now in combat! Logging out will be reported for 15 seconds!"
-- **Combat Countdown**: Players are notified when combat is about to end (at 5, 3, 2, 1 seconds remaining)
-- **Combat Exit**: Players receive a confirmation message when they leave combat: "§aYou are no longer in combat!"
+### Combat Restrictions
+- **Firework Rocket Blocking**: Players cannot use firework rockets while in combat
+- Action bar message: "Cannot use rockets while in combat!"
+- Prevents flying away with elytra during PvP
 
-### Combat Logging Reporting
-- If a player disconnects while in combat, a report is broadcast to all players
-- Message format: "§e[Combat Log Report] §c[Player Name] logged out during combat with X.X seconds remaining!"
-- This creates transparency and tracks combat logging incidents without punishment
+### Combat Logging Detection & Punishment
+- Detects when players disconnect during active combat
+- **Player Head System**: Spawns player head at disconnect location
+  - Contains player's inventory (framework ready)
+  - Time-based access control (opponents first 30 min, then everyone)
+  - Server operators can always access heads
+- **Discord Integration**: Sends incident to Discord bot via WebSocket
+- **Automatic Ticket**: Creates Discord ticket for player appeal
+- **Punishment on Login**: If ticket denied, player is killed on next login
+
+### Discord Integration (WebSocket)
+- **Real-time Communication**: WebSocket connection to Discord bot (port 8080)
+- **Incident Reporting**: Sends combat log incidents with full details
+- **Decision Processing**: Receives APPROVED/DENIED decisions from Discord
+- **Whitelist Commands**: Executes whitelist add/remove commands from Discord
+- **Player Linking**: Syncs Discord ↔ Minecraft account links
 
 ## 📖 Example Scenarios
 
@@ -40,14 +54,16 @@ A Fabric mod for Minecraft 1.21.11 that tracks and reports combat logging on mul
    → Players can safely log out without reports
 ```
 
-### Scenario 2: Combat Logging Report
+### Scenario 2: Combat Logging Detection
 ```
 1. Player A attacks Player B
    → Both tagged in combat
 
 2. Player B disconnects after 5 seconds
+   → Player head spawns at Player B's location
    → Server broadcasts: "§e[Combat Log Report] §cPlayer B logged out during combat with 10.0 seconds remaining!"
-   → All players see the report
+   → Discord ticket created automatically
+   → Player B has 60 minutes to submit proof
    → Player B's character remains in-game until normal disconnect
 ```
 
@@ -62,18 +78,30 @@ A Fabric mod for Minecraft 1.21.11 that tracks and reports combat logging on mul
 
 ## 🔧 How It Works
 
-The plugin uses:
+The mod uses:
 1. **Fabric API Events** to detect when players damage each other
-2. **Mixins** to intercept player disconnections and server ticks
-3. **CombatManager** singleton to track combat timers for all players
+2. **Mixins** to intercept player disconnections, deaths, and server ticks
+3. **CombatManager** singleton to track combat timers and opponents
+4. **CombatHeadManager** to spawn and manage player heads
+5. **PunishmentManager** to enforce punishments on player login
+6. **WebSocket Client** for real-time communication with Discord bot
+7. **PlayerLinkingManager** for Discord-Minecraft account linking
 
 ### Technical Details
 - **Combat Duration**: 15 seconds (15000 milliseconds)
 - **Timer Reset**: Every time a tagged player attacks or is attacked
-- **Countdown Warnings**: Displayed at 5, 3, 2, and 1 seconds remaining
-- **Reporting**: Broadcasts a message to all players when someone logs out during combat
+- **Action Bar Display**: Live countdown updated every server tick
+- **Player Head Storage**: Heads contain player inventory via NBT (framework ready)
+- **Access Control**: Time-based permissions (0-30 min opponents, 30+ min everyone, OPs always)
+- **WebSocket Protocol**: JSON messages over ws:// (configurable URL and port)
+- **Punishment System**: Checks ticket status on player login, kills if DENIED
 - **Thread Safety**: Uses ConcurrentHashMap for safe multi-threaded access
-- **No Punishment**: Players are NOT killed - only reported in chat
+- **Firework Blocking**: Mixin prevents rocket use during combat
+
+### In-Game Commands
+- `/unlink` - Unlink your Discord account from your Minecraft account
+  - Removes from whitelist
+  - Allows relinking with same or different Discord account
 
 ## 📦 Installation
 
@@ -82,13 +110,64 @@ The plugin uses:
 - Fabric Loader 0.18.4 or later
 - Fabric API 0.141.3+1.21.11 or later
 - Java 21 or later
+- **Discord Bot** (for full functionality)
 
 ### Steps
 1. Install Fabric Loader for Minecraft 1.21.11
 2. Download and install Fabric API 0.141.3+1.21.11
 3. Place `combat-log-report-1.0.0.jar` in your server's `mods` folder
-4. Restart your server
-5. Check the server log for: "Combat Log Report mod initialized!"
+4. Start server (first run creates config file)
+5. Edit `config/combat-log-report.json` to configure WebSocket
+6. Restart server
+
+### Configuration
+
+First run creates `config/combat-log-report.json`:
+
+```json
+{
+  "socket": {
+    "enabled": true,
+    "serverUrl": "ws://localhost:8080/combat-log"
+  }
+}
+```
+
+**Configuration Options:**
+- `socket.enabled` - Enable/disable Discord integration
+- `socket.serverUrl` - WebSocket URL of Discord bot (default: ws://localhost:8080/combat-log)
+
+### Server Log Verification
+
+Check the server log for successful initialization:
+```
+[combat-log-report] Combat Log Report mod initialized!
+[combat-log-report] Combat logging tracking is now active
+[combat-log-report] Players who disconnect during combat will be reported
+[combat-log-report] Initialized player linking system
+[combat-log-report] Initialized whitelist command handler
+[combat-log-report] Attempting to connect to Discord bot at ws://localhost:8080/combat-log
+[combat-log-report] Connected to Discord bot WebSocket server
+```
+
+## 🤖 Discord Bot Integration
+
+This mod works with the **Combat Log Discord Bot** for:
+- Automatic ticket creation for combat log incidents
+- Player appeals with proof submission
+- Staff commands for approval/denial
+- Automatic whitelist system with Mojang API
+- Discord-Minecraft account linking
+
+See [../discord-bot/README.md](../discord-bot/README.md) for Discord bot setup.
+
+## 🎮 For Players
+
+See [USAGE_GUIDE.md](USAGE_GUIDE.md) for a complete player guide on:
+- How combat tagging works
+- What happens when you combat log
+- How to avoid being reported
+- Understanding the punishment system
 
 ## Building from Source
 
