@@ -1,0 +1,27 @@
+# Gradle
+.gradle/
+build/
+out/
+classes/
+
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.settings/
+.classpath
+.project
+
+# Configuration (contains tokens)
+config.json
+bot-config.json
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store

@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "swordssmp:amethyst_sword",
+    "swordssmp:tnt_sword",
+    "swordssmp:dual_blade_1",
+    "swordssmp:dual_blade_2",
+    "swordssmp:berserk_hand",
+    "swordssmp:ghost_blade",
+    "swordssmp:phantom_blade",
+    "swordssmp:gods_view",
+    "swordssmp:chorus_slayer",
+    "swordssmp:ancient_void_relic",
+    "swordssmp:dragon_slayer",
+    "swordssmp:breacher",
+    "swordssmp:earth_wave_sword",
+    "swordssmp:wind_blade",
+    "swordssmp:thunder_sword",
+    "swordssmp:life_stealer",
+    "swordssmp:warden_blaster"
+  ]
+}

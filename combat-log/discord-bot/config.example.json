@@ -1,0 +1,39 @@
+{
+  "discord": {
+    "token": "YOUR_BOT_TOKEN_HERE",
+    "guildId": "YOUR_GUILD_ID",
+    "ticketChannelId": "YOUR_CHANNEL_ID",
+    "staffRoleId": "YOUR_STAFF_ROLE_ID",
+    "useForumChannel": true
+  },
+  "websocket": {
+    "port": 8080,
+    "host": "0.0.0.0"
+  },
+  "ticket": {
+    "timeoutMinutes": 60,
+    "autoDenyEnabled": true,
+    "privateThreads": true,
+    "acceptedProofPlatforms": [
+      "youtube.com",
+      "youtu.be",
+      "twitch.tv",
+      "clips.twitch.tv",
+      "streamable.com",
+      "medal.tv",
+      "discord.com/attachments"
+    ]
+  },
+  "discordSRV": {
+    "enabled": false,
+    "databaseType": "sqlite",
+    "databasePath": "/path/to/plugins/DiscordSRV/accounts.db",
+    "mysql": {
+      "host": "localhost",
+      "port": 3306,
+      "database": "discordsrv",
+      "username": "root",
+      "password": "password"
+    }
+  }
+}

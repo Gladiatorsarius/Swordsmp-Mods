@@ -1,0 +1,56 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'combat.log.discord'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Discord API
+    implementation 'net.dv8tion:JDA:5.0.0'
+    
+    // WebSocket Server
+    implementation 'org.java-websocket:Java-WebSocket:1.5.6'
+    
+    // JSON Processing
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
+    // Database (for DiscordSRV integration)
+    implementation 'org.xerial:sqlite-jdbc:3.45.1.0'
+    implementation 'com.mysql:mysql-connector-j:8.3.0'
+    
+    // Logging
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'ch.qos.logback:logback-classic:1.4.14'
+}
+
+application {
+    mainClass = 'combat.log.discord.CombatLogBot'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+// Create fat JAR
+jar {
+    manifest {
+        attributes 'Main-Class': 'combat.log.discord.CombatLogBot'
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    archiveBaseName.set('combat-log-discord-bot')
+    archiveVersion.set('1.0.0')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
