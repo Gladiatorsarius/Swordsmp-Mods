@@ -159,15 +159,15 @@ public class WhitelistManager {
                 return;
             }
 
-            if (!config.whitelist.enabled || config.whitelist.reviewChannelId == null) {
+            if (!config.features.whitelistEnabled || config.channels.reviewChannelId == null) {
                 logger.warn("Whitelist not configured properly");
                 return;
             }
 
             // Get review channel
-            TextChannel reviewChannel = guild.getTextChannelById(config.whitelist.reviewChannelId);
+            TextChannel reviewChannel = guild.getTextChannelById(config.channels.reviewChannelId);
             if (reviewChannel == null) {
-                logger.error("Review channel not found: {}", config.whitelist.reviewChannelId);
+                logger.error("Review channel not found: {}", config.channels.reviewChannelId);
                 return;
             }
 
@@ -196,8 +196,8 @@ public class WhitelistManager {
                 .complete();
 
             // Tag staff role if configured
-            if (config.whitelist.staffRoleId != null) {
-                thread.sendMessage("<@&" + config.whitelist.staffRoleId + ">").queue();
+            if (config.discord.staffRoleId != null) {
+                thread.sendMessage("<@&" + config.discord.staffRoleId + ">").queue();
             }
 
             // Store request in database
