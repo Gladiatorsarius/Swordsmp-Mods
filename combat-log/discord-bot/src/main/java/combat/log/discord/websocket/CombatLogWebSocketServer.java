@@ -55,6 +55,9 @@ public class CombatLogWebSocketServer extends WebSocketServer {
             if ("combat_log_incident".equals(baseMessage.getType())) {
                 CombatLogIncident incident = gson.fromJson(message, CombatLogIncident.class);
                 handleIncident(incident);
+            } else if ("whitelist_confirmation".equals(baseMessage.getType())) {
+                // Handle whitelist confirmation from Minecraft
+                logger.info("Received whitelist confirmation from Minecraft");
             } else {
                 logger.warn("Unknown message type: {}", baseMessage.getType());
             }
@@ -99,5 +102,17 @@ public class CombatLogWebSocketServer extends WebSocketServer {
 
     public boolean isMinecraftConnected() {
         return minecraftConnection != null && minecraftConnection.isOpen();
+    }
+    
+    /**
+     * Broadcast message to Minecraft server
+     */
+    public void broadcast(String message) {
+        if (minecraftConnection != null && minecraftConnection.isOpen()) {
+            minecraftConnection.send(message);
+            logger.debug("Broadcasted message to Minecraft");
+        } else {
+            logger.warn("Cannot broadcast - Minecraft not connected");
+        }
     }
 }

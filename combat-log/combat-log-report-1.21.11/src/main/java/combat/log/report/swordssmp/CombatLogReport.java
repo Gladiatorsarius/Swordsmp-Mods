@@ -1,7 +1,9 @@
 package combat.log.report.swordssmp;
 
 import combat.log.report.swordssmp.config.ModConfig;
+import combat.log.report.swordssmp.linking.PlayerLinkingManager;
 import combat.log.report.swordssmp.socket.SocketClient;
+import combat.log.report.swordssmp.whitelist.WhitelistCommandHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -59,10 +61,21 @@ public class CombatLogReport implements ModInitializer {
 		File configFile = new File("config/combat-log-report.json");
 		ModConfig config = ModConfig.load(configFile);
 		
+		// Initialize player linking manager
+		File configDir = new File("config");
+		PlayerLinkingManager.initialize(configDir);
+		LOGGER.info("Initialized player linking system");
+		
 		// Initialize socket client if enabled
 		if (config.socket.enabled) {
 			SocketClient socketClient = SocketClient.getInstance();
 			socketClient.configure(config.socket.serverUrl);
+			
+			// Initialize whitelist command handler
+			WhitelistCommandHandler whitelistHandler = new WhitelistCommandHandler(server, socketClient);
+			socketClient.setWhitelistHandler(whitelistHandler);
+			LOGGER.info("Initialized whitelist command handler");
+			
 			socketClient.connect();
 			LOGGER.info("Attempting to connect to Discord bot at {}", config.socket.serverUrl);
 		} else {

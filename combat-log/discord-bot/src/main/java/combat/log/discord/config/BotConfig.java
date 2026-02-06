@@ -25,6 +25,12 @@ public class BotConfig {
     
     // DiscordSRV integration settings
     public DiscordSRVSettings discordSRV = new DiscordSRVSettings();
+    
+    // Whitelist system settings
+    public WhitelistSettings whitelist = new WhitelistSettings();
+    
+    // Mojang API settings
+    public MojangApiSettings mojangApi = new MojangApiSettings();
 
     public static class DiscordSettings {
         public String token = "YOUR_BOT_TOKEN_HERE";
@@ -65,6 +71,32 @@ public class BotConfig {
         public String database = "discordsrv";
         public String username = "root";
         public String password = "password";
+    }
+    
+    public static class WhitelistSettings {
+        public boolean enabled = true;
+        public String whitelistChannelId = "YOUR_WHITELIST_CHANNEL_ID";
+        public String reviewChannelId = "YOUR_REVIEW_CHANNEL_ID";
+        public String staffRoleId = "YOUR_STAFF_ROLE_ID";
+        public ButtonMessageSettings buttonMessage = new ButtonMessageSettings();
+    }
+    
+    public static class ButtonMessageSettings {
+        public String title = "🎫 Request Server Whitelist";
+        public String description = "Click the button below to request access to our Minecraft server";
+        public String color = "#00FF00";
+    }
+    
+    public static class MojangApiSettings {
+        public boolean enabled = true;
+        public long cacheDurationMinutes = 5;
+        public int timeoutSeconds = 5;
+    }
+    
+    public static class LinkingSettings {
+        public String databasePath = "./database/whitelist.db";
+        public boolean allowMultipleMinecraftAccounts = false;
+        public boolean allowMultipleDiscordAccounts = false;
     }
 
     public static BotConfig load(File configFile) {

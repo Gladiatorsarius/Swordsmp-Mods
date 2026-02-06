@@ -35,5 +35,21 @@
       "username": "root",
       "password": "password"
     }
+  },
+  "whitelist": {
+    "enabled": true,
+    "whitelistChannelId": "YOUR_WHITELIST_CHANNEL_ID",
+    "reviewChannelId": "YOUR_REVIEW_CHANNEL_ID",
+    "staffRoleId": "YOUR_STAFF_ROLE_ID",
+    "buttonMessage": {
+      "title": "🎫 Request Server Whitelist",
+      "description": "Click the button below to request access to our Minecraft server",
+      "color": "#00FF00"
+    }
+  },
+  "mojangApi": {
+    "enabled": true,
+    "cacheDurationMinutes": 5,
+    "timeoutSeconds": 5
   }
 }
