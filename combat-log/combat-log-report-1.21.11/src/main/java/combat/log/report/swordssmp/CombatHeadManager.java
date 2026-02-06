@@ -1,15 +1,24 @@
 package combat.log.report.swordssmp;
 
+import combat.log.report.swordssmp.incident.CombatLogIncident;
+import combat.log.report.swordssmp.incident.IncidentManager;
+import combat.log.report.swordssmp.incident.IncidentStatus;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -23,6 +32,8 @@ public class CombatHeadManager {
     private final Map<UUID, UUID> headIncidents = new ConcurrentHashMap<>();
     private final Map<BlockPos, Long> headCreationTime = new ConcurrentHashMap<>();
     private final Map<BlockPos, Set<UUID>> headOpponents = new ConcurrentHashMap<>();
+    // Store inventory data for each head location
+    private final Map<UUID, List<ItemStack>> storedInventories = new ConcurrentHashMap<>();
     
     private static final long ACCESS_RESTRICTION_TIME = 30 * 60 * 1000; // 30 minutes in milliseconds
     
@@ -35,6 +46,9 @@ public class CombatHeadManager {
     public void createCombatLogHead(ServerPlayer player, UUID incidentId, Set<UUID> opponents) {
         BlockPos playerPos = player.blockPosition();
         ServerLevel world = (ServerLevel) player.level();
+        
+        // Store player's inventory BEFORE creating head
+        storePlayerInventory(player);
         
         // Find suitable location for head (on ground)
         BlockPos headPos = findSuitableHeadLocation(world, playerPos);
@@ -56,7 +70,7 @@ public class CombatHeadManager {
         headCreationTime.put(headPos, System.currentTimeMillis());
         headOpponents.put(headPos, opponents);
         
-        CombatLogReport.LOGGER.info("Created combat log head for player {} at position {}", 
+        CombatLogReport.LOGGER.info("Created combat log head for player {} at position {} with inventory stored", 
             player.getName().getString(), headPos);
     }
     
@@ -113,6 +127,23 @@ public class CombatHeadManager {
             return false;
         }
         
+        // Check ticket status first - if ticket is not closed/resolved, head is locked
+        UUID ownerId = headLocations.get(pos);
+        if (ownerId != null) {
+            UUID incidentId = headIncidents.get(ownerId);
+            if (incidentId != null) {
+                CombatLogIncident incident = IncidentManager.getInstance().getIncident(incidentId);
+                if (incident != null) {
+                    IncidentStatus status = incident.getStatus();
+                    // Only allow access if ticket is resolved (denied/auto-denied) - approved tickets remove the head
+                    if (status == IncidentStatus.PENDING || status == IncidentStatus.CLIP_UPLOADED) {
+                        // Ticket still pending - head is locked
+                        return false;
+                    }
+                }
+            }
+        }
+        
         long currentTime = System.currentTimeMillis();
         long timeSinceCreation = currentTime - creationTime;
         
@@ -134,5 +165,96 @@ public class CombatHeadManager {
         }
         headCreationTime.remove(pos);
         headOpponents.remove(pos);
+    }
+    
+    /**
+     * Store player's inventory (all slots)
+     */
+    private void storePlayerInventory(ServerPlayer player) {
+        List<ItemStack> items = new ArrayList<>();
+        Inventory inventory = player.getInventory();
+        
+        // Store all inventory slots (main inventory + armor + offhand)
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
+            if (!stack.isEmpty()) {
+                items.add(stack.copy()); // Create a copy to preserve the item
+            } else {
+                items.add(ItemStack.EMPTY);
+            }
+        }
+        
+        storedInventories.put(player.getUUID(), items);
+        
+        // Clear player's inventory
+        inventory.clearContent();
+        
+        CombatLogReport.LOGGER.info("Stored inventory for player {} ({} items)", 
+            player.getName().getString(), items.stream().filter(stack -> !stack.isEmpty()).count());
+    }
+    
+    /**
+     * Restore player's inventory from storage
+     */
+    public boolean restorePlayerInventory(ServerPlayer player) {
+        UUID playerId = player.getUUID();
+        List<ItemStack> items = storedInventories.get(playerId);
+        
+        if (items == null || items.isEmpty()) {
+            CombatLogReport.LOGGER.warn("No stored inventory found for player {}", player.getName().getString());
+            return false;
+        }
+        
+        Inventory inventory = player.getInventory();
+        
+        // Restore all items
+        for (int i = 0; i < Math.min(items.size(), inventory.getContainerSize()); i++) {
+            ItemStack stack = items.get(i);
+            inventory.setItem(i, stack);
+        }
+        
+        // Remove from storage
+        storedInventories.remove(playerId);
+        
+        CombatLogReport.LOGGER.info("Restored inventory for player {} ({} items)", 
+            player.getName().getString(), items.stream().filter(stack -> !stack.isEmpty()).count());
+        
+        return true;
+    }
+    
+    /**
+     * Remove head and restore inventory (for approved tickets)
+     */
+    public void removeHeadAndRestoreInventory(ServerPlayer player, UUID playerId) {
+        // Find head location for this player
+        BlockPos headPos = null;
+        for (Map.Entry<BlockPos, UUID> entry : headLocations.entrySet()) {
+            if (entry.getValue().equals(playerId)) {
+                headPos = entry.getKey();
+                break;
+            }
+        }
+        
+        if (headPos != null) {
+            // Remove the physical head block
+            ServerLevel world = (ServerLevel) player.level();
+            if (world.getBlockState(headPos).is(Blocks.PLAYER_HEAD)) {
+                world.removeBlock(headPos, false);
+                CombatLogReport.LOGGER.info("Removed combat log head at {}", headPos);
+            }
+            
+            // Remove from tracking
+            removeHead(headPos);
+        }
+        
+        // Restore inventory
+        restorePlayerInventory(player);
+    }
+    
+    /**
+     * Check if player has stored inventory
+     */
+    public boolean hasStoredInventory(UUID playerId) {
+        return storedInventories.containsKey(playerId);
     }
 }

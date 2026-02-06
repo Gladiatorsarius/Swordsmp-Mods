@@ -1,5 +1,6 @@
 package combat.log.report.swordssmp.punishment;
 
+import combat.log.report.swordssmp.CombatHeadManager;
 import combat.log.report.swordssmp.CombatLogReport;
 import combat.log.report.swordssmp.incident.CombatLogIncident;
 import combat.log.report.swordssmp.incident.IncidentStatus;
@@ -76,9 +77,18 @@ public class PunishmentManager {
 
         // If approved, this should have been cleared already, but handle it just in case
         if (status == IncidentStatus.APPROVED) {
-            player.sendSystemMessage(Component.literal(
-                "§a§lYour combat log appeal was approved! You may continue playing."
-            ));
+            // Restore inventory and remove head
+            CombatHeadManager headManager = CombatHeadManager.getInstance();
+            if (headManager.hasStoredInventory(playerUuid)) {
+                headManager.removeHeadAndRestoreInventory(player, playerUuid);
+                player.sendSystemMessage(Component.literal(
+                    "§a§lYour combat log appeal was approved! Your inventory has been restored."
+                ));
+            } else {
+                player.sendSystemMessage(Component.literal(
+                    "§a§lYour combat log appeal was approved! You may continue playing."
+                ));
+            }
             clearPunishment(playerUuid);
             return false; // Allow login
         }
@@ -106,7 +116,9 @@ public class PunishmentManager {
                 
                 player.hurt(player.damageSources().generic(), Float.MAX_VALUE);
                 player.sendSystemMessage(Component.literal(
-                    "§c§lYou were killed for combat logging. Ticket: " + incident.getId()
+                    "§c§lYou were killed for combat logging.\n" +
+                    "§eYour items are in a player head at your logout location.\n" +
+                    "§7Ticket: " + incident.getId()
                 ));
             }
             clearPunishment(playerUuid);
