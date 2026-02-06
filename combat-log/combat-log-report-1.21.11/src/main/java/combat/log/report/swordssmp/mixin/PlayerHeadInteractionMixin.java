@@ -38,19 +38,9 @@ public class PlayerHeadInteractionMixin {
             CombatHeadManager headManager = CombatHeadManager.getInstance();
 
             if (headManager.isHeadLocation(pos)) {
-                if (!headManager.canAccess(pos, serverPlayer)) {
-                    serverPlayer.displayClientMessage(
-                        Component.literal("§c§lYou cannot access this combat log head yet!"),
-                        true
-                    );
-                    cir.setReturnValue(InteractionResult.FAIL);
-                } else {
-                    // Allow access - could open inventory GUI here in future
-                    serverPlayer.sendSystemMessage(
-                        Component.literal("§a§lAccess granted to combat log head")
-                    );
-                    // For now, just allow normal interaction
-                }
+                // Open the UI
+                headManager.openCombatHeadUI(serverPlayer, pos);
+                cir.setReturnValue(InteractionResult.SUCCESS);
             }
         }
     }

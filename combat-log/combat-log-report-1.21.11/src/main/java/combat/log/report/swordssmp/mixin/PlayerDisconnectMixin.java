@@ -37,11 +37,11 @@ public class PlayerDisconnectMixin {
             
             // Check if combat log system is bypassed via gamerule
             ServerLevel serverLevel = (ServerLevel) player.level();
-            boolean bypassSystem = serverLevel.getGameRules().getBoolean(CombatLogGameRules.BYPASS_COMBAT_LOG_SYSTEM);
+            boolean bypassSystem = Boolean.TRUE.equals(serverLevel.getGameRules().get(CombatLogGameRules.BYPASS_COMBAT_LOG_SYSTEM));
             
             if (bypassSystem) {
                 // System bypassed - just clear combat tag and let items drop normally
-                CombatLogReport.LOGGER.info("Combat log system bypassed by gamerule, items will drop naturally");
+                CombatLogReport.LOGGER.info("Combat log system bypassed by gamerule for player {}, items will drop naturally", player.getName().getString());
                 
                 // Broadcast simple message
                 PlayerList playerList = (PlayerList) (Object) this;

@@ -8,8 +8,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -289,5 +292,61 @@ public class CombatHeadManager {
      */
     public boolean hasStoredInventory(UUID playerId) {
         return storedInventories.containsKey(playerId);
+    }
+    
+    /**
+     * Open combat head UI for a player
+     */
+    public void openCombatHeadUI(ServerPlayer player, BlockPos headPos) {
+        UUID ownerId = headLocations.get(headPos);
+        if (ownerId == null) {
+            player.sendSystemMessage(Component.literal("§cCombat log head not found!"));
+            return;
+        }
+        
+        // Check if player can access
+        if (!canAccess(headPos, player)) {
+            player.displayClientMessage(
+                Component.literal("§c§lYou cannot access this combat log head yet!"),
+                true
+            );
+            return;
+        }
+        
+        // Get stored inventory
+        List<ItemStack> items = storedInventories.get(ownerId);
+        if (items == null || items.isEmpty()) {
+            player.sendSystemMessage(Component.literal("§eThis combat log head has no items stored."));
+            return;
+        }
+        
+        // Create container with items
+        final SimpleContainer container = new SimpleContainer(41);
+        for (int i = 0; i < Math.min(items.size(), 41); i++) {
+            container.setItem(i, items.get(i));
+        }
+        
+        final UUID finalOwnerId = ownerId;
+        
+        // Open chest-like UI
+        player.openMenu(new net.minecraft.world.SimpleMenuProvider(
+            (syncId, playerInventory, playerEntity) -> 
+                net.minecraft.world.inventory.ChestMenu.sixRows(syncId, playerInventory, container),
+            Component.literal("Combat Log Head - " + getHeadOwnerName(finalOwnerId))
+        ));
+        
+        CombatLogReport.LOGGER.info("Opened combat head UI for player {} at position {}", 
+            player.getName().getString(), headPos);
+    }
+    
+    private String getHeadOwnerName(UUID ownerId) {
+        UUID incidentId = headIncidents.get(ownerId);
+        if (incidentId != null) {
+            CombatLogIncident incident = IncidentManager.getInstance().getIncident(incidentId);
+            if (incident != null) {
+                return incident.getPlayerName();
+            }
+        }
+        return ownerId.toString().substring(0, 8);
     }
 }
