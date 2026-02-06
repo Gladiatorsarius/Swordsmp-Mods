@@ -7,6 +7,9 @@ import combat.log.discord.models.CombatLogIncident;
 import combat.log.discord.models.IncidentDecision;
 import combat.log.discord.models.SocketMessage;
 import combat.log.discord.models.UnlinkMessage;
+import combat.log.discord.models.WhitelistConfirmation;
+import combat.log.discord.models.WhitelistRemoveConfirmation;
+import combat.log.discord.whitelist.WhitelistManager;
 import com.google.gson.Gson;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -25,6 +28,7 @@ public class CombatLogWebSocketServer extends WebSocketServer {
     private final TicketManager ticketManager;
     private final BotConfig config;
     private final LinkingDatabase linkingDatabase;
+    private WhitelistManager whitelistManager;
     private WebSocket minecraftConnection;
 
     public CombatLogWebSocketServer(BotConfig config, TicketManager ticketManager, LinkingDatabase linkingDatabase) {
@@ -34,10 +38,18 @@ public class CombatLogWebSocketServer extends WebSocketServer {
         this.linkingDatabase = linkingDatabase;
     }
 
+    public void setWhitelistManager(WhitelistManager whitelistManager) {
+        this.whitelistManager = whitelistManager;
+    }
+
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         logger.info("New connection from: {}", conn.getRemoteSocketAddress());
         minecraftConnection = conn;
+
+        if (whitelistManager != null) {
+            whitelistManager.handleMinecraftConnected();
+        }
     }
 
     @Override
@@ -60,8 +72,11 @@ public class CombatLogWebSocketServer extends WebSocketServer {
                 CombatLogIncident incident = gson.fromJson(message, CombatLogIncident.class);
                 handleIncident(incident);
             } else if ("whitelist_confirmation".equals(baseMessage.getType())) {
-                // Handle whitelist confirmation from Minecraft
-                logger.info("Received whitelist confirmation from Minecraft");
+                WhitelistConfirmation confirmation = gson.fromJson(message, WhitelistConfirmation.class);
+                handleWhitelistConfirmation(confirmation);
+            } else if ("whitelist_remove_confirmation".equals(baseMessage.getType())) {
+                WhitelistRemoveConfirmation confirmation = gson.fromJson(message, WhitelistRemoveConfirmation.class);
+                handleWhitelistRemoveConfirmation(confirmation);
             } else if ("unlink_player".equals(baseMessage.getType())) {
                 UnlinkMessage unlinkMsg = gson.fromJson(message, UnlinkMessage.class);
                 handleUnlink(unlinkMsg);
@@ -107,6 +122,31 @@ public class CombatLogWebSocketServer extends WebSocketServer {
             logger.info("Removed link for player {} from database", message.getPlayerName());
         } catch (Exception e) {
             logger.error("Failed to remove link for player {}: {}", message.getPlayerName(), e.getMessage(), e);
+        }
+
+        if (whitelistManager != null) {
+            whitelistManager.handleMinecraftUnlink(message);
+        }
+    }
+
+    /**
+     * Handle whitelist confirmation from Minecraft
+     */
+    private void handleWhitelistConfirmation(WhitelistConfirmation confirmation) {
+        logger.info("Received whitelist confirmation for {} (success={})", 
+            confirmation.getPlayerName(), confirmation.isSuccess());
+
+        if (whitelistManager != null) {
+            whitelistManager.handleWhitelistConfirmation(confirmation);
+        }
+    }
+
+    private void handleWhitelistRemoveConfirmation(WhitelistRemoveConfirmation confirmation) {
+        logger.info("Received whitelist remove confirmation for {} (success={})", 
+            confirmation.getPlayerName(), confirmation.isSuccess());
+
+        if (whitelistManager != null) {
+            whitelistManager.handleWhitelistRemoveConfirmation(confirmation);
         }
     }
 

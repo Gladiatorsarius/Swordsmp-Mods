@@ -5,10 +5,11 @@ This guide explains every field in the `config.json` file for the Combat Log Dis
 ## 📋 Quick Start
 
 1. Copy `config.example.json` to `config.json`
-2. Fill in your Discord credentials (token, guild ID, staff role ID)
-3. Configure channel IDs for tickets and whitelist
-4. Adjust features and timeouts as needed
-5. Run the bot with `java -jar combat-log-discord-bot-1.0.0.jar`
+2. Fill in IDs and settings in `config.json`
+3. Create `config.local.json` with your bot token (this file is not committed)
+4. Configure channel IDs for tickets and whitelist
+5. Adjust features and timeouts as needed
+6. Run the bot with `java -jar combat-log-discord-bot-1.0.0.jar`
 
 ## 🔧 Configuration Structure
 
@@ -48,6 +49,19 @@ Platform-specific and advanced configuration options.
   3. Go to "Bot" section
   4. Click "Reset Token" or "Copy" to get your bot token
 - **Security**: ⚠️ **Never share your bot token publicly!** It provides full control over your bot.
+
+#### Local override file (Recommended)
+To keep tokens out of git, use a local override file. The bot loads `config.json` first, then applies `config.local.json` on top.
+
+Create `config.local.json` next to `config.json`:
+
+```json
+{
+  "discord": {
+    "token": "YOUR_BOT_TOKEN_HERE"
+  }
+}
+```
 
 #### `discord.guildId` (Required)
 - **Type**: String (Snowflake ID)
@@ -129,14 +143,6 @@ Platform-specific and advanced configuration options.
 - **Description**: Enable Mojang API integration for validating Minecraft usernames
   - `true` - Validates usernames and gets UUIDs from Mojang API
   - `false` - Skips validation (not recommended)
-
-#### `features.discordSRVEnabled`
-- **Type**: Boolean
-- **Default**: `false`
-- **Description**: Enable DiscordSRV integration (legacy feature)
-  - `true` - Fallback to DiscordSRV database for player linking
-  - `false` - Use only internal linking database
-- **Note**: Most servers should keep this `false` as the bot has its own linking system
 
 ---
 
@@ -237,6 +243,45 @@ Platform-specific and advanced configuration options.
 
 ---
 
+### Button Labels
+
+#### `buttons.ticket.approve`
+- **Type**: String
+- **Default**: `"✅ Approve"`
+- **Description**: Label for the ticket approve button
+
+#### `buttons.ticket.deny`
+- **Type**: String
+- **Default**: `"❌ Deny"`
+- **Description**: Label for the ticket deny button
+
+#### `buttons.ticket.admit`
+- **Type**: String
+- **Default**: `"🔴 I Admit Combat Log"`
+- **Description**: Label for the ticket self-admit button
+
+#### `buttons.ticket.extend`
+- **Type**: String
+- **Default**: `"⏰ Extend"`
+- **Description**: Label for the ticket extend button
+
+#### `buttons.whitelist.request`
+- **Type**: String
+- **Default**: `"🎫 Request Whitelist"`
+- **Description**: Label for the whitelist request button
+
+#### `buttons.whitelist.approve`
+- **Type**: String
+- **Default**: `"✅ Approve"`
+- **Description**: Label for the whitelist approve button
+
+#### `buttons.whitelist.deny`
+- **Type**: String
+- **Default**: `"❌ Deny"`
+- **Description**: Label for the whitelist deny button
+
+---
+
 
 ### Scenario 1: Basic Setup
 Minimal configuration for a new server:
@@ -244,7 +289,6 @@ Minimal configuration for a new server:
 ```json
 {
   "discord": {
-    "token": "YOUR_BOT_TOKEN",
     "guildId": "YOUR_SERVER_ID",
     "staffRoleId": "YOUR_MODERATOR_ROLE_ID"
   },
@@ -259,6 +303,16 @@ Minimal configuration for a new server:
     "privateThreads": true,
     "whitelistEnabled": true,
     "mojangApiEnabled": true
+  }
+}
+```
+
+Token goes in `config.local.json`:
+
+```json
+{
+  "discord": {
+    "token": "YOUR_BOT_TOKEN"
   }
 }
 ```
@@ -304,7 +358,7 @@ Testing on the same machine as Minecraft server:
 
 ## ⚠️ Important Security Notes
 
-1. **Never commit config.json to git** - It contains your bot token
+1. **Do not commit your bot token** - Keep it in `config.local.json`
 2. **Use environment variables** for sensitive data in production
 3. **Restrict bot permissions** - Only give necessary Discord permissions
 4. **Keep backups** - Save your configuration before making changes
@@ -315,7 +369,7 @@ Testing on the same machine as Minecraft server:
 ## 🔍 Troubleshooting
 
 ### "Bot token not configured" Error
-- Make sure `discord.token` is set and not the default placeholder value
+- Make sure `discord.token` is set in `config.local.json` and not the default placeholder value
 
 ### "Cannot find guild" Error
 - Verify `discord.guildId` is correct

@@ -2,6 +2,7 @@ package combat.log.report.swordssmp.linking;
 
 import combat.log.report.swordssmp.socket.SocketClient;
 import combat.log.report.swordssmp.socket.UnlinkMessage;
+import combat.log.report.swordssmp.socket.WhitelistRemoveConfirmationMessage;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -56,11 +57,20 @@ public class UnlinkCommand {
                 context.getSource().getServer().createCommandSourceStack(),
                 "whitelist remove " + playerName
             );
+
+            WhitelistRemoveConfirmationMessage confirmation = new WhitelistRemoveConfirmationMessage(
+                true,
+                playerName,
+                null
+            );
+            socketClient.sendMessage(confirmation);
         });
 
         player.sendSystemMessage(Component.literal("§aYour Discord account has been unlinked."));
         player.sendSystemMessage(Component.literal("§eYou have been removed from the whitelist."));
         player.sendSystemMessage(Component.literal("§eYou can relink by requesting whitelist again in Discord."));
+
+        player.connection.disconnect(Component.literal("You have been unlinked and removed from the whitelist."));
 
         return 1;
     }

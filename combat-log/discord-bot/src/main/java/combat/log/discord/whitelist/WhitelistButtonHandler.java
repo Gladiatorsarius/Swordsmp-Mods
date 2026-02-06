@@ -29,6 +29,12 @@ public class WhitelistButtonHandler extends ListenerAdapter {
             return;
         }
 
+        // Handle unlink button
+        if ("whitelist_unlink".equals(componentId)) {
+            handleUnlink(event);
+            return;
+        }
+
         // Handle approve button
         if (componentId.startsWith("whitelist_approve:")) {
             String requestId = componentId.substring("whitelist_approve:".length());
@@ -48,14 +54,18 @@ public class WhitelistButtonHandler extends ListenerAdapter {
      * Show modal for requesting whitelist
      */
     private void showWhitelistModal(ButtonInteractionEvent event) {
-        TextInput usernameInput = TextInput.create("minecraft_username", "Minecraft Username", TextInputStyle.SHORT)
-            .setPlaceholder("Enter your Minecraft username")
+        TextInput usernameInput = TextInput.create(
+                "minecraft_username",
+                whitelistManager.message("whitelist.modal.usernameLabel", "Minecraft Username"),
+                TextInputStyle.SHORT
+            )
+            .setPlaceholder(whitelistManager.message("whitelist.modal.usernamePlaceholder", "Enter your Minecraft username"))
             .setMinLength(3)
             .setMaxLength(16)
             .setRequired(true)
             .build();
 
-        Modal modal = Modal.create("whitelist_modal", "Request Whitelist")
+        Modal modal = Modal.create("whitelist_modal", whitelistManager.message("whitelist.modal.title", "Request Whitelist"))
             .addActionRow(usernameInput)
             .build();
 
@@ -78,24 +88,47 @@ public class WhitelistButtonHandler extends ListenerAdapter {
             event.getUser().getAsTag()
         );
 
-        event.reply("✅ Request approved! Whitelisting player...").setEphemeral(true).queue();
+        event.getHook().sendMessage(whitelistManager.message("whitelist.approve.actionMessage", "✅ Request approved! Whitelisting player..."))
+            .setEphemeral(true)
+            .queue();
     }
 
     /**
      * Show modal for denying request
      */
     private void showDenyModal(ButtonInteractionEvent event, String requestId) {
-        TextInput reasonInput = TextInput.create("deny_reason", "Reason for Denial", TextInputStyle.PARAGRAPH)
-            .setPlaceholder("Enter reason for denial (optional)")
+        TextInput reasonInput = TextInput.create(
+                "deny_reason",
+                whitelistManager.message("whitelist.deny.modal.reasonLabel", "Reason for Denial"),
+                TextInputStyle.PARAGRAPH
+            )
+            .setPlaceholder(whitelistManager.message("whitelist.deny.modal.reasonPlaceholder", "Enter reason for denial (optional)"))
             .setMinLength(0)
             .setMaxLength(500)
             .setRequired(false)
             .build();
 
-        Modal modal = Modal.create("whitelist_deny_modal:" + requestId, "Deny Whitelist Request")
+        Modal modal = Modal.create("whitelist_deny_modal:" + requestId,
+                whitelistManager.message("whitelist.deny.modal.title", "Deny Whitelist Request"))
             .addActionRow(reasonInput)
             .build();
 
         event.replyModal(modal).queue();
+    }
+
+    /**
+     * Handle unlink button click
+     */
+    private void handleUnlink(ButtonInteractionEvent event) {
+        if (event.isAcknowledged()) {
+            WhitelistManager.WhitelistResult result = whitelistManager.unlinkDiscord(event.getUser());
+            event.getHook().sendMessage(result.message).setEphemeral(true).queue();
+            return;
+        }
+
+        event.deferReply(true).queue(hook -> {
+            WhitelistManager.WhitelistResult result = whitelistManager.unlinkDiscord(event.getUser());
+            hook.editOriginal(result.message).queue();
+        });
     }
 }

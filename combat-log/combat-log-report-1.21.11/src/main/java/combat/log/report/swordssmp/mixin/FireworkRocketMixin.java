@@ -2,7 +2,7 @@ package combat.log.report.swordssmp.mixin;
 
 import combat.log.report.swordssmp.CombatManager;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,7 +17,7 @@ public abstract class FireworkRocketMixin {
     
     @Shadow
     @Nullable
-    private Player attachedToPlayer;
+    private LivingEntity attachedToEntity;
     
     private boolean combatCheckDone = false;
     
@@ -31,7 +31,7 @@ public abstract class FireworkRocketMixin {
         combatCheckDone = true;
         
         // Check if rocket is attached to a player (elytra boost)
-        if (attachedToPlayer instanceof ServerPlayer serverPlayer) {
+        if (attachedToEntity instanceof ServerPlayer serverPlayer) {
             CombatManager combatManager = CombatManager.getInstance();
             
             // If player is in combat, cancel the rocket

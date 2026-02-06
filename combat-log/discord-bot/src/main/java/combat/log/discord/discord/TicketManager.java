@@ -4,6 +4,7 @@ import combat.log.discord.config.BotConfig;
 import combat.log.discord.models.CombatLogIncident;
 import combat.log.discord.models.IncidentDecision;
 import combat.log.discord.models.Ticket;
+import combat.log.discord.util.MessageFormatter;
 import combat.log.discord.websocket.CombatLogWebSocketServer;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -101,7 +102,10 @@ public class TicketManager {
                 return null;
             }
 
-            String title = String.format("🚨 Combat Log: %s", incident.getPlayerName());
+            String title = MessageFormatter.format(
+                config.message("ticket.thread.forumTitle", "🚨 Combat Log: {playerName}"),
+                Map.of("playerName", incident.getPlayerName())
+            );
             
             // Look up Discord user from LinkingDatabase
             String discordId = linkingDatabase.getDiscordId(incident.getPlayerUuid()).orElse(null);
@@ -150,13 +154,21 @@ public class TicketManager {
             if (config.discord.staffRoleId != null && !config.discord.staffRoleId.isEmpty()) {
                 Role staffRole = guild.getRoleById(config.discord.staffRoleId);
                 if (staffRole != null) {
-                    thread.sendMessage(staffRole.getAsMention() + " - New combat log incident!").queue();
+                    String staffMessage = MessageFormatter.format(
+                        config.message("ticket.staff.alert", "{staffMention} - New combat log incident!"),
+                        Map.of("staffMention", staffRole.getAsMention())
+                    );
+                    thread.sendMessage(staffMessage).queue();
                 }
             }
             
             // Tag linked player in thread
             if (linkedUser != null) {
-                thread.sendMessage(linkedUser.getAsMention() + " - Please review the incident and submit proof if needed.").queue();
+                String reviewMessage = MessageFormatter.format(
+                    config.message("ticket.player.reviewForum", "{userMention} - Please review the incident and submit proof if needed."),
+                    Map.of("userMention", linkedUser.getAsMention())
+                );
+                thread.sendMessage(reviewMessage).queue();
             }
             
             return thread.getId();
@@ -177,7 +189,10 @@ public class TicketManager {
                 return null;
             }
 
-            String title = String.format("Combat Log: %s", incident.getPlayerName());
+            String title = MessageFormatter.format(
+                config.message("ticket.thread.textTitle", "Combat Log: {playerName}"),
+                Map.of("playerName", incident.getPlayerName())
+            );
             
             // Look up Discord user from LinkingDatabase
             String discordId = linkingDatabase.getDiscordId(incident.getPlayerUuid()).orElse(null);
@@ -205,7 +220,11 @@ public class TicketManager {
             if (linkedUser != null) {
                 thread.addThreadMember(linkedUser).queue();
                 sendPlayerNotification(linkedUser, thread, incident);
-                thread.sendMessage(linkedUser.getAsMention() + " - Please review this incident.").queue();
+                String reviewMessage = MessageFormatter.format(
+                    config.message("ticket.player.reviewThread", "{userMention} - Please review this incident."),
+                    Map.of("userMention", linkedUser.getAsMention())
+                );
+                thread.sendMessage(reviewMessage).queue();
             }
             
             thread.sendMessage(buildInstructionsMessage(linkedUser))
@@ -224,31 +243,38 @@ public class TicketManager {
      */
     private MessageEmbed createIncidentEmbed(CombatLogIncident incident, User linkedUser) {
         EmbedBuilder embed = new EmbedBuilder();
-        embed.setTitle("⚔️ Combat Log Report");
+        embed.setTitle(config.message("ticket.incident.title", "⚔️ Combat Log Report"));
         embed.setColor(Color.RED);
-        embed.setDescription("A player has disconnected during combat and needs to provide proof.");
+        embed.setDescription(config.message("ticket.incident.desc", "A player has disconnected during combat and needs to provide proof."));
         
-        embed.addField("Player", incident.getPlayerName(), true);
-        embed.addField("Incident ID", 
+        embed.addField(config.message("ticket.embed.field.player", "Player"), incident.getPlayerName(), true);
+        embed.addField(config.message("ticket.embed.field.incidentId", "Incident ID"), 
             "`" + incident.getIncidentId().substring(0, 8) + "...`", true);
-        embed.addField("Combat Time Remaining", 
+        embed.addField(config.message("ticket.embed.field.combatTimeRemaining", "Combat Time Remaining"), 
             String.format("%.1f seconds", incident.getCombatTimeRemaining()), true);
         
         // Show Discord link status
         if (linkedUser != null) {
-            embed.addField("Discord Linked", "✅ " + linkedUser.getAsMention(), true);
+            String linkedText = MessageFormatter.format(
+                config.message("ticket.incident.discordLinkedYes", "✅ {userMention}"),
+                Map.of("userMention", linkedUser.getAsMention())
+            );
+            embed.addField(config.message("ticket.embed.field.discordLinked", "Discord Linked"), linkedText, true);
         } else {
-            embed.addField("Discord Linked", "❌ Not linked", true);
+            embed.addField(config.message("ticket.embed.field.discordLinked", "Discord Linked"),
+                config.message("ticket.incident.discordLinkedNo", "❌ Not linked"), true);
         }
         
-        embed.addField("Status", "⏳ Pending Proof", true);
-        embed.addField("Deadline", 
+        embed.addField(config.message("ticket.embed.field.status", "Status"),
+            config.message("ticket.incident.statusPending", "⏳ Pending Proof"), true);
+        embed.addField(config.message("ticket.embed.field.deadline", "Deadline"), 
             String.format("<t:%d:R>", Instant.now().plusSeconds(config.timeouts.ticketTimeoutMinutes * 60).getEpochSecond()),
             true);
-        embed.addField("Consequence", "❌ Killed on next login if not resolved", true);
+        embed.addField(config.message("ticket.embed.field.consequence", "Consequence"),
+            config.message("ticket.incident.consequence", "❌ Killed on next login if not resolved"), true);
         
         embed.setTimestamp(Instant.now());
-        embed.setFooter("Combat Log System");
+        embed.setFooter(config.message("ticket.incident.footer", "Combat Log System"));
         
         return embed.build();
     }
@@ -258,31 +284,40 @@ public class TicketManager {
      */
     private void sendPlayerNotification(User user, ThreadChannel thread, CombatLogIncident incident) {
         try {
-            user.openPrivateChannel().queue(dm -> {
-                EmbedBuilder embed = new EmbedBuilder();
-                embed.setTitle("🚨 Combat Log Ticket Created");
-                embed.setColor(Color.ORANGE);
-                embed.setDescription("You have disconnected during combat and a ticket has been created.");
-                
-                embed.addField("What happened?", 
-                    "You disconnected while in combat with another player.", false);
-                embed.addField("What do I need to do?", 
-                    "Submit proof (clip/video) showing you disconnected unintentionally (crash, internet issue, etc.)", false);
-                embed.addField("Where?", 
-                    "In the ticket: " + thread.getAsMention(), false);
-                embed.addField("Deadline", 
-                    String.format("You have **%d minutes** to submit proof", config.timeouts.ticketTimeoutMinutes), false);
-                embed.addField("What if I don't?", 
-                    "You will be killed when you next log into the server.", false);
-                
-                embed.setFooter("Click the link above to open your ticket");
-                embed.setTimestamp(Instant.now());
-                
-                dm.sendMessageEmbeds(embed.build()).queue(
-                    success -> logger.info("Sent DM notification to {}", user.getName()),
-                    error -> logger.warn("Failed to send DM to {}: {}", user.getName(), error.getMessage())
+            if (thread == null) {
+                logger.warn("Cannot notify player; thread is null for incident {}", incident.getIncidentId());
+                return;
+            }
+
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.setTitle(config.message("ticket.notification.title", "🚨 Combat Log Ticket Created"));
+            embed.setColor(Color.ORANGE);
+            embed.setDescription(config.message("ticket.notification.desc", "You have disconnected during combat and a ticket has been created."));
+
+            embed.addField(config.message("ticket.notification.field.whatHappened", "What happened?"),
+                config.message("ticket.notification.value.whatHappened", "You disconnected while in combat with another player."), false);
+            embed.addField(config.message("ticket.notification.field.whatToDo", "What do I need to do?"),
+                config.message("ticket.notification.value.whatToDo",
+                    "Submit proof (clip/video) showing you disconnected unintentionally (crash, internet issue, etc.)"), false);
+            embed.addField(config.message("ticket.notification.field.where", "Where?"),
+                MessageFormatter.format(config.message("ticket.notification.value.where", "In the ticket: {threadMention}"),
+                    Map.of("threadMention", thread.getAsMention())), false);
+            embed.addField(config.message("ticket.notification.field.deadline", "Deadline"),
+                MessageFormatter.format(config.message("ticket.notification.value.deadline",
+                    "You have **{minutes} minutes** to submit proof"),
+                    Map.of("minutes", String.valueOf(config.timeouts.ticketTimeoutMinutes))), false);
+            embed.addField(config.message("ticket.notification.field.whatIf", "What if I don't?"),
+                config.message("ticket.notification.value.whatIf", "You will be killed when you next log into the server."), false);
+
+            embed.setFooter(config.message("ticket.notification.footer", "Use the thread link above to open your ticket"));
+            embed.setTimestamp(Instant.now());
+
+            thread.sendMessage(user.getAsMention())
+                .setEmbeds(embed.build())
+                .queue(
+                    success -> logger.info("Posted ticket notification for {}", user.getName()),
+                    error -> logger.warn("Failed to post ticket notification for {}: {}", user.getName(), error.getMessage())
                 );
-            }, error -> logger.warn("Failed to open DM channel for {}: {}", user.getName(), error.getMessage()));
         } catch (Exception e) {
             logger.error("Failed to send player notification: {}", e.getMessage());
         }
@@ -292,26 +327,33 @@ public class TicketManager {
      * Build instructions message
      */
     private String buildInstructionsMessage(User linkedUser) {
+        String approveLabel = resolveLabel(config.buttons.ticket.approve, "✅ Approve");
+        String denyLabel = resolveLabel(config.buttons.ticket.deny, "❌ Deny");
+        String extendLabel = resolveLabel(config.buttons.ticket.extend, "⏰ Extend");
+
         StringBuilder sb = new StringBuilder();
-        sb.append("**📋 Instructions:**\n\n");
-        
-        if (linkedUser != null) {
-            sb.append("**For ").append(linkedUser.getAsMention()).append(":**\n");
-        } else {
-            sb.append("**For the Player:**\n");
-        }
-        sb.append("• Upload a clip/video showing you disconnected unintentionally (crash, internet issue, etc.)\n");
-        sb.append("• Accepted platforms: YouTube, Twitch, Streamable, Medal.tv, or Discord upload\n");
-        sb.append(String.format("• You have **%d minutes** to submit proof\n", config.timeouts.ticketTimeoutMinutes));
-        sb.append("• If no proof is submitted, you will be killed on your next login\n\n");
-        
-        sb.append("**For Staff:**\n");
-        sb.append("• Click **✅ Approve** to clear the punishment\n");
-        sb.append("• Click **❌ Deny** to confirm the punishment\n");
-        sb.append("• Click **⏰ Extend** to give more time\n");
-        sb.append("• Or use `/info <incident_id>` for details\n");
-        
-        return sb.toString();
+        String userMention = linkedUser != null ? linkedUser.getAsMention() : "the Player";
+        return MessageFormatter.format(
+            config.message("ticket.instructions",
+                "**📋 Instructions:**\n\n**For {userMention}:**\n" +
+                    "• Upload a clip/video showing you disconnected unintentionally (crash, internet issue, etc.)\n" +
+                    "• Accepted platforms: YouTube, Twitch, Streamable, Medal.tv, or Discord upload\n" +
+                    "• You have **{minutes} minutes** to submit proof\n" +
+                    "• If no proof is submitted, you will be killed on your next login\n\n" +
+                    "**For Staff:**\n" +
+                    "• Click **{approveLabel}** to clear the punishment\n" +
+                    "• Click **{denyLabel}** to confirm the punishment\n" +
+                    "• Click **{extendLabel}** to give more time\n" +
+                    "• Or use `/info <incident_id>` for details"
+            ),
+            Map.of(
+                "userMention", userMention,
+                "minutes", String.valueOf(config.timeouts.ticketTimeoutMinutes),
+                "approveLabel", approveLabel,
+                "denyLabel", denyLabel,
+                "extendLabel", extendLabel
+            )
+        );
     }
 
     /**
@@ -319,11 +361,18 @@ public class TicketManager {
      */
     private ActionRow createActionButtons(String incidentId) {
         return ActionRow.of(
-            Button.success("approve:" + incidentId, "✅ Approve"),
-            Button.danger("deny:" + incidentId, "❌ Deny"),
-            Button.primary("admit:" + incidentId, "🔴 I Admit Combat Log"),
-            Button.secondary("extend:" + incidentId, "⏰ Extend")
+            Button.success("approve:" + incidentId, resolveLabel(config.buttons.ticket.approve, "✅ Approve")),
+            Button.danger("deny:" + incidentId, resolveLabel(config.buttons.ticket.deny, "❌ Deny")),
+            Button.primary("admit:" + incidentId, resolveLabel(config.buttons.ticket.admit, "🔴 I Admit Combat Log")),
+            Button.secondary("extend:" + incidentId, resolveLabel(config.buttons.ticket.extend, "⏰ Extend"))
         );
+    }
+
+    private String resolveLabel(String value, String fallback) {
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+        return value;
     }
 
     /**
@@ -347,7 +396,11 @@ public class TicketManager {
         }
 
         // Update Discord ticket
-        updateTicketMessage(ticket, "✅ Approved by " + adminName, Color.GREEN, reason);
+        String status = MessageFormatter.format(
+            config.message("ticket.status.approved", "✅ Approved by {adminName}"),
+            Map.of("adminName", adminName)
+        );
+        updateTicketMessage(ticket, status, Color.GREEN, reason);
         
         activeTickets.remove(incidentId);
         logger.info("Ticket {} approved by {}", incidentId, adminName);
@@ -375,7 +428,11 @@ public class TicketManager {
         }
 
         // Update Discord ticket
-        updateTicketMessage(ticket, "❌ Denied by " + adminName, Color.RED, reason);
+        String status = MessageFormatter.format(
+            config.message("ticket.status.denied", "❌ Denied by {adminName}"),
+            Map.of("adminName", adminName)
+        );
+        updateTicketMessage(ticket, status, Color.RED, reason);
         
         activeTickets.remove(incidentId);
         logger.info("Ticket {} denied by {}", incidentId, adminName);
@@ -396,7 +453,11 @@ public class TicketManager {
         ticket.setStatus(Ticket.TicketStatus.EXTENDED);
         
         // Notify in Discord
-        updateTicketMessage(ticket, "⏰ Extended by " + additionalMinutes + " minutes", Color.YELLOW, null);
+        String status = MessageFormatter.format(
+            config.message("ticket.status.extended", "⏰ Extended by {minutes} minutes"),
+            Map.of("minutes", String.valueOf(additionalMinutes))
+        );
+        updateTicketMessage(ticket, status, Color.YELLOW, null);
         
         logger.info("Ticket {} extended by {} minutes", incidentId, additionalMinutes);
         return true;
@@ -409,7 +470,11 @@ public class TicketManager {
         Ticket ticket = activeTickets.get(incidentId);
         if (ticket != null) {
             ticket.setClipUrl(clipUrl);
-            updateTicketMessage(ticket, "📹 Clip submitted - Awaiting staff review", Color.BLUE, clipUrl);
+            updateTicketMessage(ticket,
+                config.message("ticket.status.clipSubmitted", "📹 Clip submitted - Awaiting staff review"),
+                Color.BLUE,
+                clipUrl
+            );
             logger.info("Clip submitted for ticket {}: {}", incidentId, clipUrl);
         }
     }
@@ -452,8 +517,11 @@ public class TicketManager {
         }
 
         // Update Discord ticket
-        updateTicketMessage(ticket, "⏱️ Auto-Denied (Timeout)", Color.DARK_GRAY, 
-            "No proof was submitted within the deadline");
+        updateTicketMessage(ticket,
+            config.message("ticket.status.autoDenied", "⏱️ Auto-Denied (Timeout)"),
+            Color.DARK_GRAY,
+            config.message("ticket.status.autoDeniedDetails", "No proof was submitted within the deadline")
+        );
         
         activeTickets.remove(incidentId);
         logger.info("Ticket {} auto-denied due to timeout", incidentId);
@@ -467,12 +535,12 @@ public class TicketManager {
             ThreadChannel thread = jda.getThreadChannelById(ticket.getChannelId());
             if (thread != null) {
                 EmbedBuilder embed = new EmbedBuilder();
-                embed.setTitle("📊 Ticket Status Update");
+                embed.setTitle(config.message("ticket.statusUpdate.title", "📊 Ticket Status Update"));
                 embed.setColor(color);
-                embed.addField("Status", status, false);
+                embed.addField(config.message("ticket.statusUpdate.field.status", "Status"), status, false);
                 
                 if (additionalInfo != null) {
-                    embed.addField("Details", additionalInfo, false);
+                    embed.addField(config.message("ticket.statusUpdate.field.details", "Details"), additionalInfo, false);
                 }
                 
                 embed.setTimestamp(Instant.now());

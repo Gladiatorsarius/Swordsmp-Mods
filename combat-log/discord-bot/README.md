@@ -49,25 +49,78 @@ Discord bot that manages combat log appeal tickets for the Minecraft server.
 ### 3. Configuration
 
 1. Copy `config.example.json` to `config.json`
-2. Fill in your Discord credentials:
+2. Fill in IDs and settings in `config.json`
+3. Create `config.local.json` with your bot token (this file is not committed)
 
 ```json
 {
-  "discord": {
-    "token": "YOUR_BOT_TOKEN_HERE",
-    "guildId": "123456789012345678",
-    "ticketChannelId": "123456789012345678",
-    "staffRoleId": "123456789012345678",
-    "useForumChannel": true
-  },
-  "websocket": {
-    "port": 8080,
-    "host": "0.0.0.0"
-  },
-  "ticket": {
-    "timeoutMinutes": 60,
-    "autoDenyEnabled": true
-  }
+   "discord": {
+      "token": "YOUR_BOT_TOKEN_HERE"
+   }
+}
+```
+
+Example base config (token stays in `config.local.json`):
+
+```json
+{
+   "discord": {
+      "token": "YOUR_BOT_TOKEN_HERE",
+      "guildId": "YOUR_GUILD_ID",
+      "staffRoleId": "YOUR_STAFF_ROLE_ID"
+   },
+   "websocket": {
+      "port": 8080,
+      "host": "0.0.0.0"
+   },
+   "features": {
+      "useForumChannel": true,
+      "autoDenyEnabled": true,
+      "privateThreads": true,
+      "whitelistEnabled": true,
+      "mojangApiEnabled": true
+   },
+   "timeouts": {
+      "ticketTimeoutMinutes": 60,
+      "mojangCacheDurationMinutes": 5,
+      "mojangApiTimeoutSeconds": 5
+   },
+   "channels": {
+      "ticketChannelId": "YOUR_CHANNEL_ID",
+      "whitelistChannelId": "YOUR_WHITELIST_CHANNEL_ID",
+      "reviewChannelId": "YOUR_REVIEW_CHANNEL_ID"
+   },
+   "ticket": {
+      "acceptedProofPlatforms": [
+         "youtube.com",
+         "youtu.be",
+         "twitch.tv",
+         "clips.twitch.tv",
+         "streamable.com",
+         "medal.tv",
+         "discord.com/attachments"
+      ]
+   },
+   "whitelist": {
+      "buttonMessage": {
+         "title": "🎫 Request Server Whitelist",
+         "description": "Click the button below to request access to our Minecraft server",
+         "color": "#00FF00"
+      }
+   },
+   "buttons": {
+      "ticket": {
+         "approve": "✅ Approve",
+         "deny": "❌ Deny",
+         "admit": "🔴 I Admit Combat Log",
+         "extend": "⏰ Extend"
+      },
+      "whitelist": {
+         "request": "🎫 Request Whitelist",
+         "approve": "✅ Approve",
+         "deny": "❌ Deny"
+      }
+   }
 }
 ```
 
@@ -153,7 +206,7 @@ View detailed information about a ticket.
 ## Troubleshooting
 
 ### Bot doesn't connect to Discord
-- Check bot token in config.json
+- Check bot token in config.local.json
 - Verify bot has required intents enabled
 - Check console for error messages
 
@@ -180,6 +233,9 @@ src/main/java/combat/log/discord/
 ├── CombatLogBot.java          - Main class
 ├── config/
 │   └── BotConfig.java         - Configuration
+├── interactions/
+│   ├── ButtonHandler.java     - Ticket button interactions
+│   └── ModalHandler.java      - Ticket modals
 ├── models/
 │   ├── SocketMessage.java     - Message base
 │   ├── CombatLogIncident.java - Incoming incident
@@ -189,6 +245,10 @@ src/main/java/combat/log/discord/
 │   └── CombatLogWebSocketServer.java - WebSocket server
 ├── discord/
 │   └── TicketManager.java     - Ticket lifecycle
+├── whitelist/
+│   ├── WhitelistManager.java  - Whitelist workflow
+│   ├── WhitelistButtonHandler.java - Whitelist buttons
+│   └── WhitelistModalHandler.java  - Whitelist modals
 └── commands/
     └── TicketCommands.java    - Slash commands
 ```

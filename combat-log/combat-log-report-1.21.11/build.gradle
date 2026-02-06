@@ -28,6 +28,11 @@ loom {
 		}
 	}
 
+	mixin {
+		defaultRefmapName = "combat-log-report.refmap.json"
+		useLegacyMixinAp = true
+	}
+
 }
 
 dependencies {
@@ -38,6 +43,7 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
 	
 	// WebSocket client for Discord bot communication
 	implementation 'com.squareup.okhttp3:okhttp:4.12.0'

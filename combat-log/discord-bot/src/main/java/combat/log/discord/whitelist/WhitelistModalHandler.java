@@ -41,7 +41,7 @@ public class WhitelistModalHandler extends ListenerAdapter {
     private void handleWhitelistRequest(ModalInteractionEvent event) {
         ModalMapping usernameMapping = event.getValue("minecraft_username");
         if (usernameMapping == null) {
-            event.reply("❌ Error: Username not provided").setEphemeral(true).queue();
+            replyEphemeral(event, whitelistManager.message("whitelist.modal.usernameMissing", "❌ Error: Username not provided"));
             return;
         }
 
@@ -49,11 +49,16 @@ public class WhitelistModalHandler extends ListenerAdapter {
         logger.info("Whitelist request submitted by {} for Minecraft name: {}", 
             event.getUser().getAsTag(), minecraftName);
 
-        // Acknowledge immediately
-        event.reply("⏳ Processing your whitelist request...").setEphemeral(true).queue();
+        if (event.isAcknowledged()) {
+            WhitelistManager.WhitelistResult result = whitelistManager.processRequest(event.getUser(), minecraftName, event.getHook());
+            event.getHook().sendMessage(result.message).setEphemeral(true).queue();
+            return;
+        }
 
-        // Process request asynchronously
-        whitelistManager.processRequest(event.getUser(), minecraftName);
+        event.deferReply(true).queue(hook -> {
+            WhitelistManager.WhitelistResult result = whitelistManager.processRequest(event.getUser(), minecraftName, hook);
+            hook.editOriginal(result.message).queue();
+        });
     }
 
     /**
@@ -79,6 +84,15 @@ public class WhitelistModalHandler extends ListenerAdapter {
             reason
         );
 
-        event.reply("❌ Request denied.").setEphemeral(true).queue();
+        replyEphemeral(event, whitelistManager.message("whitelist.deny.success", "❌ Request denied."));
+    }
+
+    private void replyEphemeral(ModalInteractionEvent event, String message) {
+        if (event.isAcknowledged()) {
+            event.getHook().sendMessage(message).setEphemeral(true).queue();
+            return;
+        }
+
+        event.reply(message).setEphemeral(true).queue();
     }
 }

@@ -1,0 +1,186 @@
+{
+  "discord": {
+    "token": "YOUR_BOT_TOKEN_HERE",
+    "guildId": "1468993405127491619",
+    "staffRoleId": "1468994440344502515"
+  },
+  "websocket": {
+    "port": 8080,
+    "host": "0.0.0.0"
+  },
+  "features": {
+    "useForumChannel": true,
+    "autoDenyEnabled": true,
+    "privateThreads": true,
+    "whitelistEnabled": true,
+    "mojangApiEnabled": true
+  },
+  "timeouts": {
+    "ticketTimeoutMinutes": 60,
+    "mojangCacheDurationMinutes": 5,
+    "mojangApiTimeoutSeconds": 5
+  },
+  "channels": {
+    "ticketChannelId": "1468994128292352183",
+    "whitelistChannelId": "1469348175960735977",
+    "whitelistLogChannelId": "1469341353996456151"
+  },
+  "ticket": {
+    "acceptedProofPlatforms": [
+      "youtube.com",
+      "youtu.be",
+      "twitch.tv",
+      "clips.twitch.tv",
+      "streamable.com",
+      "medal.tv",
+      "discord.com/attachments"
+    ]
+  },
+  "whitelist": {
+    "buttonMessage": {
+      "title": "🎫 Request Server Whitelist",
+      "description": "Click the button below to request access to our Minecraft server",
+      "color": "#00FF00"
+    }
+  },
+  "buttons": {
+    "ticket": {
+      "approve": "✅ Approve",
+      "deny": "❌ Deny",
+      "admit": "🔴 I Admit Combat Log",
+      "extend": "⏰ Extend"
+    },
+    "whitelist": {
+      "request": "🎫 Request Whitelist",
+      "approve": "✅ Approve",
+      "deny": "❌ Deny",
+      "unlink": "🔓 Unlink"
+    }
+  },
+  "messages": {
+    "whitelist.setup.channelRequired": "❌ Channel ID is required",
+    "whitelist.setup.success": "✅ Whitelist channel setup complete!",
+    "whitelist.setup.failure": "❌ Failed to setup whitelist channel: {error}",
+    "whitelist.modal.usernameMissing": "❌ Error: Username not provided",
+    "whitelist.modal.waiting": "⏳ Waiting for Minecraft confirmation...",
+    "whitelist.modal.requestInvalidFormat": "❌ Invalid Minecraft username format. Username must be 3-16 characters long and contain only letters, numbers, and underscores.",
+    "whitelist.modal.requestAlreadyPending": "❌ You already have a whitelist request being processed. Please wait a moment.",
+    "whitelist.modal.requestAlreadyLinked": "❌ Your Discord account is already linked to a Minecraft account.",
+    "whitelist.modal.requestNameNotFound": "❌ Minecraft username not found. Please check the spelling and try again.",
+    "whitelist.modal.requestMinecraftLinked": "❌ This Minecraft account is already linked to another Discord account.",
+    "whitelist.modal.linkError": "❌ An error occurred while linking your account. Please try again later.",
+    "whitelist.modal.processError": "❌ An error occurred while processing your request. Please try again later.",
+    "whitelist.confirm.success": "✅ Whitelist successful for **{playerName}**.",
+    "whitelist.confirm.fail": "❌ Whitelist failed for **{playerName}**: {error}",
+    "whitelist.deny.success": "❌ Request denied.",
+    "whitelist.approve.actionMessage": "✅ Request approved! Whitelisting player...",
+    "whitelist.unlink.notLinked": "❌ Your Discord account is not linked.",
+    "whitelist.unlink.notFound": "❌ No linked Minecraft account found to unlink.",
+    "whitelist.unlink.success": "✅ Your Discord account has been unlinked from {minecraftName}.",
+    "whitelist.unlink.error": "❌ Failed to unlink your account. Please try again later.",
+    "whitelist.unlink.waiting": "⏳ Waiting for Minecraft to confirm unlink for **{minecraftName}**...",
+    "whitelist.unlink.confirm.success": "✅ Unlinked successfully for **{minecraftName}**.",
+    "whitelist.unlink.confirm.fail": "❌ Unlink failed for **{minecraftName}**: {error}",
+    "whitelist.log.success.title": "✅ Whitelist Successful",
+    "whitelist.log.success.desc": "Discord: <@{discordId}>\nMinecraft: {playerName}",
+    "whitelist.log.fail.title": "❌ Whitelist Failed",
+    "whitelist.log.fail.desc": "Discord: <@{discordId}>\nMinecraft: {playerName}\nError: {error}",
+    "whitelist.log.remove.title": "🗑️ Whitelist Removed",
+    "whitelist.log.remove.desc": "Minecraft: {playerName}",
+    "whitelist.modal.title": "Request Whitelist",
+    "whitelist.modal.usernameLabel": "Minecraft Username",
+    "whitelist.modal.usernamePlaceholder": "Enter your Minecraft username",
+    "whitelist.deny.modal.title": "Deny Whitelist Request",
+    "whitelist.deny.modal.reasonLabel": "Reason for Denial",
+    "whitelist.deny.modal.reasonPlaceholder": "Enter reason for denial (optional)",
+
+    "ticket.commands.unknown": "Unknown command",
+    "ticket.commands.missingIncidentId": "❌ Please provide an incident ID",
+    "ticket.commands.missingIncidentIdMinutes": "❌ Please provide incident ID and minutes",
+    "ticket.commands.ticketNotFound": "❌ Ticket not found: {incidentId}",
+    "ticket.modal.admitConfirm": "❌ You must type 'I admit' to confirm",
+    "ticket.modal.extendRange": "❌ Please enter a valid number between 1 and 1440 minutes",
+    "ticket.modal.invalidNumber": "❌ Invalid number format. Please enter a valid number.",
+
+    "ticket.embed.approved.title": "✅ Ticket Approved",
+    "ticket.embed.approved.desc": "Player will NOT be punished on next login.",
+    "ticket.embed.denied.title": "❌ Ticket Denied",
+    "ticket.embed.denied.desc": "Player WILL be killed on next login.",
+    "ticket.embed.extended.title": "⏰ Ticket Extended",
+    "ticket.embed.info.title": "📋 Ticket Information",
+    "ticket.embed.admit.title": "🔴 Combat Log Admitted",
+    "ticket.embed.admit.desc": "You admitted to combat logging. Same consequences as denial apply:\n• You WILL be killed on next login\n• Your items are in a player head at logout location\n• Opponents can access for 30 minutes\n• After 30 min, everyone can access\n\nThank you for your honesty.",
+    "ticket.embed.admit.status": "DENIED (Self-Admitted)",
+
+    "ticket.embed.field.incidentId": "Incident ID",
+    "ticket.embed.field.approvedBy": "Approved By",
+    "ticket.embed.field.deniedBy": "Denied By",
+    "ticket.embed.field.admittedBy": "Admitted By",
+    "ticket.embed.field.reason": "Reason",
+    "ticket.embed.field.extendedBy": "Extended By",
+    "ticket.embed.field.extendedByUser": "Extended By User",
+    "ticket.embed.field.player": "Player",
+    "ticket.embed.field.status": "Status",
+    "ticket.embed.field.combatTimeRemaining": "Combat Time Remaining",
+    "ticket.embed.field.created": "Created",
+    "ticket.embed.field.expires": "Expires",
+    "ticket.embed.field.clipUrl": "Clip URL",
+    "ticket.embed.field.clipSubmitted": "Clip Submitted",
+    "ticket.embed.field.timeRemaining": "Time Remaining",
+    "ticket.embed.field.discordLinked": "Discord Linked",
+    "ticket.embed.field.deadline": "Deadline",
+    "ticket.embed.field.consequence": "Consequence",
+
+    "ticket.thread.forumTitle": "🚨 Combat Log: {playerName}",
+    "ticket.thread.textTitle": "Combat Log: {playerName}",
+    "ticket.incident.title": "⚔️ Combat Log Report",
+    "ticket.incident.desc": "A player has disconnected during combat and needs to provide proof.",
+    "ticket.incident.discordLinkedYes": "✅ {userMention}",
+    "ticket.incident.discordLinkedNo": "❌ Not linked",
+    "ticket.incident.statusPending": "⏳ Pending Proof",
+    "ticket.incident.consequence": "❌ Killed on next login if not resolved",
+    "ticket.incident.footer": "Combat Log System",
+
+    "ticket.staff.alert": "{staffMention} - New combat log incident!",
+    "ticket.player.reviewForum": "{userMention} - Please review the incident and submit proof if needed.",
+    "ticket.player.reviewThread": "{userMention} - Please review this incident.",
+
+    "ticket.instructions": "**📋 Instructions:**\n\n**For {userMention}:**\n• Upload a clip/video showing you disconnected unintentionally (crash, internet issue, etc.)\n• Accepted platforms: YouTube, Twitch, Streamable, Medal.tv, or Discord upload\n• You have **{minutes} minutes** to submit proof\n• If no proof is submitted, you will be killed on your next login\n\n**For Staff:**\n• Click **{approveLabel}** to clear the punishment\n• Click **{denyLabel}** to confirm the punishment\n• Click **{extendLabel}** to give more time\n• Or use `/info <incident_id>` for details",
+
+    "ticket.notification.title": "🚨 Combat Log Ticket Created",
+    "ticket.notification.desc": "You have disconnected during combat and a ticket has been created.",
+    "ticket.notification.field.whatHappened": "What happened?",
+    "ticket.notification.value.whatHappened": "You disconnected while in combat with another player.",
+    "ticket.notification.field.whatToDo": "What do I need to do?",
+    "ticket.notification.value.whatToDo": "Submit proof (clip/video) showing you disconnected unintentionally (crash, internet issue, etc.)",
+    "ticket.notification.field.where": "Where?",
+    "ticket.notification.value.where": "In the ticket: {threadMention}",
+    "ticket.notification.field.deadline": "Deadline",
+    "ticket.notification.value.deadline": "You have **{minutes} minutes** to submit proof",
+    "ticket.notification.field.whatIf": "What if I don't?",
+    "ticket.notification.value.whatIf": "You will be killed when you next log into the server.",
+    "ticket.notification.footer": "Use the thread link above to open your ticket",
+
+    "ticket.statusUpdate.title": "📊 Ticket Status Update",
+    "ticket.statusUpdate.field.status": "Status",
+    "ticket.statusUpdate.field.details": "Details",
+    "ticket.status.approved": "✅ Approved by {adminName}",
+    "ticket.status.denied": "❌ Denied by {adminName}",
+    "ticket.status.extended": "⏰ Extended by {minutes} minutes",
+    "ticket.status.clipSubmitted": "📹 Clip submitted - Awaiting staff review",
+    "ticket.status.autoDenied": "⏱️ Auto-Denied (Timeout)",
+    "ticket.status.autoDeniedDetails": "No proof was submitted within the deadline",
+
+    "ticket.modal.approve.title": "✅ Approve Ticket",
+    "ticket.modal.deny.title": "❌ Deny Ticket",
+    "ticket.modal.admit.title": "🔴 Admit Combat Logging",
+    "ticket.modal.extend.title": "⏰ Extend Deadline",
+    "ticket.modal.reason.label": "Reason (Optional)",
+    "ticket.modal.reason.approvePlaceholder": "Enter reason for approval (e.g., 'Clear crash', 'Internet issue')",
+    "ticket.modal.reason.denyPlaceholder": "Enter reason for denial (e.g., 'Combat logging', 'No valid proof')",
+    "ticket.modal.admit.label": "Type 'I admit' to confirm",
+    "ticket.modal.admit.placeholder": "Type: I admit",
+    "ticket.modal.extend.label": "Additional Minutes",
+    "ticket.modal.extend.placeholder": "Enter number of minutes (e.g., 30)"
+  }
+}

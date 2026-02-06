@@ -2,6 +2,8 @@ package combat.log.discord.commands;
 
 import combat.log.discord.discord.TicketManager;
 import combat.log.discord.models.Ticket;
+import combat.log.discord.config.BotConfig;
+import combat.log.discord.util.MessageFormatter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -18,9 +20,11 @@ import java.time.Instant;
 public class TicketCommands extends ListenerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(TicketCommands.class);
     private final TicketManager ticketManager;
+    private final BotConfig config;
 
-    public TicketCommands(TicketManager ticketManager) {
+    public TicketCommands(TicketManager ticketManager, BotConfig config) {
         this.ticketManager = ticketManager;
+        this.config = config;
     }
 
     @Override
@@ -30,7 +34,7 @@ public class TicketCommands extends ListenerAdapter {
             case "deny" -> handleDeny(event);
             case "extend" -> handleExtend(event);
             case "info" -> handleInfo(event);
-            default -> event.reply("Unknown command").setEphemeral(true).queue();
+            default -> event.reply(config.message("ticket.commands.unknown", "Unknown command")).setEphemeral(true).queue();
         }
     }
 
@@ -42,7 +46,7 @@ public class TicketCommands extends ListenerAdapter {
         String reason = event.getOption("reason", "", OptionMapping::getAsString);
 
         if (incidentId == null) {
-            event.reply("❌ Please provide an incident ID").setEphemeral(true).queue();
+            event.reply(config.message("ticket.commands.missingIncidentId", "❌ Please provide an incident ID")).setEphemeral(true).queue();
             return;
         }
 
@@ -51,20 +55,23 @@ public class TicketCommands extends ListenerAdapter {
 
         if (success) {
             EmbedBuilder embed = new EmbedBuilder();
-            embed.setTitle("✅ Ticket Approved");
+            embed.setTitle(config.message("ticket.embed.approved.title", "✅ Ticket Approved"));
             embed.setColor(Color.GREEN);
-            embed.addField("Incident ID", incidentId, false);
-            embed.addField("Approved By", adminName, true);
+            embed.addField(config.message("ticket.embed.field.incidentId", "Incident ID"), incidentId, false);
+            embed.addField(config.message("ticket.embed.field.approvedBy", "Approved By"), adminName, true);
             if (!reason.isEmpty()) {
-                embed.addField("Reason", reason, false);
+                embed.addField(config.message("ticket.embed.field.reason", "Reason"), reason, false);
             }
-            embed.setDescription("Player will NOT be punished on next login.");
+            embed.setDescription(config.message("ticket.embed.approved.desc", "Player will NOT be punished on next login."));
             embed.setTimestamp(Instant.now());
 
             event.replyEmbeds(embed.build()).queue();
             logger.info("Ticket {} approved by {}", incidentId, adminName);
         } else {
-            event.reply("❌ Ticket not found: " + incidentId).setEphemeral(true).queue();
+            event.reply(MessageFormatter.format(
+                config.message("ticket.commands.ticketNotFound", "❌ Ticket not found: {incidentId}"),
+                java.util.Map.of("incidentId", incidentId)
+            )).setEphemeral(true).queue();
         }
     }
 
@@ -76,7 +83,7 @@ public class TicketCommands extends ListenerAdapter {
         String reason = event.getOption("reason", "", OptionMapping::getAsString);
 
         if (incidentId == null) {
-            event.reply("❌ Please provide an incident ID").setEphemeral(true).queue();
+            event.reply(config.message("ticket.commands.missingIncidentId", "❌ Please provide an incident ID")).setEphemeral(true).queue();
             return;
         }
 
@@ -85,20 +92,23 @@ public class TicketCommands extends ListenerAdapter {
 
         if (success) {
             EmbedBuilder embed = new EmbedBuilder();
-            embed.setTitle("❌ Ticket Denied");
+            embed.setTitle(config.message("ticket.embed.denied.title", "❌ Ticket Denied"));
             embed.setColor(Color.RED);
-            embed.addField("Incident ID", incidentId, false);
-            embed.addField("Denied By", adminName, true);
+            embed.addField(config.message("ticket.embed.field.incidentId", "Incident ID"), incidentId, false);
+            embed.addField(config.message("ticket.embed.field.deniedBy", "Denied By"), adminName, true);
             if (!reason.isEmpty()) {
-                embed.addField("Reason", reason, false);
+                embed.addField(config.message("ticket.embed.field.reason", "Reason"), reason, false);
             }
-            embed.setDescription("Player WILL be killed on next login.");
+            embed.setDescription(config.message("ticket.embed.denied.desc", "Player WILL be killed on next login."));
             embed.setTimestamp(Instant.now());
 
             event.replyEmbeds(embed.build()).queue();
             logger.info("Ticket {} denied by {}", incidentId, adminName);
         } else {
-            event.reply("❌ Ticket not found: " + incidentId).setEphemeral(true).queue();
+            event.reply(MessageFormatter.format(
+                config.message("ticket.commands.ticketNotFound", "❌ Ticket not found: {incidentId}"),
+                java.util.Map.of("incidentId", incidentId)
+            )).setEphemeral(true).queue();
         }
     }
 
@@ -110,7 +120,7 @@ public class TicketCommands extends ListenerAdapter {
         Long minutes = event.getOption("minutes", OptionMapping::getAsLong);
 
         if (incidentId == null || minutes == null) {
-            event.reply("❌ Please provide incident ID and minutes").setEphemeral(true).queue();
+            event.reply(config.message("ticket.commands.missingIncidentIdMinutes", "❌ Please provide incident ID and minutes")).setEphemeral(true).queue();
             return;
         }
 
@@ -118,17 +128,20 @@ public class TicketCommands extends ListenerAdapter {
 
         if (success) {
             EmbedBuilder embed = new EmbedBuilder();
-            embed.setTitle("⏰ Ticket Extended");
+            embed.setTitle(config.message("ticket.embed.extended.title", "⏰ Ticket Extended"));
             embed.setColor(Color.YELLOW);
-            embed.addField("Incident ID", incidentId, false);
-            embed.addField("Extended By", minutes + " minutes", true);
-            embed.addField("Extended By User", event.getUser().getName(), true);
+            embed.addField(config.message("ticket.embed.field.incidentId", "Incident ID"), incidentId, false);
+            embed.addField(config.message("ticket.embed.field.extendedBy", "Extended By"), minutes + " minutes", true);
+            embed.addField(config.message("ticket.embed.field.extendedByUser", "Extended By User"), event.getUser().getName(), true);
             embed.setTimestamp(Instant.now());
 
             event.replyEmbeds(embed.build()).queue();
             logger.info("Ticket {} extended by {} minutes", incidentId, minutes);
         } else {
-            event.reply("❌ Ticket not found: " + incidentId).setEphemeral(true).queue();
+            event.reply(MessageFormatter.format(
+                config.message("ticket.commands.ticketNotFound", "❌ Ticket not found: {incidentId}"),
+                java.util.Map.of("incidentId", incidentId)
+            )).setEphemeral(true).queue();
         }
     }
 
@@ -139,7 +152,7 @@ public class TicketCommands extends ListenerAdapter {
         String incidentId = event.getOption("incident_id", OptionMapping::getAsString);
 
         if (incidentId == null) {
-            event.reply("❌ Please provide an incident ID").setEphemeral(true).queue();
+            event.reply(config.message("ticket.commands.missingIncidentId", "❌ Please provide an incident ID")).setEphemeral(true).queue();
             return;
         }
 
@@ -147,34 +160,37 @@ public class TicketCommands extends ListenerAdapter {
 
         if (ticket != null) {
             EmbedBuilder embed = new EmbedBuilder();
-            embed.setTitle("📋 Ticket Information");
+            embed.setTitle(config.message("ticket.embed.info.title", "📋 Ticket Information"));
             embed.setColor(Color.BLUE);
             
-            embed.addField("Incident ID", ticket.getIncidentId(), true);
-            embed.addField("Player", ticket.getPlayerName(), true);
-            embed.addField("Status", ticket.getStatus().toString(), true);
+            embed.addField(config.message("ticket.embed.field.incidentId", "Incident ID"), ticket.getIncidentId(), true);
+            embed.addField(config.message("ticket.embed.field.player", "Player"), ticket.getPlayerName(), true);
+            embed.addField(config.message("ticket.embed.field.status", "Status"), ticket.getStatus().toString(), true);
             
-            embed.addField("Combat Time Remaining", 
+            embed.addField(config.message("ticket.embed.field.combatTimeRemaining", "Combat Time Remaining"), 
                 String.format("%.1f seconds", ticket.getCombatTimeRemaining()), true);
-            embed.addField("Created", 
+            embed.addField(config.message("ticket.embed.field.created", "Created"), 
                 String.format("<t:%d:R>", ticket.getCreatedAt().getEpochSecond()), true);
-            embed.addField("Expires", 
+            embed.addField(config.message("ticket.embed.field.expires", "Expires"), 
                 String.format("<t:%d:R>", ticket.getExpiresAt().getEpochSecond()), true);
             
             if (ticket.getClipUrl() != null) {
-                embed.addField("Clip URL", ticket.getClipUrl(), false);
-                embed.addField("Clip Submitted", 
+                embed.addField(config.message("ticket.embed.field.clipUrl", "Clip URL"), ticket.getClipUrl(), false);
+                embed.addField(config.message("ticket.embed.field.clipSubmitted", "Clip Submitted"), 
                     String.format("<t:%d:R>", ticket.getClipSubmittedAt().getEpochSecond()), true);
             }
             
-            embed.addField("Time Remaining", 
+            embed.addField(config.message("ticket.embed.field.timeRemaining", "Time Remaining"), 
                 String.format("%d seconds", ticket.getSecondsRemaining()), true);
             
             embed.setTimestamp(Instant.now());
 
             event.replyEmbeds(embed.build()).setEphemeral(true).queue();
         } else {
-            event.reply("❌ Ticket not found: " + incidentId).setEphemeral(true).queue();
+            event.reply(MessageFormatter.format(
+                config.message("ticket.commands.ticketNotFound", "❌ Ticket not found: {incidentId}"),
+                java.util.Map.of("incidentId", incidentId)
+            )).setEphemeral(true).queue();
         }
     }
 }

@@ -28,7 +28,7 @@ public class WhitelistCommands extends ListenerAdapter {
     private void handleWhitelistSetup(SlashCommandInteractionEvent event) {
         OptionMapping channelOption = event.getOption("channel_id");
         if (channelOption == null) {
-            event.reply("❌ Channel ID is required").setEphemeral(true).queue();
+            replyEphemeral(event, whitelistManager.message("whitelist.setup.channelRequired", "❌ Channel ID is required"));
             return;
         }
 
@@ -37,10 +37,21 @@ public class WhitelistCommands extends ListenerAdapter {
 
         try {
             whitelistManager.setupWhitelistChannel(channelId);
-            event.reply("✅ Whitelist channel setup complete!").setEphemeral(true).queue();
+            replyEphemeral(event, whitelistManager.message("whitelist.setup.success", "✅ Whitelist channel setup complete!"));
         } catch (Exception e) {
             logger.error("Failed to setup whitelist channel", e);
-            event.reply("❌ Failed to setup whitelist channel: " + e.getMessage()).setEphemeral(true).queue();
+            String msg = whitelistManager.message("whitelist.setup.failure", "❌ Failed to setup whitelist channel: {error}")
+                .replace("{error}", e.getMessage());
+            replyEphemeral(event, msg);
         }
+    }
+
+    private void replyEphemeral(SlashCommandInteractionEvent event, String message) {
+        if (event.isAcknowledged()) {
+            event.getHook().sendMessage(message).setEphemeral(true).queue();
+            return;
+        }
+
+        event.reply(message).setEphemeral(true).queue();
     }
 }

@@ -18,7 +18,7 @@ public class CombatLogGameRules {
      */
     public static final GameRule<Boolean> BYPASS_COMBAT_LOG_SYSTEM = GameRuleBuilder.forBoolean(false)
         .category(GameRuleCategory.PLAYER)
-        .buildAndRegister(Identifier.fromNamespaceAndPath("combat-log-report", "bypassCombatLogSystem"));
+        .buildAndRegister(Identifier.fromNamespaceAndPath("combat-log-report", "bypass_combat_log_system"));
     
     /**
      * Initialize game rules (called during mod initialization)

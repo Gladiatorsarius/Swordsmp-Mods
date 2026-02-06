@@ -16,7 +16,7 @@ classes/
 .project
 
 # Configuration (contains tokens)
-config.json
+config.local.json
 bot-config.json
 
 # Logs

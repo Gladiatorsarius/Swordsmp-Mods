@@ -7,6 +7,8 @@ import combat.log.report.swordssmp.punishment.PunishmentManager;
 import combat.log.report.swordssmp.linking.PlayerLinkingManager;
 import combat.log.report.swordssmp.whitelist.WhitelistCommandHandler;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -153,23 +155,27 @@ public class SocketClient {
      */
     private void handleMessage(String text) {
         try {
-            // Parse the base message to get the type
-            SocketMessage baseMessage = gson.fromJson(text, SocketMessage.class);
-            
-            if ("incident_decision".equals(baseMessage.getType())) {
+            JsonObject obj = JsonParser.parseString(text).getAsJsonObject();
+            String type = obj.has("type") ? obj.get("type").getAsString() : null;
+            if (type == null || type.isBlank()) {
+                CombatLogReport.LOGGER.warn("Received message without type: {}", text);
+                return;
+            }
+
+            if ("incident_decision".equals(type)) {
                 IncidentDecisionMessage decision = gson.fromJson(text, IncidentDecisionMessage.class);
                 handleIncidentDecision(decision);
-            } else if ("whitelist_add".equals(baseMessage.getType())) {
+            } else if ("whitelist_add".equals(type)) {
                 WhitelistAddMessage whitelistMsg = gson.fromJson(text, WhitelistAddMessage.class);
                 handleWhitelistAdd(whitelistMsg);
-            } else if ("link_player".equals(baseMessage.getType())) {
+            } else if ("link_player".equals(type)) {
                 PlayerLinkMessage linkMsg = gson.fromJson(text, PlayerLinkMessage.class);
                 handlePlayerLink(linkMsg);
-            } else if ("unlink_player".equals(baseMessage.getType())) {
+            } else if ("unlink_player".equals(type)) {
                 UnlinkMessage unlinkMsg = gson.fromJson(text, UnlinkMessage.class);
                 handleUnlink(unlinkMsg);
             } else {
-                CombatLogReport.LOGGER.warn("Unknown message type: {}", baseMessage.getType());
+                CombatLogReport.LOGGER.warn("Unknown message type: {}", type);
             }
         } catch (Exception e) {
             CombatLogReport.LOGGER.error("Failed to parse message from Discord bot: {}", e.getMessage());
@@ -240,6 +246,12 @@ public class SocketClient {
         // Remove from linking manager
         PlayerLinkingManager linkManager = PlayerLinkingManager.getInstance();
         linkManager.removeLink(message.getPlayerUuid());
+
+        if (whitelistHandler != null) {
+            whitelistHandler.handleWhitelistRemove(message);
+        } else {
+            CombatLogReport.LOGGER.warn("WhitelistCommandHandler not set, cannot remove from whitelist");
+        }
     }
 
     /**
@@ -267,6 +279,21 @@ public class SocketClient {
             webSocket.close(1000, "Server shutting down");
             connected = false;
         }
+    }
+
+    /**
+     * Force a disconnect/reconnect cycle to re-establish the WebSocket.
+     */
+    public synchronized void forceReconnect() {
+        if (webSocket != null) {
+            webSocket.close(1000, "Manual reconnect");
+            webSocket = null;
+        }
+
+        connected = false;
+        reconnecting = false;
+        CombatLogReport.LOGGER.info("Manual reconnect requested; reconnecting to Discord bot...");
+        connect();
     }
 
     public boolean isConnected() {

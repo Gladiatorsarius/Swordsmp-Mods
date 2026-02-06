@@ -80,9 +80,9 @@ public class CombatLogBot {
         registerCommands();
         
         // Add event listeners
-        jda.addEventListener(new TicketCommands(ticketManager));
-        jda.addEventListener(new ButtonHandler(ticketManager));
-        jda.addEventListener(new ModalHandler(ticketManager));
+        jda.addEventListener(new TicketCommands(ticketManager, config));
+        jda.addEventListener(new ButtonHandler(ticketManager, config));
+        jda.addEventListener(new ModalHandler(ticketManager, config));
         jda.addEventListener(new WhitelistCommands(whitelistManager));
         jda.addEventListener(new WhitelistButtonHandler(whitelistManager));
         jda.addEventListener(new WhitelistModalHandler(whitelistManager));
@@ -92,6 +92,7 @@ public class CombatLogBot {
         this.webSocketServer = new CombatLogWebSocketServer(config, ticketManager, linkingDatabase);
         ticketManager.setWebSocketServer(webSocketServer);
         whitelistManager.setWebSocketServer(webSocketServer);
+        webSocketServer.setWhitelistManager(whitelistManager);
         webSocketServer.start();
         
         logger.info("Combat Log Discord Bot is ready!");

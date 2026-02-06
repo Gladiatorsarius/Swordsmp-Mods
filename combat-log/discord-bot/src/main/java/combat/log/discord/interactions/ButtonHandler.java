@@ -1,5 +1,6 @@
 package combat.log.discord.interactions;
 
+import combat.log.discord.config.BotConfig;
 import combat.log.discord.discord.TicketManager;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -15,9 +16,11 @@ import org.slf4j.LoggerFactory;
 public class ButtonHandler extends ListenerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(ButtonHandler.class);
     private final TicketManager ticketManager;
+    private final BotConfig config;
 
-    public ButtonHandler(TicketManager ticketManager) {
+    public ButtonHandler(TicketManager ticketManager, BotConfig config) {
         this.ticketManager = ticketManager;
+        this.config = config;
     }
 
     @Override
@@ -27,7 +30,7 @@ public class ButtonHandler extends ListenerAdapter {
         // Button IDs format: "action:incidentId"
         String[] parts = buttonId.split(":", 2);
         if (parts.length != 2) {
-            event.reply("❌ Invalid button").setEphemeral(true).queue();
+            logger.debug("Ignoring non-ticket button: {}", buttonId);
             return;
         }
         
@@ -39,7 +42,7 @@ public class ButtonHandler extends ListenerAdapter {
             case "deny" -> showDenyModal(event, incidentId);
             case "admit" -> showAdmitModal(event, incidentId);
             case "extend" -> showExtendModal(event, incidentId);
-            default -> event.reply("❌ Unknown action").setEphemeral(true).queue();
+            default -> logger.debug("Ignoring non-ticket action: {}", action);
         }
     }
 
@@ -47,13 +50,19 @@ public class ButtonHandler extends ListenerAdapter {
      * Show approval confirmation modal
      */
     private void showApproveModal(ButtonInteractionEvent event, String incidentId) {
-        TextInput reasonInput = TextInput.create("reason", "Reason (Optional)", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Enter reason for approval (e.g., 'Clear crash', 'Internet issue')")
+        TextInput reasonInput = TextInput.create(
+            "reason",
+            config.message("ticket.modal.reason.label", "Reason (Optional)"),
+            TextInputStyle.PARAGRAPH
+            )
+            .setPlaceholder(config.message("ticket.modal.reason.approvePlaceholder",
+                "Enter reason for approval (e.g., 'Clear crash', 'Internet issue')"))
                 .setRequired(false)
                 .setMaxLength(500)
                 .build();
 
-        Modal modal = Modal.create("approve:" + incidentId, "✅ Approve Ticket")
+        Modal modal = Modal.create("approve:" + incidentId,
+            config.message("ticket.modal.approve.title", "✅ Approve Ticket"))
                 .addActionRow(reasonInput)
                 .build();
 
@@ -65,13 +74,19 @@ public class ButtonHandler extends ListenerAdapter {
      * Show denial confirmation modal
      */
     private void showDenyModal(ButtonInteractionEvent event, String incidentId) {
-        TextInput reasonInput = TextInput.create("reason", "Reason (Optional)", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Enter reason for denial (e.g., 'Combat logging', 'No valid proof')")
+        TextInput reasonInput = TextInput.create(
+            "reason",
+            config.message("ticket.modal.reason.label", "Reason (Optional)"),
+            TextInputStyle.PARAGRAPH
+            )
+            .setPlaceholder(config.message("ticket.modal.reason.denyPlaceholder",
+                "Enter reason for denial (e.g., 'Combat logging', 'No valid proof')"))
                 .setRequired(false)
                 .setMaxLength(500)
                 .build();
 
-        Modal modal = Modal.create("deny:" + incidentId, "❌ Deny Ticket")
+        Modal modal = Modal.create("deny:" + incidentId,
+            config.message("ticket.modal.deny.title", "❌ Deny Ticket"))
                 .addActionRow(reasonInput)
                 .build();
 
@@ -83,14 +98,19 @@ public class ButtonHandler extends ListenerAdapter {
      * Show self-admission confirmation modal
      */
     private void showAdmitModal(ButtonInteractionEvent event, String incidentId) {
-        TextInput confirmInput = TextInput.create("confirm", "Type 'I admit' to confirm", TextInputStyle.SHORT)
-                .setPlaceholder("Type: I admit")
+        TextInput confirmInput = TextInput.create(
+            "confirm",
+            config.message("ticket.modal.admit.label", "Type 'I admit' to confirm"),
+            TextInputStyle.SHORT
+            )
+            .setPlaceholder(config.message("ticket.modal.admit.placeholder", "Type: I admit"))
                 .setRequired(true)
                 .setMinLength(7)
                 .setMaxLength(10)
                 .build();
 
-        Modal modal = Modal.create("admit:" + incidentId, "🔴 Admit Combat Logging")
+        Modal modal = Modal.create("admit:" + incidentId,
+            config.message("ticket.modal.admit.title", "🔴 Admit Combat Logging"))
                 .addActionRow(confirmInput)
                 .build();
 
@@ -102,13 +122,18 @@ public class ButtonHandler extends ListenerAdapter {
      * Show extend deadline modal
      */
     private void showExtendModal(ButtonInteractionEvent event, String incidentId) {
-        TextInput minutesInput = TextInput.create("minutes", "Additional Minutes", TextInputStyle.SHORT)
-                .setPlaceholder("Enter number of minutes (e.g., 30)")
+        TextInput minutesInput = TextInput.create(
+            "minutes",
+            config.message("ticket.modal.extend.label", "Additional Minutes"),
+            TextInputStyle.SHORT
+            )
+            .setPlaceholder(config.message("ticket.modal.extend.placeholder", "Enter number of minutes (e.g., 30)"))
                 .setRequired(true)
                 .setMaxLength(4)
                 .build();
 
-        Modal modal = Modal.create("extend:" + incidentId, "⏰ Extend Deadline")
+        Modal modal = Modal.create("extend:" + incidentId,
+            config.message("ticket.modal.extend.title", "⏰ Extend Deadline"))
                 .addActionRow(minutesInput)
                 .build();
 

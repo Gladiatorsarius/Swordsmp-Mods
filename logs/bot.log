@@ -1,0 +1,12 @@
+16:34:06.473 [main] INFO  combat.log.discord.CombatLogBot - Starting Combat Log Discord Bot...
+16:34:06.538 [main] ERROR combat.log.discord.CombatLogBot - Please set your bot token in config.json!
+16:34:06.540 [main] ERROR combat.log.discord.CombatLogBot - Failed to start bot: Bot token not configured
+java.lang.IllegalStateException: Bot token not configured
+	at combat.log.discord.CombatLogBot.<init>(CombatLogBot.java:47)
+	at combat.log.discord.CombatLogBot.main(CombatLogBot.java:165)
+16:37:37.459 [main] INFO  combat.log.discord.CombatLogBot - Starting Combat Log Discord Bot...
+16:37:37.518 [main] ERROR combat.log.discord.CombatLogBot - Please set your bot token in config.json!
+16:37:37.521 [main] ERROR combat.log.discord.CombatLogBot - Failed to start bot: Bot token not configured
+java.lang.IllegalStateException: Bot token not configured
+	at combat.log.discord.CombatLogBot.<init>(CombatLogBot.java:47)
+	at combat.log.discord.CombatLogBot.main(CombatLogBot.java:165)

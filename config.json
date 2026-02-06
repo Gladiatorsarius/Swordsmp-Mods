@@ -42,5 +42,18 @@
       "description": "Click the button below to request access to our Minecraft server",
       "color": "#00FF00"
     }
+  },
+  "buttons": {
+    "ticket": {
+      "approve": "✅ Approve",
+      "deny": "❌ Deny",
+      "admit": "🔴 I Admit Combat Log",
+      "extend": "⏰ Extend"
+    },
+    "whitelist": {
+      "request": "🎫 Request Whitelist",
+      "approve": "✅ Approve",
+      "deny": "❌ Deny"
+    }
   }
 }

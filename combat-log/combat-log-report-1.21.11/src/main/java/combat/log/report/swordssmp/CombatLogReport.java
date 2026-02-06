@@ -1,6 +1,7 @@
 package combat.log.report.swordssmp;
 
 import combat.log.report.swordssmp.config.ModConfig;
+import combat.log.report.swordssmp.commands.DiscordCommand;
 import combat.log.report.swordssmp.linking.PlayerLinkingManager;
 import combat.log.report.swordssmp.linking.UnlinkCommand;
 import combat.log.report.swordssmp.socket.SocketClient;
@@ -43,6 +44,7 @@ public class CombatLogReport implements ModInitializer {
 		// Register unlink command
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			UnlinkCommand.register(dispatcher);
+			DiscordCommand.register(dispatcher);
 		});
 		
 		// Register server start event to load config and connect to Discord bot
@@ -50,6 +52,13 @@ public class CombatLogReport implements ModInitializer {
 		
 		// Register server stop event to disconnect
 		ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStop);
+		// Reconnect on /reload (data pack reload)
+		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
+			if (success) {
+				LOGGER.info("Data pack reload complete; reconnecting Discord bot WebSocket");
+				SocketClient.getInstance().forceReconnect();
+			}
+		});
 		
 		// Register damage event to track combat
 		ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
