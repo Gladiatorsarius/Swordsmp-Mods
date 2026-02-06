@@ -173,13 +173,13 @@ When tagged in combat, decide quickly: fight to win or disengage and wait 15 sec
 
 The mod provides custom gamerules for server configuration:
 
-#### `bypassCombatLogSystem`
+#### `bypass_combat_log_system`
 Completely bypasses the combat log detection system.
 
 **Usage:**
 ```mcfunction
-/gamerule bypassCombatLogSystem true   # Enable bypass
-/gamerule bypassCombatLogSystem false  # Disable bypass (default)
+/gamerule bypass_combat_log_system true   # Enable bypass
+/gamerule bypass_combat_log_system false  # Disable bypass (default)
 ```
 
 **When enabled (true):**
@@ -205,10 +205,10 @@ Completely bypasses the combat log detection system.
 **Example Scenarios:**
 ```mcfunction
 # During a special PvP event with no penalties
-/gamerule bypassCombatLogSystem true
+/gamerule bypass_combat_log_system true
 
 # After the event, restore normal combat log enforcement
-/gamerule bypassCombatLogSystem false
+/gamerule bypass_combat_log_system false
 ```
 
 **Note:** This is a server-side setting only. No client modification needed.

@@ -35,6 +35,9 @@ public class BlockBreakMixin {
                         // Cancel the break
                         cir.setReturnValue(state);
                     } else {
+                        if (world instanceof ServerLevel serverLevel) {
+                            headManager.dropStoredInventory(pos, serverLevel);
+                        }
                         // Allow breaking and remove from tracking
                         headManager.removeHead(pos);
                         serverPlayer.sendSystemMessage(

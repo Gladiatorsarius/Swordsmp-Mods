@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -140,6 +141,12 @@ public class CombatHeadManager {
                         // Ticket still pending - head is locked
                         return false;
                     }
+                    if (status == IncidentStatus.APPROVED) {
+                        return false;
+                    }
+                    if (status == IncidentStatus.DENIED || status == IncidentStatus.AUTO_DENIED) {
+                        return true;
+                    }
                 }
             }
         }
@@ -156,6 +163,32 @@ public class CombatHeadManager {
         // Note: OPs would need permission level check - simplified for compatibility
         Set<UUID> opponents = headOpponents.get(pos);
         return opponents != null && opponents.contains(accessorId);
+    }
+
+    public boolean dropStoredInventory(BlockPos pos, ServerLevel world) {
+        UUID ownerId = headLocations.get(pos);
+        if (ownerId == null) {
+            return false;
+        }
+
+        List<ItemStack> items = storedInventories.remove(ownerId);
+        if (items == null || items.isEmpty()) {
+            return false;
+        }
+
+        double dropX = pos.getX() + 0.5;
+        double dropY = pos.getY() + 1.0;
+        double dropZ = pos.getZ() + 0.5;
+
+        for (ItemStack stack : items) {
+            if (!stack.isEmpty()) {
+                ItemEntity entity = new ItemEntity(world, dropX, dropY, dropZ, stack.copy());
+                world.addFreshEntity(entity);
+            }
+        }
+
+        CombatLogReport.LOGGER.info("Dropped stored inventory for combat log head at {}", pos);
+        return true;
     }
     
     public void removeHead(BlockPos pos) {

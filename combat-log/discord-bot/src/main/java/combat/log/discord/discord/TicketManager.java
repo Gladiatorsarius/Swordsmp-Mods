@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class TicketManager {
     private static final Logger logger = LoggerFactory.getLogger(TicketManager.class);
+    private static final long DENIED_THREAD_DELETE_DELAY_MINUTES = 60;
     
     private final JDA jda;
     private final BotConfig config;
@@ -433,6 +434,7 @@ public class TicketManager {
             Map.of("adminName", adminName)
         );
         updateTicketMessage(ticket, status, Color.RED, reason);
+        scheduleDeniedThreadDeletion(ticket, DENIED_THREAD_DELETE_DELAY_MINUTES);
         
         activeTickets.remove(incidentId);
         logger.info("Ticket {} denied by {}", incidentId, adminName);
@@ -522,9 +524,33 @@ public class TicketManager {
             Color.DARK_GRAY,
             config.message("ticket.status.autoDeniedDetails", "No proof was submitted within the deadline")
         );
+        scheduleDeniedThreadDeletion(ticket, DENIED_THREAD_DELETE_DELAY_MINUTES);
         
         activeTickets.remove(incidentId);
         logger.info("Ticket {} auto-denied due to timeout", incidentId);
+    }
+
+    private void scheduleDeniedThreadDeletion(Ticket ticket, long delayMinutes) {
+        if (delayMinutes <= 0) {
+            return;
+        }
+
+        scheduler.schedule(() -> {
+            try {
+                ThreadChannel thread = jda.getThreadChannelById(ticket.getChannelId());
+                if (thread == null) {
+                    logger.debug("Thread {} already deleted or unavailable", ticket.getChannelId());
+                    return;
+                }
+
+                thread.delete().queue(
+                    success -> logger.info("Deleted denied ticket thread {}", thread.getId()),
+                    error -> logger.warn("Failed to delete denied ticket thread {}: {}", thread.getId(), error.getMessage())
+                );
+            } catch (Exception e) {
+                logger.warn("Failed to schedule deletion for thread {}: {}", ticket.getChannelId(), e.getMessage());
+            }
+        }, delayMinutes, TimeUnit.MINUTES);
     }
 
     /**
