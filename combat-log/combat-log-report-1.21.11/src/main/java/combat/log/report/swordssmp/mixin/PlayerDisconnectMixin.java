@@ -40,8 +40,11 @@ public class PlayerDisconnectMixin {
             boolean bypassSystem = Boolean.TRUE.equals(serverLevel.getGameRules().get(CombatLogGameRules.BYPASS_COMBAT_LOG_SYSTEM));
             
             if (bypassSystem) {
-                // System bypassed - just clear combat tag and let items drop normally
-                CombatLogReport.LOGGER.info("Combat log system bypassed by gamerule for player {}, items will drop naturally", player.getName().getString());
+                // System bypassed - kill player so items scatter like normal death
+                CombatLogReport.LOGGER.info("Combat log system bypassed by gamerule for player {}, killing player to scatter items", player.getName().getString());
+                
+                // Kill the player to make items drop and scatter like normal death
+                player.hurt(player.damageSources().generic(), Float.MAX_VALUE);
                 
                 // Broadcast simple message
                 PlayerList playerList = (PlayerList) (Object) this;
