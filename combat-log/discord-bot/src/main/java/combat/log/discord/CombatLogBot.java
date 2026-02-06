@@ -1,12 +1,17 @@
 package combat.log.discord;
 
+import combat.log.discord.api.MojangAPIService;
 import combat.log.discord.commands.TicketCommands;
+import combat.log.discord.commands.WhitelistCommands;
 import combat.log.discord.config.BotConfig;
+import combat.log.discord.database.LinkingDatabase;
 import combat.log.discord.discord.TicketManager;
-import combat.log.discord.integration.DiscordSRVService;
 import combat.log.discord.interactions.ButtonHandler;
 import combat.log.discord.interactions.ModalHandler;
 import combat.log.discord.websocket.CombatLogWebSocketServer;
+import combat.log.discord.whitelist.WhitelistButtonHandler;
+import combat.log.discord.whitelist.WhitelistManager;
+import combat.log.discord.whitelist.WhitelistModalHandler;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -25,9 +30,11 @@ public class CombatLogBot {
     
     private final BotConfig config;
     private final JDA jda;
-    private final DiscordSRVService discordSRVService;
     private final TicketManager ticketManager;
     private final CombatLogWebSocketServer webSocketServer;
+    private final LinkingDatabase linkingDatabase;
+    private final MojangAPIService mojangAPI;
+    private final WhitelistManager whitelistManager;
 
     public CombatLogBot(File configFile) throws Exception {
         logger.info("Starting Combat Log Discord Bot...");
@@ -40,8 +47,14 @@ public class CombatLogBot {
             throw new IllegalStateException("Bot token not configured");
         }
         
-        // Initialize DiscordSRV integration
-        this.discordSRVService = new DiscordSRVService(config.discordSRV);
+        // Initialize linking database
+        String dbPath = "./database/whitelist.db";
+        this.linkingDatabase = new LinkingDatabase(dbPath);
+        logger.info("Initialized linking database");
+        
+        // Initialize Mojang API service
+        this.mojangAPI = new MojangAPIService(config.mojangApi.cacheDurationMinutes);
+        logger.info("Initialized Mojang API service");
         
         // Initialize Discord bot
         logger.info("Connecting to Discord...");
@@ -56,8 +69,12 @@ public class CombatLogBot {
         this.jda.awaitReady();
         logger.info("Discord bot connected as: {}", jda.getSelfUser().getName());
         
-        // Initialize ticket manager
-        this.ticketManager = new TicketManager(jda, config, discordSRVService);
+        // Initialize ticket manager (no longer using DiscordSRV)
+        this.ticketManager = new TicketManager(jda, config, linkingDatabase);
+        
+        // Initialize whitelist manager
+        this.whitelistManager = new WhitelistManager(jda, config, linkingDatabase, mojangAPI);
+        logger.info("Initialized whitelist manager");
         
         // Register slash commands
         registerCommands();
@@ -66,11 +83,15 @@ public class CombatLogBot {
         jda.addEventListener(new TicketCommands(ticketManager));
         jda.addEventListener(new ButtonHandler(ticketManager));
         jda.addEventListener(new ModalHandler(ticketManager));
+        jda.addEventListener(new WhitelistCommands(whitelistManager));
+        jda.addEventListener(new WhitelistButtonHandler(whitelistManager));
+        jda.addEventListener(new WhitelistModalHandler(whitelistManager));
         
         // Start WebSocket server
         logger.info("Starting WebSocket server on port {}...", config.websocket.port);
-        this.webSocketServer = new CombatLogWebSocketServer(config, ticketManager);
+        this.webSocketServer = new CombatLogWebSocketServer(config, ticketManager, linkingDatabase);
         ticketManager.setWebSocketServer(webSocketServer);
+        whitelistManager.setWebSocketServer(webSocketServer);
         webSocketServer.start();
         
         logger.info("Combat Log Discord Bot is ready!");
@@ -95,7 +116,10 @@ public class CombatLogBot {
                 .addOption(OptionType.INTEGER, "minutes", "Minutes to extend", true),
             
             Commands.slash("info", "Get information about a ticket")
-                .addOption(OptionType.STRING, "incident_id", "The incident ID", true)
+                .addOption(OptionType.STRING, "incident_id", "The incident ID", true),
+            
+            Commands.slash("whitelist-setup", "Setup whitelist channel with button")
+                .addOption(OptionType.STRING, "channel_id", "Channel ID for whitelist requests", true)
         ).queue();
         
         logger.info("Registered slash commands");
@@ -106,6 +130,12 @@ public class CombatLogBot {
      */
     public void shutdown() {
         logger.info("Shutting down...");
+        
+        try {
+            linkingDatabase.close();
+        } catch (Exception e) {
+            logger.error("Error closing database: {}", e.getMessage());
+        }
         
         try {
             ticketManager.shutdown();

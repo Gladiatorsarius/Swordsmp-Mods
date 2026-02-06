@@ -4,6 +4,8 @@ import combat.log.report.swordssmp.CombatLogReport;
 import combat.log.report.swordssmp.incident.IncidentManager;
 import combat.log.report.swordssmp.incident.IncidentStatus;
 import combat.log.report.swordssmp.punishment.PunishmentManager;
+import combat.log.report.swordssmp.linking.PlayerLinkingManager;
+import combat.log.report.swordssmp.whitelist.WhitelistCommandHandler;
 import com.google.gson.Gson;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +27,7 @@ public class SocketClient {
     private String serverUrl = "ws://localhost:8080/combat-log"; // Default, can be configured
     private boolean connected = false;
     private boolean reconnecting = false;
+    private WhitelistCommandHandler whitelistHandler;
 
     private SocketClient() {
         this.httpClient = new OkHttpClient.Builder()
@@ -42,6 +45,13 @@ public class SocketClient {
     public void configure(String serverUrl) {
         this.serverUrl = serverUrl;
         CombatLogReport.LOGGER.info("Configured socket server URL: {}", serverUrl);
+    }
+    
+    /**
+     * Set the whitelist command handler
+     */
+    public void setWhitelistHandler(WhitelistCommandHandler handler) {
+        this.whitelistHandler = handler;
     }
 
     /**
@@ -108,13 +118,21 @@ public class SocketClient {
         );
 
         String json = gson.toJson(message);
-        sendMessage(json);
+        sendMessageJson(json);
     }
 
     /**
-     * Send a message to the Discord bot
+     * Send a message to the Discord bot (now public for whitelist use)
      */
-    private void sendMessage(String message) {
+    public void sendMessage(SocketMessage message) {
+        String json = gson.toJson(message);
+        sendMessageJson(json);
+    }
+    
+    /**
+     * Send a JSON message to the Discord bot
+     */
+    private void sendMessageJson(String message) {
         if (connected && webSocket != null) {
             webSocket.send(message);
             CombatLogReport.LOGGER.info("Sent message to Discord bot");
@@ -141,6 +159,15 @@ public class SocketClient {
             if ("incident_decision".equals(baseMessage.getType())) {
                 IncidentDecisionMessage decision = gson.fromJson(text, IncidentDecisionMessage.class);
                 handleIncidentDecision(decision);
+            } else if ("whitelist_add".equals(baseMessage.getType())) {
+                WhitelistAddMessage whitelistMsg = gson.fromJson(text, WhitelistAddMessage.class);
+                handleWhitelistAdd(whitelistMsg);
+            } else if ("link_player".equals(baseMessage.getType())) {
+                PlayerLinkMessage linkMsg = gson.fromJson(text, PlayerLinkMessage.class);
+                handlePlayerLink(linkMsg);
+            } else if ("unlink_player".equals(baseMessage.getType())) {
+                UnlinkMessage unlinkMsg = gson.fromJson(text, UnlinkMessage.class);
+                handleUnlink(unlinkMsg);
             } else {
                 CombatLogReport.LOGGER.warn("Unknown message type: {}", baseMessage.getType());
             }
@@ -173,6 +200,46 @@ public class SocketClient {
         } catch (Exception e) {
             CombatLogReport.LOGGER.error("Failed to handle incident decision: {}", e.getMessage());
         }
+    }
+    
+    /**
+     * Handle whitelist add command from Discord bot
+     */
+    private void handleWhitelistAdd(WhitelistAddMessage message) {
+        CombatLogReport.LOGGER.info("Received whitelist add command for: {}", message.getPlayerName());
+        if (whitelistHandler != null) {
+            whitelistHandler.handleWhitelistAdd(message);
+        } else {
+            CombatLogReport.LOGGER.warn("WhitelistCommandHandler not set, ignoring whitelist command");
+        }
+    }
+    
+    /**
+     * Handle player link message from Discord bot
+     */
+    private void handlePlayerLink(PlayerLinkMessage message) {
+        CombatLogReport.LOGGER.info("Received player link: Discord {} <-> Minecraft {} ({})", 
+            message.getDiscordId(), message.getPlayerName(), message.getPlayerUuid());
+        
+        PlayerLinkingManager linkManager = PlayerLinkingManager.getInstance();
+        linkManager.addLink(
+            message.getDiscordId(),
+            message.getPlayerUuid(),
+            message.getPlayerName(),
+            message.isWhitelisted()
+        );
+    }
+
+    /**
+     * Handle unlink message from Discord bot
+     */
+    private void handleUnlink(UnlinkMessage message) {
+        CombatLogReport.LOGGER.info("Received unlink command for: {} ({})", 
+            message.getPlayerName(), message.getPlayerUuid());
+        
+        // Remove from linking manager
+        PlayerLinkingManager linkManager = PlayerLinkingManager.getInstance();
+        linkManager.removeLink(message.getPlayerUuid());
     }
 
     /**
