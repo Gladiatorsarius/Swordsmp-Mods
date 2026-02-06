@@ -89,14 +89,18 @@ See **QUESTIONS_CHECKLIST.md** for full list of configuration questions.
 
 ### For Server Admins:
 - **README.md** (this file) - Project overview
+- **[FEATURES.md](../FEATURES.md)** - Complete features documentation for all mods
+- **[TESTING.md](../TESTING.md)** - Comprehensive testing guide
 - **combat-log-report-1.21.11/README.md** - Mod installation and usage
-- **DISCORD_INTEGRATION_PLAN.md** - Full technical specification
+- **discord-bot/README.md** - Discord bot setup guide
+- **[discord-bot/CONFIG.md](discord-bot/CONFIG.md)** - **Detailed config.json documentation**
+- **[RUNNING.md](RUNNING.md)** - **How to run everything**
 
 ### For Developers:
-- **DISCORD_INTEGRATION_PLAN.md** - Architecture and component design
-- **QUESTIONS_CHECKLIST.md** - Configuration options
+- **[FEATURES.md](../FEATURES.md)** - Architecture and all system features
 - **combat-log-report-1.21.11/src/** - Mod source code
-- **discord-bot/** - Bot source code (when implemented)
+- **discord-bot/src/** - Bot source code
+- **[BUILD_VERIFICATION.md](BUILD_VERIFICATION.md)** - Build verification logs
 
 ### For Players:
 - **combat-log-report-1.21.11/USAGE_GUIDE.md** - Player guide
