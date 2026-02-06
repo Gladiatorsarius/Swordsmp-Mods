@@ -1,6 +1,7 @@
 package combat.log.report.swordssmp.mixin;
 
 import combat.log.report.swordssmp.CombatHeadManager;
+import combat.log.report.swordssmp.CombatLogGameRules;
 import combat.log.report.swordssmp.CombatLogReport;
 import combat.log.report.swordssmp.CombatManager;
 import combat.log.report.swordssmp.incident.CombatLogIncident;
@@ -9,6 +10,7 @@ import combat.log.report.swordssmp.punishment.PunishmentManager;
 import combat.log.report.swordssmp.socket.SocketClient;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.players.PlayerList;
@@ -33,6 +35,28 @@ public class PlayerDisconnectMixin {
             CombatLogReport.LOGGER.warn("Player {} logged out during combat with {} seconds remaining!", 
                 player.getName().getString(), remainingSeconds);
             
+            // Check if combat log system is bypassed via gamerule
+            ServerLevel serverLevel = (ServerLevel) player.level();
+            boolean bypassSystem = serverLevel.getGameRules().get(CombatLogGameRules.BYPASS_COMBAT_LOG_SYSTEM);
+            
+            if (bypassSystem) {
+                // System bypassed - just clear combat tag and let items drop normally
+                CombatLogReport.LOGGER.info("Combat log system bypassed by gamerule, items will drop naturally");
+                
+                // Broadcast simple message
+                PlayerList playerList = (PlayerList) (Object) this;
+                playerList.broadcastSystemMessage(
+                    Component.literal("§e[Combat Log] §c" + player.getName().getString() + 
+                        " logged out during combat with " + String.format("%.1f", remainingSeconds) + 
+                        " seconds remaining."), 
+                    false
+                );
+                
+                combatManager.removePlayer(player.getUUID());
+                return;
+            }
+            
+            // Normal combat log system flow
             // Create incident record
             IncidentManager incidentManager = IncidentManager.getInstance();
             CombatLogIncident incident = incidentManager.createIncident(

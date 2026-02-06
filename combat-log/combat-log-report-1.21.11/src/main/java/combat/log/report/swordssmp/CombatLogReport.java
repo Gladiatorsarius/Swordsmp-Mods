@@ -37,6 +37,9 @@ public class CombatLogReport implements ModInitializer {
 		LOGGER.info("Combat logging tracking is now active");
 		LOGGER.info("Players who disconnect during combat will be reported");
 		
+		// Initialize game rules
+		CombatLogGameRules.initialize();
+		
 		// Register unlink command
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			UnlinkCommand.register(dispatcher);
