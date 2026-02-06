@@ -3,7 +3,7 @@
 ## 🎮 For Players: What You Need to Know
 
 ### What is this mod?
-This mod tracks when you disconnect during PvP combat and reports it to all players on the server. It doesn't punish you, but everyone will know if you combat logged.
+This mod tracks when you disconnect during PvP combat and reports it to all players on the server. Combat loggers will have their inventory stored in a player head at their disconnect location.
 
 ### When am I "in combat"?
 You're in combat when:
@@ -17,8 +17,8 @@ Both you and your opponent will be tagged in combat **for 15 seconds**.
 ```
 You hit another player...
 ┌─────────────────────────────────────────────────┐
-│ ⚠️  You are now in combat!                      │
-│     Logging out will be reported for 15 seconds!│
+│ §c§lCOMBAT MODE                                 │
+│     (displayed in action bar)                   │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -32,26 +32,36 @@ You hit another player...
 
 ### Combat Timer Countdown
 
-As the timer winds down, you'll see warnings:
+You'll see a live countdown in your action bar:
 
 ```
-Combat ends in 5 seconds...
-Combat ends in 4 seconds...
-Combat ends in 3 seconds...
-Combat ends in 2 seconds...
-Combat ends in 1 seconds...
+§c§lCOMBAT 15s
+§c§lCOMBAT 14s
+§c§lCOMBAT 13s
+...
+§c§lCOMBAT 2s
+§c§lCOMBAT 1s
 ✅ You are no longer in combat!
 ```
 
+### Combat Ends on Death
+
+If you die during combat:
+- Your combat tag is immediately cleared
+- Your opponent's combat tag is also cleared
+- Normal death mechanics apply
+
 ## ⚠️ What Happens if I Log Out During Combat?
 
-**A REPORT WILL BE BROADCAST!**
+**YOUR INVENTORY WILL BE STORED IN A PLAYER HEAD!**
 
 If you disconnect while in combat:
 1. 📢 All players on the server are notified
 2. 🕒 The message shows how much combat time was remaining
-3. 👥 Your reputation may be affected
-4. 💼 Your character logs out normally (no death, no item loss)
+3. 💀 A player head is spawned at your disconnect location
+4. 📦 Your inventory is stored (future feature - currently placeholder)
+5. 🎫 A Discord ticket is created for admin review
+6. 🚫 You are temporarily banned until the ticket is reviewed
 
 ### Example of Combat Logging Report:
 
@@ -62,12 +72,20 @@ You disconnect...
 📢 SERVER BROADCAST
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [Combat Log Report] YourName logged out during combat 
-with 10.5 seconds remaining!
+with 10.5 seconds remaining! Ticket will be created in Discord.
 
-Everyone on the server sees this message
-Your character logs out normally
-No items are lost
+💀 A player head spawns at your location
+📦 Contains your inventory (future feature)
+🎫 Ticket created in Discord
+🚫 You are banned until ticket is resolved
 ```
+
+### Player Head Access Control
+
+**Who can access the combat log head:**
+- ⏰ **First 30 minutes:** Only combat opponents
+- ⏰ **After 30 minutes:** Everyone can access
+- 👑 **Server operators:** Can always access (future feature)
 
 ## ✅ How to Log Out Without Being Reported
 
