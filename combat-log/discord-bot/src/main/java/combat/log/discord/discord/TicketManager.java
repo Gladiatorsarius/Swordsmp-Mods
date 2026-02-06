@@ -37,15 +37,17 @@ public class TicketManager {
     private final JDA jda;
     private final BotConfig config;
     private final DiscordSRVService discordSRVService;
+    private final combat.log.discord.database.LinkingDatabase linkingDatabase;
     private CombatLogWebSocketServer webSocketServer;
     
     private final Map<String, Ticket> activeTickets = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public TicketManager(JDA jda, BotConfig config, DiscordSRVService discordSRVService) {
+    public TicketManager(JDA jda, BotConfig config, DiscordSRVService discordSRVService, combat.log.discord.database.LinkingDatabase linkingDatabase) {
         this.jda = jda;
         this.config = config;
         this.discordSRVService = discordSRVService;
+        this.linkingDatabase = linkingDatabase;
         
         // Start timeout checker
         scheduler.scheduleAtFixedRate(this::checkTimeouts, 1, 1, TimeUnit.MINUTES);
@@ -104,8 +106,13 @@ public class TicketManager {
 
             String title = String.format("🚨 Combat Log: %s", incident.getPlayerName());
             
-            // Look up Discord user if DiscordSRV enabled
-            String discordId = discordSRVService.getDiscordId(incident.getPlayerUuid());
+            // Look up Discord user from LinkingDatabase first, then fallback to DiscordSRV
+            String discordId = linkingDatabase.getDiscordId(incident.getPlayerUuid()).orElse(null);
+            if (discordId == null) {
+                // Fallback to DiscordSRV if not found in LinkingDatabase
+                discordId = discordSRVService.getDiscordId(incident.getPlayerUuid());
+            }
+            
             User linkedUser = null;
             if (discordId != null) {
                 try {
@@ -179,8 +186,13 @@ public class TicketManager {
 
             String title = String.format("Combat Log: %s", incident.getPlayerName());
             
-            // Look up Discord user if DiscordSRV enabled
-            String discordId = discordSRVService.getDiscordId(incident.getPlayerUuid());
+            // Look up Discord user from LinkingDatabase first, then fallback to DiscordSRV
+            String discordId = linkingDatabase.getDiscordId(incident.getPlayerUuid()).orElse(null);
+            if (discordId == null) {
+                // Fallback to DiscordSRV if not found in LinkingDatabase
+                discordId = discordSRVService.getDiscordId(incident.getPlayerUuid());
+            }
+            
             User linkedUser = null;
             if (discordId != null) {
                 try {

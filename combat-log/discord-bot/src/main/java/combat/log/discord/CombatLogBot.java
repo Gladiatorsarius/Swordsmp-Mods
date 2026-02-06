@@ -75,7 +75,7 @@ public class CombatLogBot {
         logger.info("Discord bot connected as: {}", jda.getSelfUser().getName());
         
         // Initialize ticket manager
-        this.ticketManager = new TicketManager(jda, config, discordSRVService);
+        this.ticketManager = new TicketManager(jda, config, discordSRVService, linkingDatabase);
         
         // Initialize whitelist manager
         this.whitelistManager = new WhitelistManager(jda, config, linkingDatabase, mojangAPI);

@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Manages whitelist requests and approvals
@@ -65,9 +66,9 @@ public class WhitelistManager {
                 return;
             }
 
-            // Check if Discord user already has a pending request
+            // Check if Discord user already has a pending request (no longer needed with auto-approval, but keep for safety)
             if (database.hasPendingRequest(user.getId())) {
-                sendErrorDM(user, "You already have a pending whitelist request. Please wait for staff to review it.");
+                sendErrorDM(user, "You already have a whitelist request being processed. Please wait a moment.");
                 return;
             }
 
@@ -93,19 +94,53 @@ public class WhitelistManager {
                 return;
             }
 
-            // Create request object
-            WhitelistRequest request = new WhitelistRequest(
-                user.getId(),
-                user.getAsTag(),
-                profile.getName(),
-                minecraftUuid
-            );
+            // Automatically approve and whitelist the player
+            // Store link in database
+            try {
+                database.addLink(
+                    user.getId(),
+                    minecraftUuid,
+                    profile.getName(),
+                    "AUTO_APPROVED",
+                    "Automatic whitelist approval"
+                );
+                logger.info("Stored link: Discord {} <-> Minecraft {} ({})", 
+                    user.getId(), profile.getName(), minecraftUuid);
+            } catch (SQLException e) {
+                logger.error("Failed to store player link", e);
+                sendErrorDM(user, "An error occurred while linking your account. Please try again later.");
+                return;
+            }
 
-            // Create staff review thread
-            createReviewThread(request);
+            // Send whitelist command to Minecraft
+            if (webSocketServer != null && webSocketServer.isMinecraftConnected()) {
+                String requestId = UUID.randomUUID().toString();
+                WhitelistAddMessage whitelistMsg = new WhitelistAddMessage(
+                    requestId,
+                    profile.getName(),
+                    minecraftUuid,
+                    user.getId(),
+                    "AUTO_APPROVED"
+                );
+                String json = new Gson().toJson(whitelistMsg);
+                webSocketServer.broadcast(json);
+                logger.info("Sent whitelist command to Minecraft for: {}", profile.getName());
 
-            // Send confirmation DM to user
-            sendConfirmationDM(user, profile.getName());
+                // Also send link message
+                PlayerLinkMessage linkMsg = new PlayerLinkMessage(
+                    user.getId(),
+                    minecraftUuid,
+                    profile.getName(),
+                    true
+                );
+                json = new Gson().toJson(linkMsg);
+                webSocketServer.broadcast(json);
+            } else {
+                logger.warn("Cannot send whitelist command - Minecraft not connected");
+            }
+
+            // Send approval DM to user
+            sendApprovalDM(user, profile.getName());
 
         } catch (Exception e) {
             logger.error("Failed to process whitelist request", e);
