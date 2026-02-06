@@ -53,7 +53,7 @@ public class CombatLogBot {
         logger.info("Initialized linking database");
         
         // Initialize Mojang API service
-        this.mojangAPI = new MojangAPIService(config.mojangApi.cacheDurationMinutes);
+        this.mojangAPI = new MojangAPIService(config.timeouts.mojangCacheDurationMinutes);
         logger.info("Initialized Mojang API service");
         
         // Initialize Discord bot

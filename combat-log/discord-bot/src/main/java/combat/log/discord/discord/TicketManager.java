@@ -66,7 +66,7 @@ public class TicketManager {
             }
 
             String channelId;
-            if (config.discord.useForumChannel) {
+            if (config.features.useForumChannel) {
                 channelId = createForumTicket(guild, incident);
             } else {
                 channelId = createThreadTicket(guild, incident);
@@ -79,7 +79,7 @@ public class TicketManager {
                     incident.getPlayerName(),
                     incident.getCombatTimeRemaining(),
                     channelId,
-                    config.ticket.timeoutMinutes
+                    config.timeouts.ticketTimeoutMinutes
                 );
                 
                 activeTickets.put(incident.getIncidentId(), ticket);
@@ -95,9 +95,9 @@ public class TicketManager {
      */
     private String createForumTicket(Guild guild, CombatLogIncident incident) {
         try {
-            ForumChannel forum = guild.getForumChannelById(config.discord.ticketChannelId);
+            ForumChannel forum = guild.getForumChannelById(config.channels.ticketChannelId);
             if (forum == null) {
-                logger.error("Forum channel not found: {}", config.discord.ticketChannelId);
+                logger.error("Forum channel not found: {}", config.channels.ticketChannelId);
                 return null;
             }
 
@@ -125,7 +125,7 @@ public class TicketManager {
             ThreadChannel thread = forumPost.getThreadChannel();
             
             // Make thread private and add player if linked
-            if (config.ticket.privateThreads && linkedUser != null) {
+            if (config.features.privateThreads && linkedUser != null) {
                 try {
                     // Add linked player to thread
                     final User finalLinkedUser = linkedUser;  // Make effectively final for lambda
@@ -171,9 +171,9 @@ public class TicketManager {
      */
     private String createThreadTicket(Guild guild, CombatLogIncident incident) {
         try {
-            var channel = guild.getTextChannelById(config.discord.ticketChannelId);
+            var channel = guild.getTextChannelById(config.channels.ticketChannelId);
             if (channel == null) {
-                logger.error("Text channel not found: {}", config.discord.ticketChannelId);
+                logger.error("Text channel not found: {}", config.channels.ticketChannelId);
                 return null;
             }
 
@@ -197,7 +197,7 @@ public class TicketManager {
             ThreadChannel thread = message.createThreadChannel(title).complete();
             
             // Make thread private if enabled
-            if (config.ticket.privateThreads) {
+            if (config.features.privateThreads) {
                 thread.getManager().setInvitable(false).queue();
             }
             
@@ -243,7 +243,7 @@ public class TicketManager {
         
         embed.addField("Status", "⏳ Pending Proof", true);
         embed.addField("Deadline", 
-            String.format("<t:%d:R>", Instant.now().plusSeconds(config.ticket.timeoutMinutes * 60).getEpochSecond()),
+            String.format("<t:%d:R>", Instant.now().plusSeconds(config.timeouts.ticketTimeoutMinutes * 60).getEpochSecond()),
             true);
         embed.addField("Consequence", "❌ Killed on next login if not resolved", true);
         
@@ -271,7 +271,7 @@ public class TicketManager {
                 embed.addField("Where?", 
                     "In the ticket: " + thread.getAsMention(), false);
                 embed.addField("Deadline", 
-                    String.format("You have **%d minutes** to submit proof", config.ticket.timeoutMinutes), false);
+                    String.format("You have **%d minutes** to submit proof", config.timeouts.ticketTimeoutMinutes), false);
                 embed.addField("What if I don't?", 
                     "You will be killed when you next log into the server.", false);
                 
@@ -302,7 +302,7 @@ public class TicketManager {
         }
         sb.append("• Upload a clip/video showing you disconnected unintentionally (crash, internet issue, etc.)\n");
         sb.append("• Accepted platforms: YouTube, Twitch, Streamable, Medal.tv, or Discord upload\n");
-        sb.append(String.format("• You have **%d minutes** to submit proof\n", config.ticket.timeoutMinutes));
+        sb.append(String.format("• You have **%d minutes** to submit proof\n", config.timeouts.ticketTimeoutMinutes));
         sb.append("• If no proof is submitted, you will be killed on your next login\n\n");
         
         sb.append("**For Staff:**\n");
@@ -446,7 +446,7 @@ public class TicketManager {
         if (webSocketServer != null) {
             IncidentDecision decision = new IncidentDecision(
                 incidentId, "AUTO_DENIED", "System",
-                "No proof submitted within " + config.ticket.timeoutMinutes + " minutes"
+                "No proof submitted within " + config.timeouts.ticketTimeoutMinutes + " minutes"
             );
             webSocketServer.sendDecision(decision);
         }
