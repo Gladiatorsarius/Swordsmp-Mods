@@ -3,6 +3,7 @@
 	"package": "combat.log.report.swordssmp.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"FireworkRocketMixin",
 		"PlayerDisconnectMixin",
 		"PlayerLoginMixin",
 		"ServerTickMixin"
