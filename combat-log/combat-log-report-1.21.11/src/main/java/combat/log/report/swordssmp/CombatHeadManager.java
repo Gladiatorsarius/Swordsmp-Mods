@@ -137,19 +137,22 @@ public class CombatHeadManager {
             UUID incidentId = headIncidents.get(ownerId);
             if (incidentId != null) {
                 CombatLogIncident incident = IncidentManager.getInstance().getIncident(incidentId);
-                if (incident != null) {
-                    IncidentStatus status = incident.getStatus();
-                    // Only allow access if ticket is resolved (denied/auto-denied) - approved tickets remove the head
-                    if (status == IncidentStatus.PENDING || status == IncidentStatus.CLIP_UPLOADED) {
-                        // Ticket still pending - head is locked
-                        return false;
-                    }
-                    if (status == IncidentStatus.APPROVED) {
-                        return false;
-                    }
-                    if (status == IncidentStatus.DENIED || status == IncidentStatus.AUTO_DENIED) {
-                        return true;
-                    }
+                if (incident == null) {
+                    // Safety: If incident data is missing, deny access
+                    return false;
+                }
+                
+                IncidentStatus status = incident.getStatus();
+                // Only allow access if ticket is resolved (denied/auto-denied) - approved tickets remove the head
+                if (status == IncidentStatus.PENDING || status == IncidentStatus.CLIP_UPLOADED) {
+                    // Ticket still pending - head is locked
+                    return false;
+                }
+                if (status == IncidentStatus.APPROVED) {
+                    return false;
+                }
+                if (status == IncidentStatus.DENIED || status == IncidentStatus.AUTO_DENIED) {
+                    return true;
                 }
             }
         }
@@ -313,30 +316,17 @@ public class CombatHeadManager {
             return;
         }
         
-        // Get stored inventory
-        List<ItemStack> items = storedInventories.get(ownerId);
-        if (items == null || items.isEmpty()) {
+        // Drop stored inventory at head location (one-time destructive access)
+        ServerLevel world = (ServerLevel) player.level();
+        boolean dropped = dropStoredInventory(headPos, world);
+        
+        if (dropped) {
+            player.sendSystemMessage(Component.literal("§aItems from combat log head scattered on the ground!"));
+            CombatLogReport.LOGGER.info("Player {} opened combat head at {} - items dropped", 
+                player.getName().getString(), headPos);
+        } else {
             player.sendSystemMessage(Component.literal("§eThis combat log head has no items stored."));
-            return;
         }
-        
-        // Create container with items
-        final SimpleContainer container = new SimpleContainer(41);
-        for (int i = 0; i < Math.min(items.size(), 41); i++) {
-            container.setItem(i, items.get(i));
-        }
-        
-        final UUID finalOwnerId = ownerId;
-        
-        // Open chest-like UI
-        player.openMenu(new net.minecraft.world.SimpleMenuProvider(
-            (syncId, playerInventory, playerEntity) -> 
-                net.minecraft.world.inventory.ChestMenu.sixRows(syncId, playerInventory, container),
-            Component.literal("Combat Log Head - " + getHeadOwnerName(finalOwnerId))
-        ));
-        
-        CombatLogReport.LOGGER.info("Opened combat head UI for player {} at position {}", 
-            player.getName().getString(), headPos);
     }
     
     private String getHeadOwnerName(UUID ownerId) {

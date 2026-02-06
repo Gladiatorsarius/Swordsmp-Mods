@@ -8,6 +8,7 @@ import combat.log.report.swordssmp.incident.CombatLogIncident;
 import combat.log.report.swordssmp.incident.IncidentManager;
 import combat.log.report.swordssmp.punishment.PunishmentManager;
 import combat.log.report.swordssmp.socket.SocketClient;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -40,11 +41,20 @@ public class PlayerDisconnectMixin {
             boolean bypassSystem = Boolean.TRUE.equals(serverLevel.getGameRules().get(CombatLogGameRules.BYPASS_COMBAT_LOG_SYSTEM));
             
             if (bypassSystem) {
-                // System bypassed - kill player so items scatter like normal death
-                CombatLogReport.LOGGER.info("Combat log system bypassed by gamerule for player {}, killing player to scatter items", player.getName().getString());
+                // System bypassed - drop items at player location like death
+                CombatLogReport.LOGGER.info("Combat log system bypassed by gamerule for player {}, dropping items", player.getName().getString());
                 
-                // Kill the player to make items drop and scatter like normal death
-                player.hurt(player.damageSources().generic(), Float.MAX_VALUE);
+                // Drop all player items at their position
+                BlockPos playerPos = player.blockPosition();
+                net.minecraft.world.entity.player.Inventory inventory = player.getInventory();
+                
+                for (int i = 0; i < inventory.getContainerSize(); i++) {
+                    net.minecraft.world.item.ItemStack stack = inventory.getItem(i);
+                    if (!stack.isEmpty()) {
+                        player.drop(stack, true, false);
+                        inventory.setItem(i, net.minecraft.world.item.ItemStack.EMPTY);
+                    }
+                }
                 
                 // Broadcast simple message
                 PlayerList playerList = (PlayerList) (Object) this;
