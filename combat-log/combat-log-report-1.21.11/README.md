@@ -76,33 +76,6 @@ A Fabric mod for Minecraft 1.21.11 that detects combat logging, integrates with 
 4. When fighting stops, 15 seconds must pass before no report on logout
 ```
 
-## 🔧 How It Works
-
-The mod uses:
-1. **Fabric API Events** to detect when players damage each other
-2. **Mixins** to intercept player disconnections, deaths, and server ticks
-3. **CombatManager** singleton to track combat timers and opponents
-4. **CombatHeadManager** to spawn and manage player heads
-5. **PunishmentManager** to enforce punishments on player login
-6. **WebSocket Client** for real-time communication with Discord bot
-7. **PlayerLinkingManager** for Discord-Minecraft account linking
-
-### Technical Details
-- **Combat Duration**: 15 seconds (15000 milliseconds)
-- **Timer Reset**: Every time a tagged player attacks or is attacked
-- **Action Bar Display**: Live countdown updated every server tick
-- **Player Head Storage**: Heads contain player inventory via NBT (framework ready)
-- **Access Control**: Time-based permissions (0-30 min opponents, 30+ min everyone, OPs always)
-- **WebSocket Protocol**: JSON messages over ws:// (configurable URL and port)
-- **Punishment System**: Checks ticket status on player login, kills if DENIED
-- **Thread Safety**: Uses ConcurrentHashMap for safe multi-threaded access
-- **Firework Blocking**: Mixin prevents rocket use during combat
-
-### In-Game Commands
-- `/unlink` - Unlink your Discord account from your Minecraft account
-  - Removes from whitelist
-  - Allows relinking with same or different Discord account
-
 ## 📦 Installation
 
 ### Requirements
@@ -118,7 +91,6 @@ The mod uses:
 3. Place `combat-log-report-1.0.0.jar` in your server's `mods` folder
 4. Start server (first run creates config file)
 5. Edit `config/combat-log-report.json` to configure WebSocket
-6. Restart server
 
 ### Configuration
 

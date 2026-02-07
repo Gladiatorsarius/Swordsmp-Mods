@@ -7,16 +7,12 @@ A comprehensive combat logging detection and verification system for Minecraft s
 ```
 combat-log/
 ├── README.md                           (This file - project overview)
-├── DISCORD_INTEGRATION_PLAN.md         (Detailed technical plan)
-├── QUESTIONS_CHECKLIST.md              (Configuration questionnaire)
-│
 ├── combat-log-report-1.21.11/          (Minecraft Fabric Mod)
 │   ├── src/                            (Mod source code)
 │   ├── build.gradle                    (Build configuration)
 │   └── README.md                       (Mod-specific documentation)
-│
-└── discord-bot/                         (Discord Bot - PLANNED)
-    └── README.md                        (Bot documentation - when implemented)
+├── discord-bot/                        (Discord Bot)
+    └── README.md                       (Bot documentation)
 ```
 
 ## 🎯 System Overview
@@ -47,66 +43,50 @@ This project creates a complete combat logging detection and verification system
    ↓
 4. Player has X minutes to submit clip/proof
    ↓
-   ├─→ [Clip submitted] → Admin reviews → Approve/Deny
+   ├→ [Clip submitted] → Admin reviews → Approve/Deny
    │                                          ↓
-   └─→ [No clip] → Auto-deny after timeout   ↓
+   └→ [No clip] → Auto-deny after timeout   ↓
                                               ↓
 5. Decision sent back to Minecraft mod
    ↓
 6. Player logs in next time
    ↓
-   ├─→ [Approved] Clear punishment, notify player
-   └─→ [Denied] Execute punishment (kill player)
+   ├→ [Approved] Clear punishment, notify player
+   └→ [Denied] Execute punishment (kill player)
 ```
 
 ## 📋 Current Status
 
 ### ✅ Completed:
-- [x] Combat log detection mod (Minecraft 1.21.11 Fabric)
-- [x] In-game combat tagging system (15 seconds)
-- [x] Action bar combat timer display
-- [x] Combat ends on death
-- [x] Player head spawning on combat log
-- [x] Inventory storage in heads (framework ready)
-- [x] Time-based head access control
-- [x] Rocket blocking during combat
-- [x] Discord bot implementation (Java/JDA)
-- [x] Ticket system (Forum channels or threads)
-- [x] Admin commands (/approve, /deny, /extend, /info)
-- [x] Database integration (SQLite)
-- [x] Punishment system on login
-- [x] Proof submission validation
-- [x] WebSocket communication
-- [x] Whitelist system with Mojang API
-- [x] Player linking system (one-to-one)
-- [x] Self-admission feature
-- [x] Auto-timeout system
-
-### 🎯 System Status:
-- **Discord Bot**: ✅ Fully implemented and tested
-- **Minecraft Mod**: ✅ Fully implemented and tested
-- **Integration**: ✅ WebSocket communication working
-- **Documentation**: ✅ Complete (4 comprehensive guides)
-- **Deployment**: ✅ Ready for production
+- Combat log detection mod (Minecraft 1.21.11 Fabric)
+- In-game combat tagging system (15 seconds)
+- Action bar combat timer display
+- Combat ends on death
+- Player head spawning on combat log
+- Inventory storage in heads (framework ready)
+- Time-based head access control
+- Rocket blocking during combat
+- Discord bot implementation (Java/JDA)
+- Ticket system (Forum channels or threads)
+- Admin commands (/approve, /deny, /extend, /info)
+- Database integration (SQLite)
+- Punishment system on login
+- Proof submission validation
+- WebSocket communication
+- Whitelist system with Mojang API
 
 ## 📚 Documentation
 
 ### For Server Admins:
 - **README.md** (this file) - Project overview
-- **[FEATURES.md](../FEATURES.md)** - Complete features documentation for all mods ⭐
-- **[TESTING.md](../TESTING.md)** - Comprehensive testing guide ⭐
-- **[RUNNING.md](RUNNING.md)** - **How to run everything** ⭐
-- **[discord-bot/CONFIG.md](discord-bot/CONFIG.md)** - **Detailed config.json documentation** ⭐
+- **[RUNNING.md](RUNNING.md)** - How to run everything
 - **discord-bot/README.md** - Discord bot setup guide
 - **combat-log-report-1.21.11/README.md** - Mod installation and usage
 
 ### For Developers:
-- **[FEATURES.md](../FEATURES.md)** - Architecture and all system features
 - **combat-log-report-1.21.11/src/** - Mod source code
 - **discord-bot/src/** - Bot source code
-- **[BUILD_VERIFICATION.md](BUILD_VERIFICATION.md)** - Build verification logs
-- **WHITELIST_SYSTEM_PLAN.md** - Whitelist system design (implemented)
-- **DISCORD_INTEGRATION_PLAN.md** - Discord integration design (implemented)
+- **BUILD_VERIFICATION.md** - Build verification logs
 
 ### For Players:
 - **combat-log-report-1.21.11/USAGE_GUIDE.md** - Player guide
@@ -118,19 +98,6 @@ This project creates a complete combat logging detection and verification system
 - Discord Server with bot permissions
 - Java 17+ (for Discord bot)
 - Java 21+ (for Minecraft mod)
-
-### Installation:
-1. **Install Minecraft mod** (see combat-log-report-1.21.11/README.md)
-   - Copy mod JAR to server mods folder
-   - Configure WebSocket URL in mod config
-2. **Set up Discord bot** (see discord-bot/README.md)
-   - Get bot token from Discord Developer Portal
-   - Configure config.json with Discord credentials
-   - Run bot with `java -jar combat-log-discord-bot-1.0.0.jar`
-3. **Verify Integration**
-   - Check WebSocket connection in logs
-   - Test whitelist request in Discord
-   - Test combat logging in Minecraft
 
 See **[RUNNING.md](RUNNING.md)** for detailed setup instructions.
 

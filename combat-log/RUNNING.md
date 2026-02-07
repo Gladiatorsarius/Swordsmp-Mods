@@ -37,12 +37,6 @@ Edit `config.json` with your Discord credentials:
   "websocket": {
     "port": 8080,
     "host": "0.0.0.0"
-  },
-  "whitelist": {
-    "enabled": true,
-    "whitelistChannelId": "YOUR_WHITELIST_CHANNEL_ID",
-    "reviewChannelId": "YOUR_REVIEW_CHANNEL_ID",
-    "staffRoleId": "YOUR_STAFF_ROLE_ID"
   }
 }
 ```
@@ -118,8 +112,6 @@ The mod will:
 [combat-log-report] Players who disconnect during combat will be reported
 [combat-log-report] Initialized player linking system
 [combat-log-report] Initialized whitelist command handler
-[combat-log-report] Attempting to connect to Discord bot at ws://localhost:8080/combat-log
-[combat-log-report] Connected to Discord bot WebSocket server
 ```
 
 ## 🔄 Testing the Connection

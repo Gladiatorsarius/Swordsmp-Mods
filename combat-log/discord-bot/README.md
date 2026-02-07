@@ -167,6 +167,48 @@ View detailed information about a ticket.
 - Shows status, timings, clip URL (if submitted)
 - Shows time remaining
 
+## Whitelisting Features
+
+The Combat Log Discord Bot includes robust whitelisting features to manage player access to the Minecraft server. These features are tightly integrated with the bot's database and Discord commands:
+
+### Whitelist Database
+
+The bot uses a SQLite database to store whitelist information:
+
+- **`whitelist_links` Table**:
+  - Stores mappings between Discord IDs and Minecraft accounts.
+  - Tracks metadata such as `linked_by`, `notes`, and `whitelisted` status.
+
+- **`whitelist_requests` Table**:
+  - Tracks whitelist requests with details such as:
+    - Request ID
+    - Discord and Minecraft user information
+    - Request status (`PENDING`, `APPROVED`, `DENIED`)
+    - Review details (e.g., `reviewed_by`, `reviewed_at`, `reason`)
+
+### Workflow
+
+1. **Whitelist Request**:
+   - Players can request to be whitelisted by clicking the "Request Whitelist" button in the configured Discord channel.
+   - The bot creates a whitelist request entry in the database and sends a notification to the whitelist channel.
+
+2. **Approval Process**:
+   - Staff members can review requests and approve or deny them using the slash commands.
+   - Approved requests automatically whitelist the player on the Minecraft server.
+
+3. **Unlinking**:
+   - Staff members can unlink a Discord user from the whitelist using the `/unlink` command.
+   - The bot removes the user from the whitelist and updates the database.
+
+### Error Handling
+
+- The bot provides detailed error messages for common issues, such as:
+  - Missing permissions for staff members.
+  - Invalid or missing inputs (e.g., missing Discord user or channel ID).
+  - Database errors during whitelist operations.
+
+These features ensure seamless integration between Discord and the Minecraft server, allowing server administrators to efficiently manage player access.
+
 ## Workflow
 
 1. **Player Combat Logs**
