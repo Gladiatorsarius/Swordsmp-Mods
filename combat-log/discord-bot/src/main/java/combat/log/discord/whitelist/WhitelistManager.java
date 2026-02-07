@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -35,6 +36,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * Manages whitelist requests and approvals
@@ -50,6 +52,8 @@ public class WhitelistManager {
     private final ConcurrentMap<String, PendingWhitelistRequest> pendingRequests = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, PendingUnlinkRequest> pendingUnlinkRequests = new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<String> pendingWhitelistMessages = new ConcurrentLinkedQueue<>();
+    // Message ID of the single status message listing whitelisted players
+    private volatile String whitelistStatusMessageId;
 
     public WhitelistManager(JDA jda, BotConfig config, LinkingDatabase database, MojangAPIService mojangAPI) {
         this.jda = jda;
@@ -68,6 +72,91 @@ public class WhitelistManager {
 
     public void handleMinecraftConnected() {
         flushPendingWhitelistMessages();
+        // Ensure the persistent whitelist status message exists when Minecraft connects (and bot ready)
+        ensureWhitelistStatusMessageExists();
+    }
+
+    /**
+     * Build an embed representing current whitelist status.
+     */
+    private net.dv8tion.jda.api.EmbedBuilder buildWhitelistStatusEmbed() {
+        java.util.List<String> names = database.listWhitelistedNames();
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.setTitle("📜 Whitelisted Players");
+        embed.setColor(Color.GREEN);
+
+        if (names.isEmpty()) {
+            embed.setDescription("No players are currently whitelisted.");
+        } else {
+            // Join names with commas, but limit embed size
+            String desc = names.stream().collect(Collectors.joining("\n"));
+            if (desc.length() > 1900) {
+                // Truncate if too long
+                desc = desc.substring(0, 1896) + "...";
+            }
+            embed.setDescription(desc);
+            embed.setFooter(String.format("Total: %d", names.size()));
+        }
+
+        embed.setTimestamp(Instant.now());
+        return embed;
+    }
+
+    private void ensureWhitelistStatusMessageExists() {
+        TextChannel channel = resolveWhitelistLogChannel();
+        if (channel == null || !channel.canTalk()) return;
+
+        // If we already have an ID, try to verify it
+        if (whitelistStatusMessageId != null && !whitelistStatusMessageId.isBlank()) {
+            try {
+                channel.retrieveMessageById(whitelistStatusMessageId).queue(msg -> {
+                    // exists — update it
+                    updateWhitelistStatusMessage();
+                }, err -> {
+                    // not found — create new
+                    channel.sendMessageEmbeds(buildWhitelistStatusEmbed().build()).queue(m -> whitelistStatusMessageId = m.getId());
+                });
+                return;
+            } catch (Exception ignored) {
+                // fallthrough to create
+            }
+        }
+
+        // Try to find an existing bot-authored status message in recent history
+        channel.getHistory().retrievePast(100).queue(list -> {
+            for (var m : list) {
+                if (m.getAuthor().getId().equals(jda.getSelfUser().getId()) && !m.getEmbeds().isEmpty()) {
+                    var e = m.getEmbeds().get(0);
+                    if (e.getTitle() != null && e.getTitle().contains("Whitelisted Players")) {
+                        whitelistStatusMessageId = m.getId();
+                        updateWhitelistStatusMessage();
+                        return;
+                    }
+                }
+            }
+            // Not found, create one
+            channel.sendMessageEmbeds(buildWhitelistStatusEmbed().build()).queue(m -> whitelistStatusMessageId = m.getId());
+        }, err -> {
+            // On error, attempt to create
+            channel.sendMessageEmbeds(buildWhitelistStatusEmbed().build()).queue(m -> whitelistStatusMessageId = m.getId());
+        });
+    }
+
+    private void updateWhitelistStatusMessage() {
+        TextChannel channel = resolveWhitelistLogChannel();
+        if (channel == null || !channel.canTalk()) return;
+
+        var embed = buildWhitelistStatusEmbed().build();
+        if (whitelistStatusMessageId != null && !whitelistStatusMessageId.isBlank()) {
+            channel.editMessageEmbedsById(whitelistStatusMessageId, embed).queue(success -> {
+                // updated
+            }, err -> {
+                // fallback: create new and store id
+                channel.sendMessageEmbeds(embed).queue(m -> whitelistStatusMessageId = m.getId());
+            });
+        } else {
+            channel.sendMessageEmbeds(embed).queue(m -> whitelistStatusMessageId = m.getId());
+        }
     }
 
     /**
@@ -162,6 +251,9 @@ public class WhitelistManager {
             );
             json = new Gson().toJson(linkMsg);
             sendOrQueueWhitelistMessage(json);
+
+            // Update the persistent whitelist status message
+            updateWhitelistStatusMessage();
 
             return WhitelistResult.success(config.message("whitelist.modal.waiting",
                 "⏳ Waiting for Minecraft confirmation..."));
@@ -339,6 +431,9 @@ public class WhitelistManager {
                 logger.warn("Cannot send whitelist command - Minecraft not connected");
             }
 
+            // Update persistent whitelist status message after approval
+            updateWhitelistStatusMessage();
+
             // Update thread
             updateReviewThread(request.threadId, true, staffName);
 
@@ -436,12 +531,19 @@ public class WhitelistManager {
      * Setup whitelist channel with button
      */
     public void setupWhitelistChannel(String channelId) {
+        TextChannel channel = jda.getTextChannelById(channelId);
+        if (channel == null) {
+            logger.error("Channel not found: {}", channelId);
+            throw new IllegalStateException("Channel not found: " + channelId);
+        }
+
+        // Check bot has permission to send messages in the channel
+        if (!channel.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_SEND)) {
+            logger.error("Missing MESSAGE_SEND permission for channel: {}", channelId);
+            throw new IllegalStateException("Missing MESSAGE_SEND permission for channel: " + channelId);
+        }
+
         try {
-            TextChannel channel = jda.getTextChannelById(channelId);
-            if (channel == null) {
-                logger.error("Channel not found: {}", channelId);
-                return;
-            }
 
             EmbedBuilder embed = new EmbedBuilder()
                 .setTitle(config.whitelist.buttonMessage.title)
@@ -464,9 +566,9 @@ public class WhitelistManager {
                 .queue();
 
             logger.info("Setup whitelist channel: {}", channelId);
-
         } catch (Exception e) {
             logger.error("Failed to setup whitelist channel", e);
+            throw e;
         }
     }
 
@@ -507,8 +609,24 @@ public class WhitelistManager {
                 sendOrQueueWhitelistMessage(json);
                 logger.warn("Cannot send unlink command - Minecraft not connected");
             }
+            // Log unlink request to staff-facing whitelist log channel and track pending confirmation
+            PendingUnlinkRequest pending = new PendingUnlinkRequest(user.getId(), minecraftName);
+            pendingUnlinkRequests.put(minecraftName.toLowerCase(), pending);
 
-            enqueueUnlinkChannelMessage(user.getId(), minecraftName);
+            TextChannel logChannel = resolveWhitelistLogChannel();
+            if (logChannel != null && logChannel.canTalk()) {
+                String title = config.message("whitelist.log.remove.title", "🗑️ Whitelist Removed");
+                EmbedBuilder embed = new EmbedBuilder()
+                    .setTitle("🔁 Unlink Requested")
+                    .setDescription("Discord: <@" + user.getId() + ">\nMinecraft: " + minecraftName)
+                    .setColor(Color.ORANGE)
+                    .setTimestamp(Instant.now());
+
+                logChannel.sendMessageEmbeds(embed.build()).queue(msg -> pending.channelMessageId = msg.getId());
+            }
+
+            // Update persistent whitelist status message after unlinking
+            updateWhitelistStatusMessage();
 
             String unlinkSuccess = MessageFormatter.format(
                 config.message("whitelist.unlink.success", "✅ Your Discord account has been unlinked from {minecraftName}."),
@@ -574,11 +692,6 @@ public class WhitelistManager {
     }
 
     private void enqueueUnlinkChannelMessage(String discordId, String minecraftName) {
-        TextChannel channel = resolveWhitelistChannel();
-        if (channel == null || !channel.canTalk()) {
-            return;
-        }
-
         String waitingText = MessageFormatter.format(
             config.message("whitelist.unlink.waiting", "⏳ Waiting for Minecraft to confirm unlink for **{minecraftName}**..."),
             Map.of("minecraftName", minecraftName, "discordId", discordId)
@@ -587,11 +700,17 @@ public class WhitelistManager {
         PendingUnlinkRequest pending = new PendingUnlinkRequest(discordId, minecraftName);
         pendingUnlinkRequests.put(minecraftName.toLowerCase(), pending);
 
+        // Post waiting message to the whitelist log/review channel (staff-facing)
+        TextChannel channel = resolveWhitelistLogChannel();
+        if (channel == null || !channel.canTalk()) {
+            return;
+        }
+
         channel.sendMessage(waitingText).queue(message -> pending.channelMessageId = message.getId());
     }
 
     private void updateUnlinkChannelMessage(PendingUnlinkRequest pending, boolean success, String error) {
-        TextChannel channel = resolveWhitelistChannel();
+        TextChannel channel = resolveWhitelistLogChannel();
         if (channel == null || !channel.canTalk()) {
             return;
         }

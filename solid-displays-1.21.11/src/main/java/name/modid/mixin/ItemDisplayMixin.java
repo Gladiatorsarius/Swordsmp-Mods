@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import name.modid.ItemDisplayHpData;
 import name.modid.ItemDisplayHPManager;
+import name.modid.ItemDisplayHPGamerule;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.entity.Display;
@@ -31,7 +32,8 @@ public class ItemDisplayMixin implements ItemDisplayHpData {
     private void onInit(CallbackInfo ci) {
         // Item Display wurde erstellt, lade NBT-Daten
         Display.ItemDisplay display = (Display.ItemDisplay) (Object) this;
-        ItemDisplayHPManager.loadFromNBT(display);
+        // Only initialize HP system if gamerule enabled
+        // registration/loading will occur after NBT is read (see readAdditionalSaveData)
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
@@ -49,6 +51,29 @@ public class ItemDisplayMixin implements ItemDisplayHpData {
         if (solidDisplays$hasData) {
             solidDisplays$hp = input.getFloatOr("solidDisplaysHp", 0.0F);
             solidDisplays$maxHp = input.getFloatOr("solidDisplaysMaxHp", 0.0F);
+        }
+        // After NBT has been read, register or load HP so we capture the entity's ItemStack
+        try {
+            Display.ItemDisplay display = (Display.ItemDisplay) (Object) this;
+            if (!ItemDisplayHPGamerule.isEnabled(display.level())) return;
+
+            // New behavior: if the entity NBT contains a boolean "solid":true then
+            // treat this display as a solid display — register it (server-side)
+            // and spawn an ArmorStand proxy with a 1x1 hitbox.
+            boolean solidTag = input.getBooleanOr("solid", false);
+            if (solidTag) {
+                // register with default HP (100) so the manager can drop the item on proxy death
+                if (!display.level().isClientSide()) {
+                    ItemDisplayHPManager.registerDisplay(display, 100.0f);
+                    ItemDisplayHPManager.spawnProxyForSolid(display);
+                }
+            } else if (solidDisplays$hasData) {
+                // backward compatibility: if we have explicit HP NBT, load it
+                ItemDisplayHPManager.loadFromNBT(display);
+                ItemDisplayHPManager.spawnProxyIfTagged(display);
+            }
+        } catch (Throwable t) {
+            // non-fatal
         }
     }
 

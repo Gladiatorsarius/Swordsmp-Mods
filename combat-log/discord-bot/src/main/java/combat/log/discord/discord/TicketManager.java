@@ -150,6 +150,18 @@ public class TicketManager {
             thread.sendMessage(buildInstructionsMessage(linkedUser))
                 .setComponents(createActionButtons(incident.getIncidentId()))
                 .queue();
+
+            // Tag staff if role exists (text channel path)
+            if (config.discord.staffRoleId != null && !config.discord.staffRoleId.isEmpty()) {
+                Role staffRole = guild.getRoleById(config.discord.staffRoleId);
+                if (staffRole != null) {
+                    String staffMessage = MessageFormatter.format(
+                        config.message("ticket.staff.alert", "{staffMention} - New combat log incident!"),
+                        Map.of("staffMention", staffRole.getAsMention())
+                    );
+                    thread.sendMessage(staffMessage).queue();
+                }
+            }
             
             // Tag staff if role exists
             if (config.discord.staffRoleId != null && !config.discord.staffRoleId.isEmpty()) {

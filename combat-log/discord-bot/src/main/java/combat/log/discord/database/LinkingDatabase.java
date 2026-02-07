@@ -177,6 +177,23 @@ public class LinkingDatabase {
     }
 
     /**
+     * List all currently whitelisted Minecraft names.
+     */
+    public java.util.List<String> listWhitelistedNames() {
+        java.util.List<String> names = new java.util.ArrayList<>();
+        String sql = "SELECT minecraft_name FROM whitelist_links WHERE whitelisted = 1 ORDER BY linked_at";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                names.add(rs.getString("minecraft_name"));
+            }
+        } catch (SQLException e) {
+            logger.error("Failed to list whitelisted names", e);
+        }
+        return names;
+    }
+
+    /**
      * Check if Discord ID is already linked
      */
     public boolean isDiscordLinked(String discordId) {

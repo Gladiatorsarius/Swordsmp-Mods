@@ -22,20 +22,20 @@ public class SolidDisplays implements ModInitializer {
 
 		LOGGER.info("Hello Fabric world!");
 		
-		// Registriere Item Display HP-System
+		// Register Item Display HP system
 		ItemDisplayHPGamerule.register();
-		LOGGER.info("GameRule 'itemDisplayHPEnabled' registriert");
+		LOGGER.info("GameRule 'solid_displays' registered");
 		
 		ItemDisplayEventHandler.register();
-		LOGGER.info("Item Display Event Handler registriert");
+		LOGGER.info("Item Display Event Handler registered");
 		
 		ItemDisplayDamageHandler.register();
-		LOGGER.info("Item Display Damage Handler registriert");
+		LOGGER.info("Item Display Damage Handler registered");
 		
 		// Registriere Commands
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			ItemDisplayHPCommand.register(dispatcher);
-			LOGGER.info("Item Display HP Commands registriert");
+			LOGGER.info("Item Display HP Commands registered");
 		});
 	}
 }

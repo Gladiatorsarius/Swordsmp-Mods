@@ -3,6 +3,8 @@ package name.modid;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Display;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import java.util.UUID;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.damagesource.DamageSource;
@@ -12,64 +14,53 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
 
 /**
- * Behandelt Schaden an Item Displays durch Angriffe
+ * Handles damage to Item Displays caused by player attacks
  */
 public class ItemDisplayDamageHandler {
     
     public static void register() {
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            // Nur auf Server-Seite
-            if (world.isClientSide()) {
-                return InteractionResult.PASS;
+            // Only on the server side
+            if (world.isClientSide()) return InteractionResult.PASS;
+
+            // If the target is a proxy ArmorStand, route damage to its display
+            if (entity instanceof ArmorStand) {
+                ArmorStand stand = (ArmorStand) entity;
+                UUID displayUuid = ItemDisplayHPManager.getDisplayUuidForProxy(stand.getUUID());
+                if (displayUuid == null) return InteractionResult.PASS;
+
+                Display.ItemDisplay display = ItemDisplayHPManager.getDisplayByUuid(world, displayUuid);
+                if (display == null) return InteractionResult.PASS;
+
+                if (!ItemDisplayHPGamerule.isEnabled(world)) return InteractionResult.PASS;
+
+                float damage = calculateDamage(player);
+                ItemDisplayHPManager.damageDisplay(display, damage);
+                playHurtEffects(display, world);
+                return InteractionResult.SUCCESS;
             }
-            
-            // Prüfe ob das Ziel ein Item Display ist
-            if (!(entity instanceof Display.ItemDisplay)) {
-                return InteractionResult.PASS;
-            }
-            
+
+            // Otherwise handle direct ItemDisplay hits
+            if (!(entity instanceof Display.ItemDisplay)) return InteractionResult.PASS;
             Display.ItemDisplay display = (Display.ItemDisplay) entity;
-            
-            // Prüfe ob GameRule aktiviert ist
-            if (!ItemDisplayHPGamerule.isEnabled(world)) {
-                return InteractionResult.PASS;
-            }
-            
-            // Berechne Schaden vom Spieler
+            if (!ItemDisplayHPGamerule.isEnabled(world)) return InteractionResult.PASS;
             float damage = calculateDamage(player);
-            
-            // Füge Schaden hinzu
             ItemDisplayHPManager.damageDisplay(display, damage);
-            
-            // Spiele Treffereffekte ab
             playHurtEffects(display, world);
-            
-            // Verhindere weitere Verarbeitung
             return InteractionResult.SUCCESS;
         });
     }
     
     /**
-     * Berechnet Schaden basierend auf dem Weapon des Spielers
+     * Calculate damage based on the player's weapon and attributes
      */
     private static float calculateDamage(Player player) {
         ItemStack weapon = player.getMainHandItem();
+
+        // Base damage from player: use the player's attack damage attribute (includes weapon)
+        float baseDamage = (float) player.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
         
-        // Base damage vom Spieler
-        float baseDamage = 1.0f; // Faust-Schaden
-        
-        // Hole attack damage attribute vom Item
-        var attackDamage = weapon.getAttributeModifiers()
-            .get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
-        
-        if (attackDamage != null && !attackDamage.isEmpty()) {
-            // Summiere alle Damage Modifier
-            for (var modifier : attackDamage) {
-                baseDamage += modifier.amount();
-            }
-        }
-        
-        // Kritischer Treffer wenn Spieler fällt
+        // Critical hit when player is falling
         if (player.fallDistance > 0.0f && !player.onGround() && !player.isInWater()) {
             baseDamage *= 1.5f;
         }
@@ -78,11 +69,12 @@ public class ItemDisplayDamageHandler {
     }
     
     /**
-     * Spielt Schadeneffekte ab (Sound und Partikel)
+     * Play hurt effects (sound and particles)
      */
     private static void playHurtEffects(Display.ItemDisplay display, net.minecraft.world.level.Level world) {
         if (world instanceof ServerLevel serverLevel) {
             // Spiele Treffergeräusch
+            // Play hit sound
             world.playSound(
                 null,
                 display.getX(),
@@ -95,15 +87,18 @@ public class ItemDisplayDamageHandler {
             );
             
             // Zeige Schadenpartikel
+            // Show damage particles
             serverLevel.sendParticles(
                 ParticleTypes.DAMAGE_INDICATOR,
                 display.getX(),
                 display.getY() + 0.5,
                 display.getZ(),
-                3, // Anzahl der Partikel
-                0.1, 0.1, 0.1, // Spread
-                0.0 // Speed
+                3, // particle count
+                0.1, 0.1, 0.1, // spread
+                0.0 // speed
             );
         }
     }
+
+    
 }
