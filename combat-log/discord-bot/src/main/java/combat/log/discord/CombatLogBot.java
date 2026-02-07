@@ -120,7 +120,9 @@ public class CombatLogBot {
                 .addOption(OptionType.STRING, "incident_id", "The incident ID", true),
             
             Commands.slash("whitelist-setup", "Setup whitelist channel with button")
-                .addOption(OptionType.STRING, "channel_id", "Channel ID for whitelist requests", true)
+                .addOption(OptionType.STRING, "channel_id", "Channel ID for whitelist requests", true),
+            Commands.slash("unlink", "Unlink a Discord user from Minecraft")
+                .addOption(OptionType.USER, "user", "Discord user to unlink", true)
         ).queue();
         
         logger.info("Registered slash commands");

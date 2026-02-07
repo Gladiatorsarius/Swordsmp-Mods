@@ -33,6 +33,13 @@ public class WhitelistModalHandler extends ListenerAdapter {
             handleDeny(event, requestId);
             return;
         }
+
+        // Handle link modal
+        if (modalId.startsWith("whitelist_link_modal:")) {
+            String payload = modalId.substring("whitelist_link_modal:".length());
+            handleLink(event, payload);
+            return;
+        }
     }
 
     /**
@@ -85,6 +92,24 @@ public class WhitelistModalHandler extends ListenerAdapter {
         );
 
         replyEphemeral(event, whitelistManager.message("whitelist.deny.success", "❌ Request denied."));
+    }
+
+    private void handleLink(ModalInteractionEvent event, String payload) {
+        ModalMapping discordMapping = event.getValue("discord_user");
+        if (discordMapping == null) {
+            replyEphemeral(event, whitelistManager.message("whitelist.link.invalidUser", "❌ Invalid Discord user. Please use a mention or ID."));
+            return;
+        }
+
+        String discordRaw = discordMapping.getAsString().trim();
+        WhitelistManager.WhitelistResult result = whitelistManager.linkFromVanillaThread(payload, discordRaw, event.getUser());
+
+        if (event.isAcknowledged()) {
+            event.getHook().sendMessage(result.message).setEphemeral(true).queue();
+            return;
+        }
+
+        event.reply(result.message).setEphemeral(true).queue();
     }
 
     private void replyEphemeral(ModalInteractionEvent event, String message) {

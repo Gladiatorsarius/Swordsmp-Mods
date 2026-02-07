@@ -102,6 +102,21 @@ public class PlayerLinkingManager {
     }
 
     /**
+     * Get player link by Minecraft name (case-insensitive)
+     */
+    public Optional<PlayerLink> getLinkByName(String minecraftName) {
+        if (minecraftName == null) {
+            return Optional.empty();
+        }
+        for (PlayerLink link : linksByUuid.values()) {
+            if (minecraftName.equalsIgnoreCase(link.getMinecraftName())) {
+                return Optional.of(link);
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
      * Get player link by Discord ID
      */
     public Optional<PlayerLink> getLinkByDiscord(String discordId) {

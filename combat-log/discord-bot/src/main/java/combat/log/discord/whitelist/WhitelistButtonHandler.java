@@ -35,6 +35,13 @@ public class WhitelistButtonHandler extends ListenerAdapter {
             return;
         }
 
+        // Handle link button from vanilla whitelist add threads
+        if (componentId.startsWith("whitelist_link:")) {
+            String payload = componentId.substring("whitelist_link:".length());
+            showLinkModal(event, payload);
+            return;
+        }
+
         // Handle approve button
         if (componentId.startsWith("whitelist_approve:")) {
             String requestId = componentId.substring("whitelist_approve:".length());
@@ -130,5 +137,25 @@ public class WhitelistButtonHandler extends ListenerAdapter {
             WhitelistManager.WhitelistResult result = whitelistManager.unlinkDiscord(event.getUser());
             hook.editOriginal(result.message).queue();
         });
+    }
+
+    private void showLinkModal(ButtonInteractionEvent event, String payload) {
+        TextInput discordInput = TextInput.create(
+                "discord_user",
+                whitelistManager.message("whitelist.link.modal.label", "Discord User (mention or ID)"),
+                TextInputStyle.SHORT
+            )
+            .setPlaceholder(whitelistManager.message("whitelist.link.modal.placeholder", "@User or 1234567890"))
+            .setMinLength(2)
+            .setMaxLength(64)
+            .setRequired(true)
+            .build();
+
+        Modal modal = Modal.create("whitelist_link_modal:" + payload,
+                whitelistManager.message("whitelist.link.modal.title", "Link Discord Account"))
+            .addActionRow(discordInput)
+            .build();
+
+        event.replyModal(modal).queue();
     }
 }

@@ -203,6 +203,16 @@ See [USAGE_GUIDE.md](USAGE_GUIDE.md) for a complete player guide on:
 
 The built JAR will be in `build/libs/combat-log-report-1.0.0.jar`
 
+## 🛠️ Build Instructions
+
+To build the Combat Log mod, navigate to the `combat-log/combat-log-report-1.21.11` directory and run the following command:
+
+```
+.\gradlew.bat build
+```
+
+This will compile the mod and generate the output JAR file in the `build/libs` directory.
+
 ## 🎮 Server Integration
 
 This mod is designed for multiplayer survival servers (SMP) where PvP is enabled. It's particularly useful for:

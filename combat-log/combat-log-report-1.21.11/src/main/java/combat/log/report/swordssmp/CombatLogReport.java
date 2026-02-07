@@ -3,6 +3,7 @@ package combat.log.report.swordssmp;
 import combat.log.report.swordssmp.config.ModConfig;
 import combat.log.report.swordssmp.commands.DiscordCommand;
 import combat.log.report.swordssmp.linking.PlayerLinkingManager;
+import combat.log.report.swordssmp.linking.LinkInfoCommand;
 import combat.log.report.swordssmp.linking.UnlinkCommand;
 import combat.log.report.swordssmp.socket.SocketClient;
 import combat.log.report.swordssmp.whitelist.WhitelistCommandHandler;
@@ -44,6 +45,7 @@ public class CombatLogReport implements ModInitializer {
 		// Register unlink command
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			UnlinkCommand.register(dispatcher);
+			LinkInfoCommand.register(dispatcher);
 			DiscordCommand.register(dispatcher);
 		});
 		

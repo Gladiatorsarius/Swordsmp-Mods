@@ -12,11 +12,22 @@ public class UnlinkMessage extends SocketMessage {
     @SerializedName("playerName")
     private final String playerName;
 
+    @SerializedName("cause")
+    private final String cause;
+
     // Constructor for GSON deserialization
     public UnlinkMessage(String playerUuid, String playerName) {
         super("unlink_player");
         this.playerUuid = playerUuid;
         this.playerName = playerName;
+        this.cause = null;
+    }
+
+    public UnlinkMessage(String playerUuid, String playerName, String cause) {
+        super("unlink_player");
+        this.playerUuid = playerUuid;
+        this.playerName = playerName;
+        this.cause = cause;
     }
 
     public String getPlayerUuid() {
@@ -25,5 +36,9 @@ public class UnlinkMessage extends SocketMessage {
 
     public String getPlayerName() {
         return playerName;
+    }
+
+    public String getCause() {
+        return cause;
     }
 }

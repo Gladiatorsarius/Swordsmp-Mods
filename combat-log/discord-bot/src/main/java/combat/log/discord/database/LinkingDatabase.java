@@ -177,20 +177,37 @@ public class LinkingDatabase {
     }
 
     /**
-     * List all currently whitelisted Minecraft names.
+     * Get Minecraft UUID from Minecraft name (case-sensitive match)
      */
-    public java.util.List<String> listWhitelistedNames() {
-        java.util.List<String> names = new java.util.ArrayList<>();
-        String sql = "SELECT minecraft_name FROM whitelist_links WHERE whitelisted = 1 ORDER BY linked_at";
+    public Optional<String> getMinecraftUuidByName(String minecraftName) {
+        String sql = "SELECT minecraft_uuid FROM whitelist_links WHERE minecraft_name = ? AND whitelisted = 1";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, minecraftName);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(rs.getString("minecraft_uuid"));
+            }
+        } catch (SQLException e) {
+            logger.error("Failed to get Minecraft UUID for name: {}", minecraftName, e);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * List entries of currently whitelisted players with their Discord IDs.
+     */
+    public java.util.List<LinkEntry> listWhitelistedEntries() {
+        java.util.List<LinkEntry> entries = new java.util.ArrayList<>();
+        String sql = "SELECT minecraft_name, discord_id FROM whitelist_links WHERE whitelisted = 1 ORDER BY linked_at";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                names.add(rs.getString("minecraft_name"));
+                entries.add(new LinkEntry(rs.getString("minecraft_name"), rs.getString("discord_id")));
             }
         } catch (SQLException e) {
-            logger.error("Failed to list whitelisted names", e);
+            logger.error("Failed to list whitelisted entries", e);
         }
-        return names;
+        return entries;
     }
 
     /**
@@ -293,6 +310,19 @@ public class LinkingDatabase {
             logger.error("Failed to get request", e);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Simple DTO for a whitelist link entry
+     */
+    public static class LinkEntry {
+        public final String minecraftName;
+        public final String discordId;
+
+        public LinkEntry(String minecraftName, String discordId) {
+            this.minecraftName = minecraftName;
+            this.discordId = discordId;
+        }
     }
 
     /**

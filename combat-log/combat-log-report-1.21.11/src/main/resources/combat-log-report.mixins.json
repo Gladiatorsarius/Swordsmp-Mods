@@ -10,7 +10,8 @@
 		"PlayerDisconnectMixin",
 		"PlayerHeadInteractionMixin",
 		"PlayerLoginMixin",
-		"ServerTickMixin"
+		"ServerTickMixin",
+		"WhitelistCommandMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

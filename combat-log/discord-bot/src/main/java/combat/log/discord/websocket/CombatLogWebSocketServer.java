@@ -7,6 +7,7 @@ import combat.log.discord.models.CombatLogIncident;
 import combat.log.discord.models.IncidentDecision;
 import combat.log.discord.models.SocketMessage;
 import combat.log.discord.models.UnlinkMessage;
+import combat.log.discord.models.VanillaWhitelistAddMessage;
 import combat.log.discord.models.WhitelistConfirmation;
 import combat.log.discord.models.WhitelistRemoveConfirmation;
 import combat.log.discord.whitelist.WhitelistManager;
@@ -80,6 +81,9 @@ public class CombatLogWebSocketServer extends WebSocketServer {
             } else if ("unlink_player".equals(baseMessage.getType())) {
                 UnlinkMessage unlinkMsg = gson.fromJson(message, UnlinkMessage.class);
                 handleUnlink(unlinkMsg);
+            } else if ("vanilla_whitelist_add".equals(baseMessage.getType())) {
+                VanillaWhitelistAddMessage addMsg = gson.fromJson(message, VanillaWhitelistAddMessage.class);
+                handleVanillaWhitelistAdd(addMsg);
             } else {
                 logger.warn("Unknown message type: {}", baseMessage.getType());
             }
@@ -115,17 +119,19 @@ public class CombatLogWebSocketServer extends WebSocketServer {
     private void handleUnlink(UnlinkMessage message) {
         logger.info("Processing unlink request for player {} ({})", 
             message.getPlayerName(), message.getPlayerUuid());
-        
+
+        String discordId = linkingDatabase.getDiscordId(message.getPlayerUuid()).orElse(null);
+
+        if (whitelistManager != null) {
+            whitelistManager.handleMinecraftUnlink(message, discordId);
+        }
+
         try {
             // Remove link from database
             linkingDatabase.removeLink(message.getPlayerUuid());
             logger.info("Removed link for player {} from database", message.getPlayerName());
         } catch (Exception e) {
             logger.error("Failed to remove link for player {}: {}", message.getPlayerName(), e.getMessage(), e);
-        }
-
-        if (whitelistManager != null) {
-            whitelistManager.handleMinecraftUnlink(message);
         }
     }
 
@@ -147,6 +153,13 @@ public class CombatLogWebSocketServer extends WebSocketServer {
 
         if (whitelistManager != null) {
             whitelistManager.handleWhitelistRemoveConfirmation(confirmation);
+        }
+    }
+
+    private void handleVanillaWhitelistAdd(VanillaWhitelistAddMessage message) {
+        logger.info("Received vanilla whitelist add for {} ({})", message.getPlayerName(), message.getPlayerUuid());
+        if (whitelistManager != null) {
+            whitelistManager.handleVanillaWhitelistAdd(message);
         }
     }
 
