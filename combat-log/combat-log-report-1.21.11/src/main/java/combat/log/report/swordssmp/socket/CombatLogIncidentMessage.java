@@ -18,12 +18,16 @@ public class CombatLogIncidentMessage extends SocketMessage {
     @SerializedName("combatTimeRemaining")
     private final double combatTimeRemaining;
 
-    public CombatLogIncidentMessage(String incidentId, String playerUuid, String playerName, double combatTimeRemaining) {
+    @SerializedName("discordId")
+    private final String discordId;
+
+    public CombatLogIncidentMessage(String incidentId, String playerUuid, String playerName, double combatTimeRemaining, String discordId) {
         super("combat_log_incident");
         this.incidentId = incidentId;
         this.playerUuid = playerUuid;
         this.playerName = playerName;
         this.combatTimeRemaining = combatTimeRemaining;
+        this.discordId = discordId;
     }
 
     public String getIncidentId() {
@@ -41,4 +45,6 @@ public class CombatLogIncidentMessage extends SocketMessage {
     public double getCombatTimeRemaining() {
         return combatTimeRemaining;
     }
+
+    public String getDiscordId() { return discordId; }
 }

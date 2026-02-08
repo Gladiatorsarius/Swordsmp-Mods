@@ -7,10 +7,6 @@ import combat.log.discord.models.CombatLogIncident;
 import combat.log.discord.models.IncidentDecision;
 import combat.log.discord.models.SocketMessage;
 import combat.log.discord.models.UnlinkMessage;
-import combat.log.discord.models.VanillaWhitelistAddMessage;
-import combat.log.discord.models.WhitelistConfirmation;
-import combat.log.discord.models.WhitelistRemoveConfirmation;
-import combat.log.discord.whitelist.WhitelistManager;
 import com.google.gson.Gson;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -29,7 +25,6 @@ public class CombatLogWebSocketServer extends WebSocketServer {
     private final TicketManager ticketManager;
     private final BotConfig config;
     private final LinkingDatabase linkingDatabase;
-    private WhitelistManager whitelistManager;
     private WebSocket minecraftConnection;
 
     public CombatLogWebSocketServer(BotConfig config, TicketManager ticketManager, LinkingDatabase linkingDatabase) {
@@ -39,18 +34,22 @@ public class CombatLogWebSocketServer extends WebSocketServer {
         this.linkingDatabase = linkingDatabase;
     }
 
-    public void setWhitelistManager(WhitelistManager whitelistManager) {
-        this.whitelistManager = whitelistManager;
-    }
-
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         logger.info("New connection from: {}", conn.getRemoteSocketAddress());
-        minecraftConnection = conn;
 
-        if (whitelistManager != null) {
-            whitelistManager.handleMinecraftConnected();
+        // Validate Authorization header if configured
+        String authHeader = handshake.getFieldValue("Authorization");
+        if (config.websocket.authToken != null && !config.websocket.authToken.isBlank()) {
+            String expected = "Bearer " + config.websocket.authToken;
+            if (!expected.equals(authHeader)) {
+                logger.warn("Rejecting connection due to missing/invalid Authorization header from {}", conn.getRemoteSocketAddress());
+                conn.close(1008, "Unauthorized");
+                return;
+            }
         }
+
+        minecraftConnection = conn;
     }
 
     @Override
@@ -72,18 +71,9 @@ public class CombatLogWebSocketServer extends WebSocketServer {
             if ("combat_log_incident".equals(baseMessage.getType())) {
                 CombatLogIncident incident = gson.fromJson(message, CombatLogIncident.class);
                 handleIncident(incident);
-            } else if ("whitelist_confirmation".equals(baseMessage.getType())) {
-                WhitelistConfirmation confirmation = gson.fromJson(message, WhitelistConfirmation.class);
-                handleWhitelistConfirmation(confirmation);
-            } else if ("whitelist_remove_confirmation".equals(baseMessage.getType())) {
-                WhitelistRemoveConfirmation confirmation = gson.fromJson(message, WhitelistRemoveConfirmation.class);
-                handleWhitelistRemoveConfirmation(confirmation);
             } else if ("unlink_player".equals(baseMessage.getType())) {
                 UnlinkMessage unlinkMsg = gson.fromJson(message, UnlinkMessage.class);
                 handleUnlink(unlinkMsg);
-            } else if ("vanilla_whitelist_add".equals(baseMessage.getType())) {
-                VanillaWhitelistAddMessage addMsg = gson.fromJson(message, VanillaWhitelistAddMessage.class);
-                handleVanillaWhitelistAdd(addMsg);
             } else {
                 logger.warn("Unknown message type: {}", baseMessage.getType());
             }
@@ -120,19 +110,8 @@ public class CombatLogWebSocketServer extends WebSocketServer {
         logger.info("Processing unlink request for player {} ({})", 
             message.getPlayerName(), message.getPlayerUuid());
 
-        String discordId = linkingDatabase.getDiscordId(message.getPlayerUuid()).orElse(null);
-
-        if (whitelistManager != null) {
-            whitelistManager.handleMinecraftUnlink(message, discordId);
-        }
-
-        try {
-            // Remove link from database
-            linkingDatabase.removeLink(message.getPlayerUuid());
-            logger.info("Removed link for player {} from database", message.getPlayerName());
-        } catch (Exception e) {
-            logger.error("Failed to remove link for player {}: {}", message.getPlayerName(), e.getMessage(), e);
-        }
+        // Note: No longer authoritative for links, leaving database as archive/cache
+        // Linking database is no longer modified here
     }
 
     /**
@@ -144,22 +123,6 @@ public class CombatLogWebSocketServer extends WebSocketServer {
 
         if (whitelistManager != null) {
             whitelistManager.handleWhitelistConfirmation(confirmation);
-        }
-    }
-
-    private void handleWhitelistRemoveConfirmation(WhitelistRemoveConfirmation confirmation) {
-        logger.info("Received whitelist remove confirmation for {} (success={})", 
-            confirmation.getPlayerName(), confirmation.isSuccess());
-
-        if (whitelistManager != null) {
-            whitelistManager.handleWhitelistRemoveConfirmation(confirmation);
-        }
-    }
-
-    private void handleVanillaWhitelistAdd(VanillaWhitelistAddMessage message) {
-        logger.info("Received vanilla whitelist add for {} ({})", message.getPlayerName(), message.getPlayerUuid());
-        if (whitelistManager != null) {
-            whitelistManager.handleVanillaWhitelistAdd(message);
         }
     }
 

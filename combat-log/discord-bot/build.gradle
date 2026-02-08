@@ -1,7 +1,6 @@
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'combat.log.discord'
@@ -52,11 +51,18 @@ jar {
     archiveVersion.set('1.0.0')
 }
 
-shadowJar {
+// Provide a lightweight `shadowJar` task so existing CI/tasks can invoke it
+tasks.register('shadowJar', Jar) {
     archiveClassifier.set('all')
     manifest {
         attributes 'Main-Class': application.mainClass
     }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    archiveBaseName.set('combat-log-discord-bot')
+    archiveVersion.set('1.0.0')
 }
 
 tasks.withType(JavaCompile).configureEach {

@@ -26,6 +26,7 @@ public class ModConfig {
         public boolean enabled = true;
         public String serverUrl = "ws://localhost:8080/combat-log";
         public int reconnectDelaySeconds = 30;
+        public String authToken = ""; // Shared token for websocket auth (must match bot)
     }
 
     public static class PunishmentConfig {

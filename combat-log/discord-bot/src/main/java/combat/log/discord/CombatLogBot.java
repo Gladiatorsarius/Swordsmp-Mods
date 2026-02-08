@@ -2,16 +2,12 @@ package combat.log.discord;
 
 import combat.log.discord.api.MojangAPIService;
 import combat.log.discord.commands.TicketCommands;
-import combat.log.discord.commands.WhitelistCommands;
 import combat.log.discord.config.BotConfig;
 import combat.log.discord.database.LinkingDatabase;
 import combat.log.discord.discord.TicketManager;
 import combat.log.discord.interactions.ButtonHandler;
 import combat.log.discord.interactions.ModalHandler;
 import combat.log.discord.websocket.CombatLogWebSocketServer;
-import combat.log.discord.whitelist.WhitelistButtonHandler;
-import combat.log.discord.whitelist.WhitelistManager;
-import combat.log.discord.whitelist.WhitelistModalHandler;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -34,7 +30,6 @@ public class CombatLogBot {
     private final CombatLogWebSocketServer webSocketServer;
     private final LinkingDatabase linkingDatabase;
     private final MojangAPIService mojangAPI;
-    private final WhitelistManager whitelistManager;
 
     public CombatLogBot(File configFile) throws Exception {
         logger.info("Starting Combat Log Discord Bot...");
@@ -72,10 +67,6 @@ public class CombatLogBot {
         // Initialize ticket manager (no longer using DiscordSRV)
         this.ticketManager = new TicketManager(jda, config, linkingDatabase);
         
-        // Initialize whitelist manager
-        this.whitelistManager = new WhitelistManager(jda, config, linkingDatabase, mojangAPI);
-        logger.info("Initialized whitelist manager");
-        
         // Register slash commands
         registerCommands();
         
@@ -83,16 +74,11 @@ public class CombatLogBot {
         jda.addEventListener(new TicketCommands(ticketManager, config));
         jda.addEventListener(new ButtonHandler(ticketManager, config));
         jda.addEventListener(new ModalHandler(ticketManager, config));
-        jda.addEventListener(new WhitelistCommands(whitelistManager));
-        jda.addEventListener(new WhitelistButtonHandler(whitelistManager));
-        jda.addEventListener(new WhitelistModalHandler(whitelistManager));
         
         // Start WebSocket server
         logger.info("Starting WebSocket server on port {}...", config.websocket.port);
         this.webSocketServer = new CombatLogWebSocketServer(config, ticketManager, linkingDatabase);
         ticketManager.setWebSocketServer(webSocketServer);
-        whitelistManager.setWebSocketServer(webSocketServer);
-        webSocketServer.setWhitelistManager(whitelistManager);
         webSocketServer.start();
         
         logger.info("Combat Log Discord Bot is ready!");

@@ -4,6 +4,9 @@ Complete collection of Minecraft mods and Discord integration for the SwordSMP s
 
 ## 📦 Projects
 
+Note: Whitelist management has been split into a new top-level bundle `whitelist-handler/`.
+The combat-log bundle (`combat-log/`) remains responsible for incident tracking and tickets; whitelist link management is now handled by `whitelist-handler`.
+
 ### 1. Combat Log System
 **Location**: `combat-log/`
 

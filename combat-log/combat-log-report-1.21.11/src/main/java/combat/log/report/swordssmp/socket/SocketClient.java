@@ -67,6 +67,7 @@ public class SocketClient {
         reconnecting = true;
         Request request = new Request.Builder()
             .url(serverUrl)
+            .addHeader("Authorization", "Bearer " + getAuthToken())
             .build();
 
         webSocket = httpClient.newWebSocket(request, new WebSocketListener() {
@@ -108,15 +109,33 @@ public class SocketClient {
         });
     }
 
+    private String getAuthToken() {
+        try {
+            var cfg = combat.log.report.swordssmp.config.ModConfig.getInstance();
+            if (cfg != null && cfg.socket != null) return cfg.socket.authToken == null ? "" : cfg.socket.authToken;
+        } catch (Exception ignored) {}
+        return "";
+    }
+
     /**
      * Send incident to Discord bot
      */
     public void sendIncident(UUID incidentId, UUID playerUuid, String playerName, double combatTimeRemaining) {
+        // Include discordId if a link exists to avoid extra lookups on the bot side
+        String discordId = null;
+        try {
+            var link = PlayerLinkingManager.getInstance().getDiscordId(playerUuid.toString());
+            if (link.isPresent()) discordId = link.get();
+        } catch (Exception e) {
+            // ignore, optional enrichment
+        }
+
         CombatLogIncidentMessage message = new CombatLogIncidentMessage(
             incidentId.toString(),
             playerUuid.toString(),
             playerName,
-            combatTimeRemaining
+            combatTimeRemaining,
+            discordId
         );
 
         String json = gson.toJson(message);
@@ -168,6 +187,12 @@ public class SocketClient {
             } else if ("whitelist_add".equals(type)) {
                 WhitelistAddMessage whitelistMsg = gson.fromJson(text, WhitelistAddMessage.class);
                 handleWhitelistAdd(whitelistMsg);
+            } else if ("link_lookup".equals(type)) {
+                LinkLookupMessage lookup = gson.fromJson(text, LinkLookupMessage.class);
+                handleLinkLookup(lookup);
+            } else if ("link_create_request".equals(type)) {
+                LinkCreateRequest req = gson.fromJson(text, LinkCreateRequest.class);
+                handleLinkCreateRequest(req);
             } else if ("link_player".equals(type)) {
                 PlayerLinkMessage linkMsg = gson.fromJson(text, PlayerLinkMessage.class);
                 handlePlayerLink(linkMsg);
@@ -179,6 +204,75 @@ public class SocketClient {
             }
         } catch (Exception e) {
             CombatLogReport.LOGGER.error("Failed to parse message from Discord bot: {}", e.getMessage());
+        }
+    }
+
+    private void handleLinkLookup(LinkLookupMessage lookup) {
+        try {
+            String q = lookup.getQuery();
+            String v = lookup.getValue();
+            var linkManager = PlayerLinkingManager.getInstance();
+
+            String discordId = null;
+            String uuid = null;
+            String name = null;
+            boolean whitelisted = false;
+            boolean found = false;
+
+            if ("byUuid".equalsIgnoreCase(q)) {
+                var linkOpt = linkManager.getLinkByUuid(v);
+                if (linkOpt.isPresent()) {
+                    var link = linkOpt.get();
+                    discordId = link.getDiscordId();
+                    uuid = link.getMinecraftUuid();
+                    name = link.getMinecraftName();
+                    whitelisted = link.isWhitelisted();
+                    found = true;
+                }
+            } else if ("byDiscord".equalsIgnoreCase(q)) {
+                var linkOpt = linkManager.getLinkByDiscord(v);
+                if (linkOpt.isPresent()) {
+                    var link = linkOpt.get();
+                    discordId = link.getDiscordId();
+                    uuid = link.getMinecraftUuid();
+                    name = link.getMinecraftName();
+                    whitelisted = link.isWhitelisted();
+                    found = true;
+                }
+            } else if ("byName".equalsIgnoreCase(q)) {
+                var linkOpt = linkManager.getLinkByName(v);
+                if (linkOpt.isPresent()) {
+                    var link = linkOpt.get();
+                    discordId = link.getDiscordId();
+                    uuid = link.getMinecraftUuid();
+                    name = link.getMinecraftName();
+                    whitelisted = link.isWhitelisted();
+                    found = true;
+                }
+            }
+
+            LinkLookupResponse resp = new LinkLookupResponse(lookup.getRequestId(), found, discordId, uuid, name, whitelisted);
+            sendMessage(resp);
+        } catch (Exception e) {
+            CombatLogReport.LOGGER.error("Failed to handle link_lookup: {}", e.getMessage());
+        }
+    }
+
+    private void handleLinkCreateRequest(LinkCreateRequest req) {
+        try {
+            PlayerLinkingManager linkManager = PlayerLinkingManager.getInstance();
+            linkManager.addLink(req.getDiscordId(), req.getPlayerUuid(), req.getPlayerName(), req.isWhitelisted());
+
+            // If requested to whitelist immediately, delegate to whitelist handler
+            if (req.isWhitelisted() && whitelistHandler != null) {
+                WhitelistAddMessage msg = new WhitelistAddMessage(req.getRequestId(), req.getPlayerName(), req.getPlayerUuid(), req.getDiscordId(), req.getRequestedBy());
+                whitelistHandler.handleWhitelistAdd(msg);
+            }
+
+            LinkCreatedMessage created = new LinkCreatedMessage(req.getRequestId(), req.getDiscordId(), req.getPlayerUuid(), req.getPlayerName());
+            sendMessage(created);
+        } catch (Exception e) {
+            CombatLogReport.LOGGER.error("Failed to handle link_create_request: {}", e.getMessage());
         }
     }
 
