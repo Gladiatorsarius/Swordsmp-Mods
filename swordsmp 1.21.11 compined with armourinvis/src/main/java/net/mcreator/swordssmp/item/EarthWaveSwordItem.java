@@ -11,6 +11,6 @@ public class EarthWaveSwordItem extends Item {
 	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_IRON_TOOL, 450, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:earth_wave_sword_repair_items")));
 
 	public EarthWaveSwordItem(Item.Properties properties) {
-		super(properties.sword(TOOL_MATERIAL, 3f, -2.4f));
+		super(properties.sword(TOOL_MATERIAL, 8f, -2.4f));
 	}
 }

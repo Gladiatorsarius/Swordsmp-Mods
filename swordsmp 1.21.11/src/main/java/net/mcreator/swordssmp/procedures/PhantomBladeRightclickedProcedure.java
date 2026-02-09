@@ -76,17 +76,17 @@ public class PhantomBladeRightclickedProcedure {
 				
 				// Add native cooldown overlay
 				if (entity instanceof Player _player && !_player.level().isClientSide()) {
-					_player.getCooldowns().addCooldown(_player.getOffhandItem(), 300); // 15 seconds
+					_player.getCooldowns().addCooldown(_player.getOffhandItem(), 600); // 30 seconds
 				}
 
-				cooldownTag.putLong("PhantomBladeCooldownUntil", now + 300L);
+				cooldownTag.putLong("PhantomBladeCooldownUntil", now + 600L);
 				if (entity instanceof Player player) {
 					cooldownTag.putString("PhantomBladeCooldownOwner", player.getStringUUID());
 				}
 				offhandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
 				
 				// Reset variable after cooldown
-				SwordssmpMod.queueServerWork(300, () -> {
+				SwordssmpMod.queueServerWork(600, () -> {
 					{
 						SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
 						_vars.PhantomInvissCooldown = 0;

@@ -26,7 +26,7 @@ To build the mod, use the Gradle wrapper:
 ./gradlew clean build
 ```
 
-The compiled JAR will be located in `build/libs/swordsmp-combined-armourinvis-1.0.0.jar`
+The compiled JAR will be located in `build/libs/Swordsmp & Armourinvis-1.0.0.jar`
 
 ## Running the Client
 
@@ -46,7 +46,7 @@ To run the Minecraft client with the mod:
 ## Installation
 
 1. Install Fabric Loader for Minecraft 1.21.11
-2. Place `swordsmp-combined-armourinvis-1.0.0.jar` in your `.minecraft/mods` folder
+2. Place `Swordsmp & Armourinvis-1.0.0.jar` in your `.minecraft/mods` folder
 3. Launch Minecraft with the Fabric profile
 
 ## Credits

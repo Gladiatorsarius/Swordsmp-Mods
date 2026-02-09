@@ -20,7 +20,7 @@ public class BerserkHandItem extends Item {
 	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 7210, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:berserk_hand_repair_items")));
 
 	public BerserkHandItem(Item.Properties properties) {
-		super(properties.sword(TOOL_MATERIAL, 4f, -2.2f));
+		super(properties.sword(TOOL_MATERIAL, 6f, -2.2f));
 	}
 
 	@Override

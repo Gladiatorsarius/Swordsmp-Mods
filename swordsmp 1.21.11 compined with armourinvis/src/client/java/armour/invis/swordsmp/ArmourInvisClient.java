@@ -1,10 +1,14 @@
 package armour.invis.swordsmp;
 
 import net.fabricmc.api.ClientModInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ArmourInvisClient implements ClientModInitializer {
+	public static final Logger LOGGER = LoggerFactory.getLogger("armour-invis");
 	@Override
 	public void onInitializeClient() {
-		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
+		// Client-side initialization: set up rendering hooks.
+		LOGGER.info("Initializing Armourinvis");
 	}
 }

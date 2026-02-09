@@ -21,7 +21,7 @@ public class DualBlade1Item extends Item {
 	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 50000, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:dual_blade_1_repair_items")));
 
 	public DualBlade1Item(Item.Properties properties) {
-		super(properties.sword(TOOL_MATERIAL, 7f, -2.4f));
+		super(properties.sword(TOOL_MATERIAL, 5f, -2.4f));
 	}
 
 	@Override

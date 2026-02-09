@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ARGS="$@"
+for d in */ ; do
+  if [ -f "$d/gradlew" ]; then
+    echo "=== Building ${d%/} ==="
+    (cd "$d" && ./gradlew --no-daemon build $ARGS)
+  elif [ -f "$d/gradlew.bat" ]; then
+    echo "=== Building ${d%/} (gradlew.bat) ==="
+    (cd "$d" && ./gradlew.bat --no-daemon build $ARGS)
+  fi
+done
+echo "All builds finished."

@@ -17,7 +17,7 @@ public class ChorusSlayerItem extends Item {
 	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 2300, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:chorus_slayer_repair_items")));
 
 	public ChorusSlayerItem(Item.Properties properties) {
-		super(properties.sword(TOOL_MATERIAL, 3f, -3.2f));
+		super(properties.sword(TOOL_MATERIAL, 9f, -3.2f));
 	}
 
 	@Override
