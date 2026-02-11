@@ -32,26 +32,4 @@ public class DragonSlayerItem extends Item {
 		super.hurtEnemy(itemstack, entity, sourceentity);
 		DragonSlayerLivingEntityIsHitWithToolProcedure.execute(entity.level(), entity.getX(), entity.getY(), entity.getZ());
 	}
-
-	@Override
-	public void inventoryTick(ItemStack itemstack, ServerLevel world, Entity entity, @Nullable EquipmentSlot equipmentSlot) {
-		super.inventoryTick(itemstack, world, entity, equipmentSlot);
-		CustomData custom = itemstack.get(DataComponents.CUSTOM_DATA);
-		CompoundTag tag = custom != null ? custom.copyTag() : new CompoundTag();
-		if (tag.getBoolean("EnchantsApplied").orElse(false)) {
-			return;
-		}
-		var enchantments = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-		itemstack.enchant(enchantments.getOrThrow(Enchantments.SHARPNESS), 10);
-		itemstack.enchant(enchantments.getOrThrow(Enchantments.SMITE), 10);
-		itemstack.enchant(enchantments.getOrThrow(Enchantments.BANE_OF_ARTHROPODS), 10);
-		itemstack.enchant(enchantments.getOrThrow(Enchantments.KNOCKBACK), 10);
-		itemstack.enchant(enchantments.getOrThrow(Enchantments.FIRE_ASPECT), 10);
-		itemstack.enchant(enchantments.getOrThrow(Enchantments.LOOTING), 10);
-		itemstack.enchant(enchantments.getOrThrow(Enchantments.SWEEPING_EDGE), 10);
-		itemstack.enchant(enchantments.getOrThrow(Enchantments.UNBREAKING), 10);
-		itemstack.enchant(enchantments.getOrThrow(Enchantments.MENDING), 1);
-		tag.putBoolean("EnchantsApplied", true);
-		itemstack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-	}
 }

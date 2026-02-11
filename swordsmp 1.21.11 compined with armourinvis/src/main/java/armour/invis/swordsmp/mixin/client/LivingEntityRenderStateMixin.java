@@ -9,6 +9,8 @@ import armour.invis.swordsmp.accessor.InvisibilityAmplifierAccessor;
 public class LivingEntityRenderStateMixin implements InvisibilityAmplifierAccessor {
 	@Unique
 	private int armourInvis$invisibilityAmplifier = -1;
+	@Unique
+	private boolean armourInvis$hasArmourInvisTag = false;
 
 	@Override
 	public int armourInvis$getInvisibilityAmplifier() {
@@ -18,5 +20,15 @@ public class LivingEntityRenderStateMixin implements InvisibilityAmplifierAccess
 	@Override
 	public void armourInvis$setInvisibilityAmplifier(int amplifier) {
 		this.armourInvis$invisibilityAmplifier = amplifier;
+	}
+
+	@Override
+	public boolean armourInvis$getHasArmourInvisTag() {
+		return this.armourInvis$hasArmourInvisTag;
+	}
+
+	@Override
+	public void armourInvis$setHasArmourInvisTag(boolean hasTag) {
+		this.armourInvis$hasArmourInvisTag = hasTag;
 	}
 }

@@ -19,6 +19,9 @@ public class LivingEntityRendererMixin {
 			MobEffectInstance invis = entity.getEffect(MobEffects.INVISIBILITY);
 			int amplifier = (invis != null) ? invis.getAmplifier() : -1;
 			accessor.armourInvis$setInvisibilityAmplifier(amplifier);
+			// Also expose whether the entity has the client-side tag set by its owner
+			boolean hasTag = entity.getTags().contains("Armour invis");
+			accessor.armourInvis$setHasArmourInvisTag(hasTag);
 		}
 	}
 }

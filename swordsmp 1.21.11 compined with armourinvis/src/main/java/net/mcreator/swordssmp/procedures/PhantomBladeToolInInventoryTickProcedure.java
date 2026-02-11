@@ -36,15 +36,6 @@ public class PhantomBladeToolInInventoryTickProcedure {
 				_entity.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 1, 2, false, false));
 				_entity.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 1, 1, false, false));
 			}
-			int phantomwings = RandomSource.create().nextInt(10) + 1;
-			if (phantomwings == 2) {
-				if (world instanceof ServerLevel _level) {
-					LightningBolt entityToSpawn_6 = EntityType.LIGHTNING_BOLT.create(_level, EntitySpawnReason.TRIGGERED);
-					entityToSpawn_6.snapTo(Vec3.atBottomCenterOf(BlockPos.containing(x, y, z)));
-					entityToSpawn_6.setVisualOnly(true);
-					_level.addFreshEntity(entityToSpawn_6);
-				}
-			}
 		}
 	}
 }
