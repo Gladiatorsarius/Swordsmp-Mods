@@ -14,6 +14,9 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.nbt.CompoundTag;
 
 import net.mcreator.swordssmp.procedures.DragonSlayerLivingEntityIsHitWithToolProcedure;
 
@@ -33,6 +36,11 @@ public class DragonSlayerItem extends Item {
 	@Override
 	public void inventoryTick(ItemStack itemstack, ServerLevel world, Entity entity, @Nullable EquipmentSlot equipmentSlot) {
 		super.inventoryTick(itemstack, world, entity, equipmentSlot);
+		CustomData custom = itemstack.get(DataComponents.CUSTOM_DATA);
+		CompoundTag tag = custom != null ? custom.copyTag() : new CompoundTag();
+		if (tag.getBoolean("EnchantsApplied").orElse(false)) {
+			return;
+		}
 		var enchantments = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
 		itemstack.enchant(enchantments.getOrThrow(Enchantments.SHARPNESS), 10);
 		itemstack.enchant(enchantments.getOrThrow(Enchantments.SMITE), 10);
@@ -43,5 +51,7 @@ public class DragonSlayerItem extends Item {
 		itemstack.enchant(enchantments.getOrThrow(Enchantments.SWEEPING_EDGE), 10);
 		itemstack.enchant(enchantments.getOrThrow(Enchantments.UNBREAKING), 10);
 		itemstack.enchant(enchantments.getOrThrow(Enchantments.MENDING), 1);
+		tag.putBoolean("EnchantsApplied", true);
+		itemstack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 	}
 }

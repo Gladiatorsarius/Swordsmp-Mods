@@ -1,0 +1,29 @@
+{
+  "discord": {
+    "botToken": "REPLACE_WITH_BOT_TOKEN",
+    "commandPrefix": "!",
+    "guildId": null
+  },
+  "socketAuth": {
+    "token": "REPLACE_WITH_SHARED_SECRET"
+  },
+  "websocket": {
+    "serverUrl": "ws://localhost:8080/ws"
+  },
+  "database": {
+    "type": "sqlite",
+    "path": "data/whitelist.db"
+  },
+  "logging": {
+    "level": "info",
+    "dir": "logs"
+  },
+  "features": {
+    "whitelistRequests": true,
+    "autoApproveForRoles": []
+  },
+  "permissions": {
+    "adminUsers": [],
+    "adminRoles": ["whitelist-admin"]
+  }
+}

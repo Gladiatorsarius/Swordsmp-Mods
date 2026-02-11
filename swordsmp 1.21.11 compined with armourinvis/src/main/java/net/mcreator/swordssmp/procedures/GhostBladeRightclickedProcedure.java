@@ -70,13 +70,12 @@ public class GhostBladeRightclickedProcedure {
 			if (tagChanged) {
 				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
 			}
-			if (entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES).GhostBladeDash == 0) {
-				{
-					SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-					_vars.GhostBladeDash = 1;
-					_vars.markSyncDirty();
-				}
-				entity.push((entity.getLookAngle().x * 2), 0.2, (entity.getLookAngle().z * 2));
+			// native cooldown guard
+			if (entity instanceof Player _player && _player.getCooldowns().isOnCooldown(mainHandStack))
+				return;
+
+			// perform dash (no PlayerVariables gating)
+			entity.push((entity.getLookAngle().x * 2), 0.2, (entity.getLookAngle().z * 2));
 
 				// Ambient cave sound on activation with slight pitch randomization
 				if (world instanceof Level _level) {
@@ -113,16 +112,6 @@ public class GhostBladeRightclickedProcedure {
 					cooldownTag.putString("GhostBladeCooldownOwner", player.getStringUUID());
 				}
 				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
-				
-				// Reset variable after cooldown
-				SwordssmpMod.queueServerWork(200, () -> {
-					{
-						SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-						_vars.GhostBladeDash = 0;
-						_vars.markSyncDirty();
-					}
-				});
 			}
 		}
-	}
-}
+		}

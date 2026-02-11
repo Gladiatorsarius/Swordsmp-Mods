@@ -78,7 +78,12 @@ public class EarthWaveSwordRightclickedProcedure {
 			if (tagChanged) {
 				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
 			}
-			if (entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES).DripstoneCooldown == 0) {
+			// block if native cooldown overlay is active
+			if (entity instanceof Player _player && _player.getCooldowns().isOnCooldown(mainHandStack)) {
+				return;
+			}
+			// execute ability (no per-player variable gating)
+			{
 				// Summon expanding rings of dripstone block displays from inside out
 				if (world instanceof ServerLevel _level) {
 					// Spawn 5 rings with increasing radius, each spawning with a delay
@@ -94,7 +99,7 @@ public class EarthWaveSwordRightclickedProcedure {
 								double dz = Math.sin(angle) * radius;
 								double sx = x + dx;
 								double sz = z + dz;
-								String cmd = String.format(java.util.Locale.ROOT, "/summon block_display %.3f %.3f %.3f {block_state:{Name:\"minecraft:dripstone_block\"}}", sx, y, sz);
+								String cmd = String.format(java.util.Locale.ROOT, "/summon block_display %.3f %.3f %.3f {block_state:{Name:\"minecraft:pointed_dripstone\"}}", sx, y, sz);
 								_level.getServer().getCommands().performPrefixedCommand(new CommandSourceStack(CommandSource.NULL, new Vec3(sx, y, sz), Vec2.ZERO, _level, PermissionSet.ALL_PERMISSIONS, "", Component.literal(""), _level.getServer(), null).withSuppressedOutput(),
 										cmd);
 							}
@@ -129,12 +134,7 @@ public class EarthWaveSwordRightclickedProcedure {
 						}
 					}
 				});
-				{
-					SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-					_vars.DripstoneCooldown = 1;
-					_vars.markSyncDirty();
-				}
-
+				// add native cooldown overlay
 				if (entity instanceof Player _player && !_player.level().isClientSide()) {
 					_player.getCooldowns().addCooldown(_player.getMainHandItem(), 400);
 				}
@@ -144,12 +144,6 @@ public class EarthWaveSwordRightclickedProcedure {
 					cooldownTag.putString("EarthWaveCooldownOwner", player.getStringUUID());
 				}
 				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
-
-				SwordssmpMod.queueServerWork(400, () -> {
-					SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-					_vars.DripstoneCooldown = 0;
-					_vars.markSyncDirty();
-				});
 			}
 		}
 	}

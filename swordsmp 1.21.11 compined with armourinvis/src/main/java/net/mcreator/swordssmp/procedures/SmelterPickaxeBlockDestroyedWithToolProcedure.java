@@ -38,6 +38,7 @@ public class SmelterPickaxeBlockDestroyedWithToolProcedure {
 		if (entity == null)
 			return;
 		if ((entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).getItem() == SwordssmpModItems.SMELTER_PICKAXE) {
+			boolean removeBlock;
 			if (!((getItemStackFromItemStackSlot(world, (new ItemStack((world.getBlockState(BlockPos.containing(x, y, z))).getBlock())))).getItem() == Blocks.AIR.asItem())) {
 				if (world instanceof ServerLevel _level) {
 					ItemEntity entityToSpawn_9 = new ItemEntity(_level, (x + 0.5), (y + 0.5), (z + 0.5), (getItemStackFromItemStackSlot(world, (new ItemStack((world.getBlockState(BlockPos.containing(x, y, z))).getBlock())))));
@@ -52,26 +53,16 @@ public class SmelterPickaxeBlockDestroyedWithToolProcedure {
 						_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.fire.extinguish")), SoundSource.NEUTRAL, 50, 40, false);
 					}
 				}
-				{
-					SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-					_vars.removeBlock = true;
-					_vars.markSyncDirty();
-				}
+				removeBlock = true;
 			} else {
-				{
-					SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-					_vars.removeBlock = false;
-					_vars.markSyncDirty();
-				}
+				removeBlock = false;
 			}
-			if (entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES).removeBlock == true) {
+			if (removeBlock) {
 				world.destroyBlock(BlockPos.containing(x, y, z), false);
 			} else {
-				{
-					BlockPos _pos = BlockPos.containing(x, y, z);
-					Block.dropResources(world.getBlockState(_pos), world, BlockPos.containing(x, y, z), null);
-					world.destroyBlock(_pos, false);
-				}
+				BlockPos _pos = BlockPos.containing(x, y, z);
+				Block.dropResources(world.getBlockState(_pos), world, BlockPos.containing(x, y, z), null);
+				world.destroyBlock(_pos, false);
 			}
 		}
 	}

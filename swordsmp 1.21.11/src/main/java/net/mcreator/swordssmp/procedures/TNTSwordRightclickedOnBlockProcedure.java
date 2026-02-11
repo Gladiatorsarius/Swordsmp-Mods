@@ -74,12 +74,10 @@ public class TNTSwordRightclickedOnBlockProcedure {
 			if (tagChanged) {
 				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
 			}
-			if (entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES).TNTCooldown < 1) {
-				{
-					SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-					_vars.TNTCooldown = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES).TNTCooldown + 1;
-					_vars.markSyncDirty();
-				}
+			// native cooldown guard
+			if (entity instanceof Player _player && _player.getCooldowns().isOnCooldown(mainHandStack))
+				return;
+			{
 				if (world instanceof Level _level) {
 					if (!_level.isClientSide()) {
 						_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("entity.tnt.primed")), SoundSource.NEUTRAL, 50, 1);
@@ -103,12 +101,7 @@ public class TNTSwordRightclickedOnBlockProcedure {
 					cooldownTag.putString("TNTSwordCooldownOwner", player.getStringUUID());
 				}
 				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
-				// reset TNT cooldown after 15 seconds
-				SwordssmpMod.queueServerWork(300, () -> {
-					SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-					_vars.TNTCooldown = 0;
-					_vars.markSyncDirty();
-				});
+				// reset handled by native cooldown overlay; no PlayerVariables reset required
 			}
 		}
 	}

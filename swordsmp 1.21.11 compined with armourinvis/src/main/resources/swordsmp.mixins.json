@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "swordsmp.mixin",
+	"package": "armour.invis.swordsmp.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"ExampleMixin"

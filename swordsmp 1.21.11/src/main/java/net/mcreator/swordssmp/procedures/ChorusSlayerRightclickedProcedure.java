@@ -42,6 +42,11 @@ public class ChorusSlayerRightclickedProcedure {
 			return;
 		ItemStack mainHandStack = (entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY);
 		if (mainHandStack.getItem() == SwordssmpModItems.CHORUS_SLAYER) {
+			// Only allow use when the native cooldown bar is empty
+			if (entity instanceof Player _player) {
+				if (_player.getCooldowns().isOnCooldown(mainHandStack))
+					return;
+			}
 			CustomData customData = mainHandStack.get(DataComponents.CUSTOM_DATA);
 			CompoundTag cooldownTag = customData != null ? customData.copyTag() : new CompoundTag();
 			boolean tagChanged = false;
@@ -69,50 +74,30 @@ public class ChorusSlayerRightclickedProcedure {
 			if (tagChanged) {
 				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
 			}
-			if (entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES).TP == 0) {
-				// Ability is ready - execute
-				
-				// Mark ability as used
-				{
-					SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-					_vars.TP = 1;
-					_vars.markSyncDirty();
+			// Ability is ready - execute (native cooldown ensures single-use until expiry)
+			entity.push((entity.getLookAngle().x * 10), 0.2, (entity.getLookAngle().z * 10));
+			// Play sound (fixed volume and source)
+			if (world instanceof Level _level) {
+				if (!_level.isClientSide()) {
+					_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("item.chorus_fruit.teleport")), SoundSource.PLAYERS, 3, 40);
+				} else {
+					_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("item.chorus_fruit.teleport")), SoundSource.PLAYERS, 3, 40, false);
 				}
-				
-				entity.push((entity.getLookAngle().x * 10), 0.2, (entity.getLookAngle().z * 10));
-				
-				// Play sound (fixed volume and source)
-				if (world instanceof Level _level) {
-					if (!_level.isClientSide()) {
-						_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("item.chorus_fruit.teleport")), SoundSource.PLAYERS, 3, 40);
-					} else {
-						_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("item.chorus_fruit.teleport")), SoundSource.PLAYERS, 3, 40, false);
-					}
-				}
-				
-				// Spawn particles
-				if (world instanceof ServerLevel _level) {
-					_level.sendParticles(ParticleTypes.END_ROD, x, y, z, 80, 3, 0, 3, 5);
-				}
-				
-				// Add native cooldown overlay
-				if (entity instanceof Player _player && !_player.level().isClientSide()) {
-					_player.getCooldowns().addCooldown(_player.getMainHandItem(), 1200); // 60 seconds
-				}
-
-				cooldownTag.putLong("ChorusSlayerCooldownUntil", now + 1200L);
-				if (entity instanceof Player player) {
-					cooldownTag.putString("ChorusSlayerCooldownOwner", player.getStringUUID());
-				}
-				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
-				
-				// Reset variable after cooldown
-				SwordssmpMod.queueServerWork(1200, () -> {
-					SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-					_vars.TP = 0;
-					_vars.markSyncDirty();
-				});
 			}
+			// Spawn particles
+			if (world instanceof ServerLevel _level) {
+				_level.sendParticles(ParticleTypes.END_ROD, x, y, z, 80, 3, 0, 3, 5);
+			}
+			// Add native cooldown overlay
+			if (entity instanceof Player _player && !_player.level().isClientSide()) {
+				_player.getCooldowns().addCooldown(mainHandStack, 1200); // 60 seconds
+			}
+
+			cooldownTag.putLong("ChorusSlayerCooldownUntil", now + 1200L);
+			if (entity instanceof Player player) {
+				cooldownTag.putString("ChorusSlayerCooldownOwner", player.getStringUUID());
+			}
+			mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
 		}
 	}
 }

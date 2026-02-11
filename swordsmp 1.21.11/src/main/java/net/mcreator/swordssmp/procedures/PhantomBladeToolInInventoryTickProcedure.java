@@ -15,7 +15,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 
-import net.mcreator.swordssmp.network.SwordssmpModVariables;
 import net.mcreator.swordssmp.init.SwordssmpModItems;
 import net.mcreator.swordssmp.event.PlayerEvents;
 
@@ -37,12 +36,8 @@ public class PhantomBladeToolInInventoryTickProcedure {
 				_entity.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 1, 2, false, false));
 				_entity.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 1, 1, false, false));
 			}
-			{
-				SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-				_vars.phantomwings = Mth.nextDouble(RandomSource.create(), 1, 10);
-				_vars.markSyncDirty();
-			}
-			if (entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES).phantomwings == 2) {
+			int phantomwings = RandomSource.create().nextInt(10) + 1;
+			if (phantomwings == 2) {
 				if (world instanceof ServerLevel _level) {
 					LightningBolt entityToSpawn_6 = EntityType.LIGHTNING_BOLT.create(_level, EntitySpawnReason.TRIGGERED);
 					entityToSpawn_6.snapTo(Vec3.atBottomCenterOf(BlockPos.containing(x, y, z)));

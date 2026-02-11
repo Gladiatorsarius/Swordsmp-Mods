@@ -64,43 +64,37 @@ public class GodsViewRightclickedProcedure {
 		if (tagChanged) {
 			mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
 		}
-		if (entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES).godsviewCooldown == 0) {
-			if (world instanceof ServerLevel _level) {
-				_level.getServer().getCommands().performPrefixedCommand(new CommandSourceStack(CommandSource.NULL, new Vec3(x, y, z), Vec2.ZERO, _level, PermissionSet.ALL_PERMISSIONS, "", Component.literal(""), _level.getServer(), null).withSuppressedOutput(),
-						"/effect give @a[distance=0..80] minecraft:glowing 5 255");
-			}
-			if (world instanceof Level _level) {
-				if (!_level.isClientSide()) {
-					_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.PLAYERS, 3, 1);
-				} else {
-					_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.PLAYERS, 3, 1, false);
-				}
-			}
-			if (world instanceof ServerLevel _level) {
-				LightningBolt entityToSpawn_2 = EntityType.LIGHTNING_BOLT.create(_level, EntitySpawnReason.TRIGGERED);
-				entityToSpawn_2.snapTo(Vec3.atBottomCenterOf(BlockPos.containing(x, y, z)));
-				entityToSpawn_2.setVisualOnly(true);
-				_level.addFreshEntity(entityToSpawn_2);
-			}
-			{
-				SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-				_vars.godsviewCooldown = 1;
-				_vars.markSyncDirty();
-			}
-			// add native cooldown overlay (15 seconds)
-			if (entity instanceof Player _player && !_player.level().isClientSide()) {
-				_player.getCooldowns().addCooldown(_player.getMainHandItem(), 300);
-			}
+		// block if native cooldown overlay is active
+		if (entity instanceof Player _player && _player.getCooldowns().isOnCooldown(mainHandStack))
+			return;
 
-			cooldownTag.putLong("GodsViewCooldownUntil", now + 300L);
-			cooldownTag.putString("GodsViewCooldownOwner", player.getStringUUID());
-			mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
-			// reset variable after cooldown
-			SwordssmpMod.queueServerWork(300, () -> {
-				SwordssmpModVariables.PlayerVariables _vars2 = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-				_vars2.godsviewCooldown = 0;
-				_vars2.markSyncDirty();
-			});
+		// perform ability (no per-player variable gating)
+		if (world instanceof ServerLevel _level) {
+			_level.getServer().getCommands().performPrefixedCommand(new CommandSourceStack(CommandSource.NULL, new Vec3(x, y, z), Vec2.ZERO, _level, PermissionSet.ALL_PERMISSIONS, "", Component.literal(""), _level.getServer(), null).withSuppressedOutput(),
+				"/effect give @a[distance=0..80] minecraft:glowing 5 255");
 		}
+		if (world instanceof Level _level) {
+			if (!_level.isClientSide()) {
+				_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.PLAYERS, 3, 1);
+			} else {
+				_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.PLAYERS, 3, 1, false);
+			}
+		}
+		if (world instanceof ServerLevel _level) {
+			LightningBolt entityToSpawn_2 = EntityType.LIGHTNING_BOLT.create(_level, EntitySpawnReason.TRIGGERED);
+			entityToSpawn_2.snapTo(Vec3.atBottomCenterOf(BlockPos.containing(x, y, z)));
+			entityToSpawn_2.setVisualOnly(true);
+			_level.addFreshEntity(entityToSpawn_2);
+		}
+
+		// add native cooldown overlay (15 seconds)
+		if (entity instanceof Player _player && !_player.level().isClientSide()) {
+			_player.getCooldowns().addCooldown(_player.getMainHandItem(), 300);
+		}
+
+		cooldownTag.putLong("GodsViewCooldownUntil", now + 300L);
+		cooldownTag.putString("GodsViewCooldownOwner", player.getStringUUID());
+		mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
+		// no per-player variable reset required when using native cooldowns
 	}
 }

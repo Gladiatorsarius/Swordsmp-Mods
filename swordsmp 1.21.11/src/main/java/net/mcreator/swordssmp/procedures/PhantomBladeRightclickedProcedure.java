@@ -64,36 +64,25 @@ public class PhantomBladeRightclickedProcedure {
 			if (tagChanged) {
 				offhandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
 			}
-			if (entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES).PhantomInvissCooldown == 0) {
-				if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide()) {
-					_entity.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 200, 1, false, false));
-				}
-				{
-					SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-					_vars.PhantomInvissCooldown = 1;
-					_vars.markSyncDirty();
-				}
-				
-				// Add native cooldown overlay
-				if (entity instanceof Player _player && !_player.level().isClientSide()) {
-					_player.getCooldowns().addCooldown(_player.getOffhandItem(), 600); // 30 seconds
-				}
+			// native cooldown guard for offhand
+			if (entity instanceof Player _player && _player.getCooldowns().isOnCooldown(offhandStack))
+				return;
 
-				cooldownTag.putLong("PhantomBladeCooldownUntil", now + 600L);
-				if (entity instanceof Player player) {
-					cooldownTag.putString("PhantomBladeCooldownOwner", player.getStringUUID());
-				}
-				offhandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
-				
-				// Reset variable after cooldown
-				SwordssmpMod.queueServerWork(600, () -> {
-					{
-						SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-						_vars.PhantomInvissCooldown = 0;
-						_vars.markSyncDirty();
-					}
-				});
+			if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide()) {
+				_entity.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 200, 1, false, false));
+			}
+
+			// Add native cooldown overlay
+			if (entity instanceof Player _player && !_player.level().isClientSide()) {
+				_player.getCooldowns().addCooldown(_player.getOffhandItem(), 600); // 30 seconds
+			}
+
+			cooldownTag.putLong("PhantomBladeCooldownUntil", now + 600L);
+			if (entity instanceof Player player) {
+				cooldownTag.putString("PhantomBladeCooldownOwner", player.getStringUUID());
+			}
+			offhandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
+			// no PlayerVariables reset required
 			}
 		}
 	}
-}

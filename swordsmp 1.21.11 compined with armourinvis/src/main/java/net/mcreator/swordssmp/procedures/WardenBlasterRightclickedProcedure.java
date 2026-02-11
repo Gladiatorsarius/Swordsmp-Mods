@@ -67,8 +67,10 @@ public class WardenBlasterRightclickedProcedure {
 			if (tagChanged) {
 				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
 			}
-			if (entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES).WardenBlasterCharge == 0) {
-				if (world instanceof Level _level) {
+			// native cooldown guard
+			if (entity instanceof Player _player && _player.getCooldowns().isOnCooldown(mainHandStack))
+				return;
+			if (world instanceof Level _level) {
 					if (!_level.isClientSide()) {
 						_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("entity.warden.sonic_charge")), SoundSource.PLAYERS, 3, 1);
 					} else {
@@ -123,12 +125,6 @@ public class WardenBlasterRightclickedProcedure {
 					_level.getServer().getCommands().performPrefixedCommand(commandSource,
 							"/execute at @p run particle sonic_boom ^ ^1 ^10 0 0 0 1 0 normal");
 				}
-				{
-					SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-					_vars.WardenBlasterCharge = 1;
-					_vars.markSyncDirty();
-				}
-
 				// Add native cooldown overlay
 				if (entity instanceof Player _player && !_player.level().isClientSide()) {
 					_player.getCooldowns().addCooldown(_player.getMainHandItem(), 600);
@@ -139,16 +135,6 @@ public class WardenBlasterRightclickedProcedure {
 					cooldownTag.putString("WardenBlasterCooldownOwner", player.getStringUUID());
 				}
 				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
-
-				// Reset variable after cooldown
-				SwordssmpMod.queueServerWork(600, () -> {
-					{
-						SwordssmpModVariables.PlayerVariables _vars = entity.getAttachedOrCreate(SwordssmpModVariables.PLAYER_VARIABLES);
-						_vars.WardenBlasterCharge = 0;
-						_vars.markSyncDirty();
-					}
-				});
+			}
 			}
 		}
-	}
-}
