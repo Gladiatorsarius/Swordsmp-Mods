@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import armour.invis.swordsmp.accessor.InvisibilityAmplifierAccessor;
+import armour.invis.swordsmp.ArmourInvisData;
 
 @Mixin(HumanoidArmorLayer.class)
 public class ArmorLayerInvisMixin {
@@ -30,6 +31,17 @@ public class ArmorLayerInvisMixin {
 			java.lang.reflect.Method m = renderState.getClass().getMethod("getEntity");
 			Object maybeEntity = m.invoke(renderState);
 			if (maybeEntity instanceof LivingEntity le) {
+				// Prefer a tracked server-synced value when present
+				try {
+					if (le instanceof armour.invis.swordsmp.accessor.ArmourInvisEntityAccessor acc) {
+						int tracked = acc.armourInvis$getTrackedAmplifier();
+						if (tracked >= 1) {
+							ci.cancel();
+							return;
+						}
+					}
+				} catch (Throwable ignored) {
+				}
 				MobEffectInstance invis = le.getEffect(MobEffects.INVISIBILITY);
 				if (invis != null && invis.getAmplifier() >= 1) {
 					ci.cancel();
