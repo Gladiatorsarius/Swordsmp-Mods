@@ -3,7 +3,7 @@
 	"id": "swordssmp",
 	"version": "${version}",
 	"name": "SwordsSMP",
-	"description": "",
+	"description": "SwordsSMP mod",
 	"authors": [
 		"Me!"
 	],
@@ -23,8 +23,7 @@
 		]
 	},
 	"mixins": [
-		"swordssmp.mixins.json",
-		"swordsmp.mixins.json"
+		"swordssmp.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.18.4",

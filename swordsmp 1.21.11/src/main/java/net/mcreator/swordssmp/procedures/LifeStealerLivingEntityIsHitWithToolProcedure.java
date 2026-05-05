@@ -11,7 +11,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.resources.Identifier;
-import net.minecraft.network.chat.Component;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
 
@@ -25,9 +24,9 @@ public class LifeStealerLivingEntityIsHitWithToolProcedure {
 			return;
 		if (world instanceof ServerLevel _serverLevelGR0 && Boolean.TRUE.equals(_serverLevelGR0.getGameRules().get(SwordssmpModGameRules.LIFE_STEALER_HARDCORE))) {
 			if (entity instanceof Player) {
-				if ((entity instanceof LivingEntity _livEnt ? _livEnt.getHealth() : -1) < 1) {
+				if (entity instanceof LivingEntity _livEnt && _livEnt.isDeadOrDying()) {
 					if (sourceentity instanceof LivingEntity _livingEntity4 && _livingEntity4.getAttributes().hasAttribute(Attributes.MAX_HEALTH)) {
-						_livingEntity4.getAttribute(Attributes.MAX_HEALTH).setBaseValue(((sourceentity instanceof LivingEntity _livEnt ? _livEnt.getMaxHealth() : -1) + 2));
+						_livingEntity4.getAttribute(Attributes.MAX_HEALTH).setBaseValue((_livingEntity4.getMaxHealth() + 2));
 					}
 					if (world instanceof Level _level) {
 						if (!_level.isClientSide()) {
@@ -38,19 +37,19 @@ public class LifeStealerLivingEntityIsHitWithToolProcedure {
 					}
 				}
 			}
-		} else {
-			if ((entity instanceof LivingEntity _livEnt ? _livEnt.getHealth() : -1) < 1) {
-				if (sourceentity instanceof LivingEntity _livingEntity) {
-					_livingEntity.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, Integer.MAX_VALUE, 1, false, false));
-				}
-				if (world instanceof Level _level) {
-					if (!_level.isClientSide()) {
-						_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.NEUTRAL, 1, 1);
-					} else {
-						_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.NEUTRAL, 1, 1, false);
-					}
+		}
+		if (entity instanceof LivingEntity _livEnt && _livEnt.isDeadOrDying()) {
+			if (sourceentity instanceof LivingEntity _livingEntity) {
+				_livingEntity.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, Integer.MAX_VALUE, 1, false, false));
+			}
+			if (world instanceof Level _level) {
+				if (!_level.isClientSide()) {
+					_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.NEUTRAL, 1, 1);
+				} else {
+					_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.NEUTRAL, 1, 1, false);
 				}
 			}
 		}
+		
 	}
 }
