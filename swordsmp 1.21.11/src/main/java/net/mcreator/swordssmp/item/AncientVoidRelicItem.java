@@ -26,7 +26,7 @@ public class AncientVoidRelicItem extends Item {
 	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 100, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:ancient_void_relic_repair_items")));
 
 	public AncientVoidRelicItem(Item.Properties properties) {
-		super(properties.sword(TOOL_MATERIAL, 3f, -3f));
+		super(properties.sword(TOOL_MATERIAL, 7f, -2.4f));
 	}
 
 	@Override

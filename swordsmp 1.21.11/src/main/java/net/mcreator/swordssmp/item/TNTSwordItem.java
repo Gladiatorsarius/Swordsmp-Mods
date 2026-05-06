@@ -15,7 +15,7 @@ public class TNTSwordItem extends Item {
 	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_STONE_TOOL, 2100, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:tnt_sword_repair_items")));
 
 	public TNTSwordItem(Item.Properties properties) {
-		super(properties.sword(TOOL_MATERIAL, 7f, -3.15f));
+		super(properties.sword(TOOL_MATERIAL, 7f, -2.4f));
 	}
 
 	@Override

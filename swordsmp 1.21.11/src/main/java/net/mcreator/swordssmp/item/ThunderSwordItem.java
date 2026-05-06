@@ -11,6 +11,6 @@ public class ThunderSwordItem extends Item {
 	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_WOODEN_TOOL, 5300, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:thunder_sword_repair_items")));
 
 	public ThunderSwordItem(Item.Properties properties) {
-		super(properties.sword(TOOL_MATERIAL, 13f, -3.55f));
+		super(properties.sword(TOOL_MATERIAL, 7f, -2.4f));
 	}
 }
