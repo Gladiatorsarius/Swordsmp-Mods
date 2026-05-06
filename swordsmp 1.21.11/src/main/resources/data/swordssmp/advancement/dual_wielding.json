@@ -2,13 +2,13 @@
   "parent": "minecraft:adventure/root",
   "display": {
     "icon": {
-      "id": "swordssmp:dual_blade_1"
+      "id": "swordssmp:powerful_red"
     },
     "title": {
       "text": "Dual Wielding"
     },
     "description": {
-      "text": "Hold both dual blades in inventory"
+      "text": "Hold both Dual blades in Inventory"
     },
     "frame": "task",
     "show_toast": true,
@@ -22,12 +22,12 @@
         "items": [
           {
             "items": [
-              "swordssmp:dual_blade_1"
+              "swordssmp:powerful_red"
             ]
           },
           {
             "items": [
-              "swordssmp:dual_blade_2"
+              "swordssmp:swift_blue"
             ]
           }
         ]

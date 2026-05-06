@@ -2,13 +2,13 @@
   "parent": "minecraft:adventure/root",
   "display": {
     "icon": {
-      "id": "swordssmp:dual_blade_2"
+      "id": "swordssmp:powerful_red"
     },
     "title": {
-      "text": "Dual Blade"
+      "text": "Powerful Red"
     },
     "description": {
-      "text": "Hold a dual blade"
+      "text": "Hold the Powerful Red dual blade in Inventory"
     },
     "frame": "task",
     "show_toast": true,
@@ -16,13 +16,13 @@
     "hidden": false
   },
   "criteria": {
-    "has_dual_blade_2": {
+    "has_powerful_red": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
             "items": [
-              "swordssmp:dual_blade_2"
+              "swordssmp:powerful_red"
             ]
           }
         ]
@@ -31,7 +31,7 @@
   },
   "requirements": [
     [
-      "has_dual_blade_2"
+      "has_powerful_red"
     ]
   ]
 }

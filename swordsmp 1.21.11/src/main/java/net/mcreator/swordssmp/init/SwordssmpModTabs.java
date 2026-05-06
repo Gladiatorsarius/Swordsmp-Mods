@@ -25,8 +25,8 @@ public class SwordssmpModTabs {
 			tabData.accept(SwordssmpModItems.BERSERK_HAND);
 			tabData.accept(SwordssmpModItems.ANCIENT_VOID_RELIC);
 			tabData.accept(SwordssmpModItems.AMETHYST_SWORD);
-			tabData.accept(SwordssmpModItems.DUAL_BLADE_2);
-			tabData.accept(SwordssmpModItems.DUAL_BLADE_1);
+			tabData.accept(SwordssmpModItems.SWIFT_BLUE);
+			tabData.accept(SwordssmpModItems.POWERFUL_RED);
 		});
 		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(tabData -> {
 			tabData.accept(SwordssmpModItems.SMELTER_PICKAXE);
