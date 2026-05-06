@@ -24,7 +24,7 @@ public class DragonSlayerItem extends Item {
 	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 12500, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:dragon_slayer_repair_items")));
 
 	public DragonSlayerItem(Item.Properties properties) {
-		super(properties.sword(TOOL_MATERIAL, 9f, -2.6f));
+		super(properties.sword(TOOL_MATERIAL, 7f, -2.4f));
 	}
 
 	@Override
