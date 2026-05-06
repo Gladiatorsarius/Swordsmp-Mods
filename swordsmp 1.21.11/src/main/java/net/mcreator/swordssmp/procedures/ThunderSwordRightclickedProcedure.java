@@ -8,7 +8,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
@@ -17,7 +16,6 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.permissions.PermissionSet;
 
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.network.chat.Component;
@@ -77,11 +75,11 @@ public class ThunderSwordRightclickedProcedure {
 		}
 		if (world instanceof ServerLevel _level) {
 				_level.getServer().getCommands().performPrefixedCommand(new CommandSourceStack(CommandSource.NULL, new Vec3(x, y, z), Vec2.ZERO, _level, PermissionSet.ALL_PERMISSIONS, "", Component.literal(""), _level.getServer(), null).withSuppressedOutput(),
-						"/execute at @e[distance=2..10] as @e[distance=2..10] run summon minecraft:lightning_bolt ~ ~ ~");
+						"/execute as @e[distance=2..10,limit=100] at @s run summon minecraft:lightning_bolt ~ ~ ~");
 				_level.getServer().getCommands().performPrefixedCommand(new CommandSourceStack(CommandSource.NULL, new Vec3(x, y, z), Vec2.ZERO, _level, PermissionSet.ALL_PERMISSIONS, "", Component.literal(""), _level.getServer(), null).withSuppressedOutput(),
-						"/effect give @e[distance=2..10] slowness 3 10");
+						"/effect give @e[distance=2..10,limit=100] slowness 3 10");
 				_level.getServer().getCommands().performPrefixedCommand(new CommandSourceStack(CommandSource.NULL, new Vec3(x, y, z), Vec2.ZERO, _level, PermissionSet.ALL_PERMISSIONS, "", Component.literal(""), _level.getServer(), null).withSuppressedOutput(),
-						"/effect give @e[distance=2..10] blindness 3 10");
+						"/effect give @e[distance=2..10,limit=100] blindness 3 10");
 			
 			if (entity instanceof LivingEntity _entity) {
 				_entity.removeEffect(MobEffects.SLOWNESS);
