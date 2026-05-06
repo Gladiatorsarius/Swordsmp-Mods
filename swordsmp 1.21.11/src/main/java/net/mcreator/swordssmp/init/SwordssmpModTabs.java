@@ -9,6 +9,35 @@ import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 
 public class SwordssmpModTabs {
 	public static void load() {
+		ItemGroupEvents.modifyEntriesEvent(SwordssmpCustomItemGroups.SWORDSMP_TAB).register(tabData -> {
+			// Custom Swordsmp Items tab - all items except Chaos Crystal and The Abomination
+			tabData.accept(SwordssmpModItems.WIND_BLADE);
+			tabData.accept(SwordssmpModItems.CHORUS_SLAYER);
+			tabData.accept(SwordssmpModItems.SMELTER_PICKAXE);
+			tabData.accept(SwordssmpModItems.THUNDER_SWORD);
+			tabData.accept(SwordssmpModItems.PHANTOM_BLADE);
+			tabData.accept(SwordssmpModItems.TNT_SWORD);
+			tabData.accept(SwordssmpModItems.WARDEN_BLASTER);
+			tabData.accept(SwordssmpModItems.DRAGON_SLAYER);
+			tabData.accept(SwordssmpModItems.GRAY_APPLE);
+			tabData.accept(SwordssmpModItems.LIFE_STEALER);
+			tabData.accept(SwordssmpModItems.EARTH_WAVE_SWORD);
+			tabData.accept(SwordssmpModItems.LEVITATION_WAND);
+			tabData.accept(SwordssmpModItems.REINFORCED_STICK);
+			tabData.accept(SwordssmpModItems.TNT_ROD);
+			tabData.accept(SwordssmpModItems.GODS_VIEW);
+			tabData.accept(SwordssmpModItems.BREACHER);
+			tabData.accept(SwordssmpModItems.GHOST_BLADE);
+			tabData.accept(SwordssmpModItems.BERSERK_HAND);
+			tabData.accept(SwordssmpModItems.ANCIENT_VOID_RELIC);
+			tabData.accept(SwordssmpModItems.AMETHYST_SWORD);
+			tabData.accept(SwordssmpModItems.CORROSIVE_DUST);
+			tabData.accept(SwordssmpModItems.XP_ORB);
+			tabData.accept(SwordssmpModItems.SHARPENED_AMETHYST_SHARD);
+			tabData.accept(SwordssmpModItems.TEST_ROD);
+			tabData.accept(SwordssmpModItems.SWIFT_BLUE);
+			tabData.accept(SwordssmpModItems.POWERFUL_RED);
+		});
 		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.COMBAT).register(tabData -> {
 			tabData.accept(SwordssmpModItems.WIND_BLADE);
 			tabData.accept(SwordssmpModItems.CHORUS_SLAYER);
@@ -32,7 +61,6 @@ public class SwordssmpModTabs {
 			tabData.accept(SwordssmpModItems.SMELTER_PICKAXE);
 			tabData.accept(SwordssmpModItems.LEVITATION_WAND);
 			tabData.accept(SwordssmpModItems.TNT_ROD);
-			tabData.accept(SwordssmpModItems.CHAOS_CRYSTAL);
 			tabData.accept(SwordssmpModItems.TEST_ROD);
 		});
 		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FOOD_AND_DRINKS).register(tabData -> {

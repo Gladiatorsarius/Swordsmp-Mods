@@ -41,8 +41,8 @@ public class SwordssmpMod implements ModInitializer {
 		LOGGER.info("Initializing SwordssmpMod");
 
 		SwordssmpModTabs.load();
+		SwordssmpCustomItemGroups.register();
 		SwordssmpModVariables.variablesLoad();
-
 		SwordssmpModItems.load();
 
 		SwordssmpModBrewingRecipes.load();
