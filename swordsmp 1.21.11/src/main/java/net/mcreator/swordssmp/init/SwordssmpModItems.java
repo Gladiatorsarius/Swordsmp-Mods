@@ -41,8 +41,8 @@ public class SwordssmpModItems {
 	public static Item CHAOS_CRYSTAL;
 	public static Item TEST_ROD;
 	public static Item THE_ABOMINATION;
-	public static Item DUAL_BLADE_2;
-	public static Item DUAL_BLADE_1;
+	public static Item SWIFT_BLUE;
+	public static Item POWERFUL_RED;
 
 	public static void load() {
 		WIND_BLADE = register("wind_blade", WindBladeItem::new);
@@ -71,8 +71,8 @@ public class SwordssmpModItems {
 		CHAOS_CRYSTAL = register("chaos_crystal", ChaosCrystalItem::new);
 		TEST_ROD = register("test_rod", TestRodItem::new);
 		THE_ABOMINATION = register("the_abomination", TheAbominationItem::new);
-		DUAL_BLADE_2 = register("dual_blade_2", DualBlade2Item::new);
-		DUAL_BLADE_1 = register("dual_blade_1", DualBlade1Item::new);
+		SWIFT_BLUE = register("swift_blue", DualBlade2Item::new);
+		POWERFUL_RED = register("powerful_red", DualBlade1Item::new);
 	}
 
 	// Start of user code block custom items

@@ -2,13 +2,13 @@
   "parent": "minecraft:adventure/root",
   "display": {
     "icon": {
-      "id": "swordssmp:dual_blade_2"
+      "id": "swordssmp:swift_blue"
     },
     "title": {
-      "text": "Dual Blade"
+      "text": "Swift Blue"
     },
     "description": {
-      "text": "Hold a dual blade"
+      "text": "Hold the Swift Blue dual blade in Inventory"
     },
     "frame": "task",
     "show_toast": true,
@@ -16,13 +16,13 @@
     "hidden": false
   },
   "criteria": {
-    "has_dual_blade_2": {
+    "has_swift_blue": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
             "items": [
-              "swordssmp:dual_blade_2"
+              "swordssmp:swift_blue"
             ]
           }
         ]
@@ -31,7 +31,7 @@
   },
   "requirements": [
     [
-      "has_dual_blade_2"
+      "has_swift_blue"
     ]
   ]
 }

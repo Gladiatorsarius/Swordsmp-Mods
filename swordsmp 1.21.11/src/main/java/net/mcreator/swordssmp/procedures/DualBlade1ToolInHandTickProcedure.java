@@ -14,7 +14,7 @@ public class DualBlade1ToolInHandTickProcedure {
 	public static void execute(Entity entity) {
 		if (entity == null)
 			return;
-		if (SwordssmpModItems.DUAL_BLADE_2 == (entity instanceof LivingEntity _livEnt ? _livEnt.getOffhandItem() : ItemStack.EMPTY).getItem()) {
+		if (SwordssmpModItems.SWIFT_BLUE == (entity instanceof LivingEntity _livEnt ? _livEnt.getOffhandItem() : ItemStack.EMPTY).getItem()) {
 			if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide()) {
 				_entity.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 1, 2, false, false));
 				_entity.addEffect(new MobEffectInstance(MobEffects.HASTE, 1, 4, false, false));
