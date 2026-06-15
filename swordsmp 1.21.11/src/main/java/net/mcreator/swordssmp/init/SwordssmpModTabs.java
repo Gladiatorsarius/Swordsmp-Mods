@@ -17,6 +17,7 @@ public class SwordssmpModTabs {
 			tabData.accept(SwordssmpModItems.THUNDER_SWORD);
 			tabData.accept(SwordssmpModItems.PHANTOM_BLADE);
 			tabData.accept(SwordssmpModItems.TNT_SWORD);
+			tabData.accept(SwordssmpModItems.TNT_SWORD_2);
 			tabData.accept(SwordssmpModItems.WARDEN_BLASTER);
 			tabData.accept(SwordssmpModItems.DRAGON_SLAYER);
 			tabData.accept(SwordssmpModItems.GRAY_APPLE);
@@ -44,6 +45,7 @@ public class SwordssmpModTabs {
 			tabData.accept(SwordssmpModItems.THUNDER_SWORD);
 			tabData.accept(SwordssmpModItems.PHANTOM_BLADE);
 			tabData.accept(SwordssmpModItems.TNT_SWORD);
+			tabData.accept(SwordssmpModItems.TNT_SWORD_2);
 			tabData.accept(SwordssmpModItems.WARDEN_BLASTER);
 			tabData.accept(SwordssmpModItems.DRAGON_SLAYER);
 			tabData.accept(SwordssmpModItems.LIFE_STEALER);

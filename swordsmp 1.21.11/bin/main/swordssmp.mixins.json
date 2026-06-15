@@ -11,7 +11,8 @@
     "BlockItemMixin",
     "BoneMealItemMixin",
     "CommandsMixin",
-    "ExperienceOrbMixin"
+    "ExperienceOrbMixin",
+    "PrimedTntMixin"
   ],
   "client": [],
   "injectors": {

@@ -29,6 +29,7 @@ public class SwordssmpCustomItemGroups {
 					output.accept(SwordssmpModItems.THUNDER_SWORD);
 					output.accept(SwordssmpModItems.PHANTOM_BLADE);
 					output.accept(SwordssmpModItems.TNT_SWORD);
+					output.accept(SwordssmpModItems.TNT_SWORD_2);
 					output.accept(SwordssmpModItems.WARDEN_BLASTER);
 					output.accept(SwordssmpModItems.DRAGON_SLAYER);
 					output.accept(SwordssmpModItems.GRAY_APPLE);

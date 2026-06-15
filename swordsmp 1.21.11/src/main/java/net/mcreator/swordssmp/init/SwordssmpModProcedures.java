@@ -15,6 +15,7 @@ public class SwordssmpModProcedures {
 		new PhantomBladeRightclickedProcedure();
 		new PhantomBladeToolInInventoryTickProcedure();
 		new TNTSwordRightclickedOnBlockProcedure();
+		new TNTSword2RightclickedOnBlockProcedure();
 		new WardenBlasterRightclickedProcedure();
 		new EarthWaveSwordRightclickedProcedure();
 		new GhostBladeRightclickedProcedure();

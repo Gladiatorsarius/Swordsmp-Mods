@@ -35,7 +35,7 @@ public class ChaosCrystalItemInInventoryTickProcedure {
 					CompoundTag tag = custom.copyTag();
 					boolean changed = false;
 					// Known cooldown keys used across items
-					String[] knownKeys = new String[] { "ChorusSlayerCooldownUntil", "GhostBladeCooldownUntil", "EarthWaveCooldownUntil", "GodsViewCooldownUntil", "PhantomBladeCooldownUntil", "WindBladeCooldownUntil", "WardenBlasterCooldownUntil", "TNTSwordCooldownUntil", "ThunderCooldownUntil" };
+					String[] knownKeys = new String[] { "ChorusSlayerCooldownUntil", "GhostBladeCooldownUntil", "EarthWaveCooldownUntil", "GodsViewCooldownUntil", "PhantomBladeCooldownUntil", "WindBladeCooldownUntil", "WardenBlasterCooldownUntil", "TNTSwordCooldownUntil", "TNTSword2CooldownUntil", "TNTSword2CooldownOwner", "ThunderCooldownUntil" };
 					for (String k : knownKeys) {
 						if (tag.contains(k)) {
 							tag.remove(k);

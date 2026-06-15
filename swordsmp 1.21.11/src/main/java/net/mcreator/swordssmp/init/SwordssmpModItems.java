@@ -21,6 +21,7 @@ public class SwordssmpModItems {
 	public static Item THUNDER_SWORD;
 	public static Item PHANTOM_BLADE;
 	public static Item TNT_SWORD;
+	public static Item TNT_SWORD_2;
 	public static Item WARDEN_BLASTER;
 	public static Item DRAGON_SLAYER;
 	public static Item GRAY_APPLE;
@@ -51,6 +52,7 @@ public class SwordssmpModItems {
 		THUNDER_SWORD = register("thunder_sword", ThunderSwordItem::new);
 		PHANTOM_BLADE = register("phantom_blade", PhantomBladeItem::new);
 		TNT_SWORD = register("tnt_sword", TNTSwordItem::new);
+		TNT_SWORD_2 = register("tnt_sword_2", TNTSword2Item::new);
 		WARDEN_BLASTER = register("warden_blaster", WardenBlasterItem::new);
 		DRAGON_SLAYER = register("dragon_slayer", DragonSlayerItem::new);
 		GRAY_APPLE = register("gray_apple", GrayAppleItem::new);
