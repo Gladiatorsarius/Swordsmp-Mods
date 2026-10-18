@@ -9,6 +9,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.component.CustomData;
@@ -54,6 +56,8 @@ public class DescendingDarkOnUseTickProcedure {
 					int fallTicks = Math.max(0, (int)((currentGravity - 0.08) / 0.004));
 					int secondsFallen = fallTicks / 20;
 					int explosionPower = Math.min(4 + secondsFallen, 14);
+					// Apply Resistance V for 5 ticks before explosion
+					player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 5, 4, false, false));
 					PrimedTnt tnt = EntityType.TNT.create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
 					if (tnt != null) {
 						tnt.setPos(player.getX(), player.getY(), player.getZ());
