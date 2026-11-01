@@ -8,7 +8,6 @@ import net.mcreator.swordssmp.procedures.*;
 @SuppressWarnings("InstantiationOfUtilityClass")
 public class SwordssmpModProcedures {
 	public static void load() {
-		new ChorusSlayerRightclickedProcedure();
 		new SmelterPickaxeBlockDestroyedWithToolProcedure();
 		// new ThunderSwordLivingEntityIsHitWithToolProcedure(); // Disabled - use ThunderSwordRightclickedProcedure instead
 		new ThunderSwordRightclickedProcedure();
