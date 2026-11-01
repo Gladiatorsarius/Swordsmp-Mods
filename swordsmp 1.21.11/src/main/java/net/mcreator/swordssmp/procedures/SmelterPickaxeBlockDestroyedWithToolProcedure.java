@@ -36,9 +36,13 @@ public class SmelterPickaxeBlockDestroyedWithToolProcedure {
 		if (!(world instanceof ServerLevel _level))
 			return;
 		BlockPos pos = BlockPos.containing(x, y, z);
+		net.minecraft.world.phys.Vec3 center = pos.getCenter();
 		boolean smeltedAny = false;
-		// Drops from this break sit at the block center with age 0; older nearby drops are untouched.
-		for (ItemEntity drop : _level.getEntitiesOfClass(ItemEntity.class, new AABB(pos), e -> e.getAge() == 0 && !e.getItem().isEmpty())) {
+		// Only upgrade drops provably from THIS break: spawned this tick (age 0), within 0.6 blocks
+		// of the block center (vanilla popResource scatters within ~0.51), and not player-thrown
+		// (thrown items carry an owner; block drops do not). Adjacent breaks and tossed items pass.
+		for (ItemEntity drop : _level.getEntitiesOfClass(ItemEntity.class, new AABB(pos),
+				e -> e.getAge() == 0 && !e.getItem().isEmpty() && e.getOwner() == null && e.position().distanceToSqr(center) <= 0.36)) {
 			ItemStack stack = drop.getItem();
 			ItemStack smelted = getSmeltingResult(_level, stack);
 			if (!smelted.isEmpty()) {
