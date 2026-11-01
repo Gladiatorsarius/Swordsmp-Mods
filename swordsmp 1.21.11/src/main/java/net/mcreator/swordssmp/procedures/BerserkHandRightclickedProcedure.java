@@ -6,6 +6,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.util.Mth;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 
@@ -23,10 +24,8 @@ public class BerserkHandRightclickedProcedure {
 		if (!(entity instanceof LivingEntity living) || living.getMainHandItem().getItem() != SwordssmpModItems.BERSERK_HAND)
 			return;
 		float health = living.getHealth();
-		if (health <= 0)
-			return;
-		// health (18,20] -> 1, (16,18] -> 2, ... , (0,2] -> 10
-		int level = Math.max(1, (int) ((20f - health) / 2f) + 1);
+		// health > 18 -> 1, (16,18] -> 2, ... , (2,4] -> 9, <= 2 -> 10 (matches the original ladder for every value, incl. >20 max health and 0/negative)
+		int level = Mth.clamp((int) ((20f - health) / 2f) + 1, 1, 10);
 		Holder<Enchantment> knockback = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.KNOCKBACK);
 		Holder<Enchantment> sharpness = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SHARPNESS);
 		ItemStack stack = living.getMainHandItem();
