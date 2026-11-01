@@ -43,5 +43,6 @@
   "item.swordssmp.swift_blue": "Swift Blue",
   "item.swordssmp.powerful_red": "Powerful Red",
   "gamerule.swordssmp.life_stealer_hardcore": "Life Stealer Hardcore",
-  "gamerule.swordssmp.life_stealer_hardcore.description": "Killing a player with the Life Stealer permanently grants the killer 2 extra max health."
+  "gamerule.swordssmp.life_stealer_hardcore.description": "Killing a player with the Life Stealer permanently grants the killer 2 extra max health.",
+  "gamerule.life_stealer_hardcore": "Life Stealer Hardcore (legacy id, migrated)"
 }
