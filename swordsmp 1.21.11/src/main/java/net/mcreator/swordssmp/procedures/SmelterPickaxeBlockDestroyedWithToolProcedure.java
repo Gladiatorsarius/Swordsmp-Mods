@@ -1,8 +1,7 @@
 package net.mcreator.swordssmp.procedures;
 
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.ItemStack;
@@ -19,39 +18,38 @@ import net.mcreator.swordssmp.init.SwordssmpModItems;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 
 public class SmelterPickaxeBlockDestroyedWithToolProcedure {
-	public static boolean eventResult = true;
-
 	public SmelterPickaxeBlockDestroyedWithToolProcedure() {
-		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockentity) -> {
+		PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockentity) -> {
 			execute(world, pos.getX(), pos.getY(), pos.getZ(), player);
-			boolean result = eventResult;
-			eventResult = true;
-			return result;
 		});
 	}
 
+	// Runs after vanilla has fully broken the block, then upgrades this break's
+	// fresh drops to their smelting results. Replacing the drops (not the break)
+	// keeps the entire vanilla lifecycle intact: tool durability, ore XP, mined
+	// statistics, and the tool-aware loot context (Fortune/Silk Touch).
 	public static void execute(LevelAccessor world, double x, double y, double z, Entity entity) {
 		if (entity == null)
 			return;
-		if ((entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).getItem() == SwordssmpModItems.SMELTER_PICKAXE) {
-			BlockPos pos = BlockPos.containing(x, y, z);
-			ItemStack smelted = getSmeltingResult(world, new ItemStack(world.getBlockState(pos).getBlock()));
+		if ((entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).getItem() != SwordssmpModItems.SMELTER_PICKAXE)
+			return;
+		if (!(world instanceof ServerLevel _level))
+			return;
+		BlockPos pos = BlockPos.containing(x, y, z);
+		boolean smeltedAny = false;
+		// Drops from this break sit at the block center with age 0; older nearby drops are untouched.
+		for (ItemEntity drop : _level.getEntitiesOfClass(ItemEntity.class, new AABB(pos), e -> e.getAge() == 0 && !e.getItem().isEmpty())) {
+			ItemStack stack = drop.getItem();
+			ItemStack smelted = getSmeltingResult(_level, stack);
 			if (!smelted.isEmpty()) {
-				if (world instanceof ServerLevel _level) {
-					ItemEntity entityToSpawn = new ItemEntity(_level, (x + 0.5), (y + 0.5), (z + 0.5), smelted);
-					entityToSpawn.setPickUpDelay(10);
-					_level.addFreshEntity(entityToSpawn);
-					_level.sendParticles(ParticleTypes.FLAME, (x + 0.5), y, (z + 0.5), 180, 0.7, 0.15, 0.7, 0.05);
-				}
-				ProcedureUtils.playBlockSound(world, x, y, z, "block.fire.extinguish", SoundSource.NEUTRAL, 50, 40);
-				world.destroyBlock(pos, false);
-			} else {
-				Block.dropResources(world.getBlockState(pos), world, pos, null);
-				world.destroyBlock(pos, false);
+				smelted.setCount(stack.getCount());
+				drop.setItem(smelted);
+				smeltedAny = true;
 			}
-			// The block is fully handled here; cancel vanilla's own break so it
-			// does not drop the same resources a second time.
-			eventResult = false;
+		}
+		if (smeltedAny) {
+			_level.sendParticles(ParticleTypes.FLAME, (x + 0.5), y, (z + 0.5), 180, 0.7, 0.15, 0.7, 0.05);
+			ProcedureUtils.playBlockSound(world, x, y, z, "block.fire.extinguish", SoundSource.NEUTRAL, 50, 40);
 		}
 	}
 
