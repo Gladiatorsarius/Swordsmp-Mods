@@ -1,10 +1,9 @@
 package net.mcreator.swordssmp.procedures;
 
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
 import net.mcreator.swordssmp.init.SwordssmpModItems;
 import net.mcreator.swordssmp.SwordssmpMod;
@@ -12,29 +11,33 @@ import net.mcreator.swordssmp.SwordssmpMod;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 
 public class TheAbominationRightclickedProcedure {
-	public static boolean eventResult = true;
 
 	public TheAbominationRightclickedProcedure() {
 		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockentity) -> {
-			execute(world, pos.getX(), pos.getY(), pos.getZ(), player);
-			boolean result = eventResult;
-			eventResult = true;
-			return result;
+			execute(world, player);
+			return true;
 		});
 	}
 
-	public static void execute(LevelAccessor world, double x, double y, double z, Entity entity) {
-		if (entity == null)
+	/**
+	 * Grants the player actually holding The Abomination 60 seconds of Creative,
+	 * then restores whatever game mode they had before. Players already in
+	 * Creative are left untouched (the old /gamemode commands demoted them to
+	 * Survival and could target the nearest player instead of the user).
+	 */
+	public static void execute(LevelAccessor world, Entity entity) {
+		if (!(entity instanceof ServerPlayer player))
 			return;
-		if ((entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).getItem() == SwordssmpModItems.THE_ABOMINATION) {
-			if (world instanceof ServerLevel _level) {
-				ProcedureUtils.runCommand(_level, x, y, z, "/gamemode creative @p");
+		if (player.getMainHandItem().getItem() != SwordssmpModItems.THE_ABOMINATION)
+			return;
+		if (player.gameMode.getGameModeForPlayer() == GameType.CREATIVE)
+			return;
+		GameType previousMode = player.gameMode.getGameModeForPlayer();
+		player.setGameMode(GameType.CREATIVE);
+		SwordssmpMod.queueServerWork(1200, () -> {
+			if (player.gameMode.getGameModeForPlayer() == GameType.CREATIVE) {
+				player.setGameMode(previousMode);
 			}
-			SwordssmpMod.queueServerWork(1200, () -> {
-				if (world instanceof ServerLevel _level) {
-					ProcedureUtils.runCommand(_level, x, y, z, "/gamemode survival @p");
-				}
-			});
-		}
+		});
 	}
 }
