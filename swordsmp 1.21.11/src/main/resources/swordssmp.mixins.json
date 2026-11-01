@@ -3,15 +3,8 @@
   "package": "net.mcreator.swordssmp.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "RepairItemRecipeMixin",
     "ServerPlayerMixin",
-    "LivingEntityMixin",
     "PlayerMixin",
-    "ItemStackMixin",
-    "BlockItemMixin",
-    "BoneMealItemMixin",
-    "CommandsMixin",
-    "ExperienceOrbMixin",
     "PrimedTntMixin"
   ],
   "client": [],

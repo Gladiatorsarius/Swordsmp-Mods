@@ -4,15 +4,12 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.tags.TagKey;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.resources.Identifier;
-import net.minecraft.core.registries.Registries;
 
 import net.mcreator.swordssmp.procedures.TNTSwordRightclickedOnBlockProcedure;
 
 public class TNTSwordItem extends Item {
-	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_STONE_TOOL, 2100, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:tnt_sword_repair_items")));
+	private static final ToolMaterial TOOL_MATERIAL = ModToolMaterials.of(BlockTags.INCORRECT_FOR_STONE_TOOL, 2100, 2, "tnt_sword_repair_items");
 
 	public TNTSwordItem(Item.Properties properties) {
 		super(properties.sword(TOOL_MATERIAL, 7f, -2.4f));

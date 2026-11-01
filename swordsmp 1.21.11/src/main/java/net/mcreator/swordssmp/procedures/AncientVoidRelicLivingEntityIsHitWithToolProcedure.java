@@ -13,7 +13,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.mcreator.swordssmp.init.SwordssmpModItems;
 
 public class AncientVoidRelicLivingEntityIsHitWithToolProcedure {
-	public static boolean eventResult = true;
 
 	public static void execute(LevelAccessor world, double x, double y, double z, Entity entity, Entity sourceentity) {
 		if (entity == null || sourceentity == null)

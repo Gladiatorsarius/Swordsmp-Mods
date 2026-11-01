@@ -1,7 +1,6 @@
 package net.mcreator.swordssmp.procedures;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -11,43 +10,38 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.nbt.CompoundTag;
 
 public class ChaosCrystalItemInInventoryTickProcedure {
-	public static boolean eventResult = true;
+	private static final Set<String> COOLDOWN_KEYS = Set.of("ChorusSlayerCooldownUntil", "GhostBladeCooldownUntil", "EarthWaveCooldownUntil", "GodsViewCooldownUntil", "PhantomBladeCooldownUntil", "WindBladeCooldownUntil",
+			"WardenBlasterCooldownUntil", "TNTSwordCooldownUntil", "TNTSword2CooldownUntil", "TNTSword2CooldownOwner", "ThunderCooldownUntil");
 
 	public static void execute(Entity entity) {
-		if (entity == null)
+		if (!(entity instanceof Player player))
 			return;
-		if (entity instanceof Player player) {
-			int size = player.getInventory().getContainerSize();
-			for (int i = 0; i < size; i++) {
-				ItemStack stack = player.getInventory().getItem(i);
-				if (stack == null)
-					continue;
-				// Attempt to clear native cooldown overlay for this stack (ItemStack overload)
-				try {
-					// Setting cooldown to 0 clears the cooldown in this mapping
-					player.getCooldowns().addCooldown(stack, 0);
-				} catch (Throwable ignored) {
-					// If this mapping doesn't support ItemStack overload, ignore.
+		int size = player.getInventory().getContainerSize();
+		for (int i = 0; i < size; i++) {
+			ItemStack stack = player.getInventory().getItem(i);
+			if (stack == null)
+				continue;
+			// Setting cooldown to 0 clears the native cooldown overlay for this stack.
+			try {
+				player.getCooldowns().addCooldown(stack, 0);
+			} catch (Throwable ignored) {
+				// If this mapping doesn't support the ItemStack overload, ignore.
+			}
+			// Remove known custom cooldown NBT keys.
+			CustomData custom = stack.get(DataComponents.CUSTOM_DATA);
+			if (custom != null) {
+				CompoundTag tag = custom.copyTag();
+				boolean changed = false;
+				for (String key : COOLDOWN_KEYS) {
+					if (tag.contains(key)) {
+						tag.remove(key);
+						changed = true;
+					}
 				}
-				// Remove known custom cooldown NBT keys (non-native metadata)
-				CustomData custom = stack.get(DataComponents.CUSTOM_DATA);
-				if (custom != null) {
-					CompoundTag tag = custom.copyTag();
-					boolean changed = false;
-					// Known cooldown keys used across items
-					String[] knownKeys = new String[] { "ChorusSlayerCooldownUntil", "GhostBladeCooldownUntil", "EarthWaveCooldownUntil", "GodsViewCooldownUntil", "PhantomBladeCooldownUntil", "WindBladeCooldownUntil", "WardenBlasterCooldownUntil", "TNTSwordCooldownUntil", "TNTSword2CooldownUntil", "TNTSword2CooldownOwner", "ThunderCooldownUntil" };
-					for (String k : knownKeys) {
-						if (tag.contains(k)) {
-							tag.remove(k);
-							changed = true;
-						}
-					}
-					if (changed) {
-						stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-					}
+				if (changed) {
+					stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 				}
 			}
-			// Player-variables removed; Chaos Crystal no longer manipulates PlayerVariables.
 		}
 	}
 }

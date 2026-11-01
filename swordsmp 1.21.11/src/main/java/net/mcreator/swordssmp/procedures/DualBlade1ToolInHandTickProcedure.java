@@ -9,7 +9,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.mcreator.swordssmp.init.SwordssmpModItems;
 
 public class DualBlade1ToolInHandTickProcedure {
-	public static boolean eventResult = true;
 
 	public static void execute(Entity entity) {
 		if (entity == null)

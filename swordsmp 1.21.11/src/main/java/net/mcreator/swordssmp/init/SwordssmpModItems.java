@@ -12,6 +12,7 @@ import net.minecraft.core.registries.Registries;
 import net.mcreator.swordssmp.item.*;
 import net.mcreator.swordssmp.SwordssmpMod;
 
+import java.util.List;
 import java.util.function.Function;
 
 public class SwordssmpModItems {
@@ -45,6 +46,9 @@ public class SwordssmpModItems {
 	public static Item SWIFT_BLUE;
 	public static Item POWERFUL_RED;
 
+	// Items shown in the mod's creative tab, in display order. Assigned during load(), consumed lazily by the tab builders.
+	public static List<Item> SWORDSMP_TAB_ITEMS;
+
 	public static void load() {
 		WIND_BLADE = register("wind_blade", WindBladeItem::new);
 		CHORUS_SLAYER = register("chorus_slayer", ChorusSlayerItem::new);
@@ -67,18 +71,19 @@ public class SwordssmpModItems {
 		BERSERK_HAND = register("berserk_hand", BerserkHandItem::new);
 		ANCIENT_VOID_RELIC = register("ancient_void_relic", AncientVoidRelicItem::new);
 		AMETHYST_SWORD = register("amethyst_sword", AmethystSwordItem::new);
-		CORROSIVE_DUST = register("corrosive_dust", CorrosiveDustItem::new);
-		XP_ORB = register("xp_orb", XPOrbItem::new);
-		SHARPENED_AMETHYST_SHARD = register("sharpened_amethyst_shard", SharpenedAmethystShardItem::new);
+		CORROSIVE_DUST = register("corrosive_dust", Item::new);
+		XP_ORB = register("xp_orb", Item::new);
+		SHARPENED_AMETHYST_SHARD = register("sharpened_amethyst_shard", Item::new);
 		CHAOS_CRYSTAL = register("chaos_crystal", ChaosCrystalItem::new);
 		TEST_ROD = register("test_rod", TestRodItem::new);
 		THE_ABOMINATION = register("the_abomination", TheAbominationItem::new);
 		SWIFT_BLUE = register("swift_blue", DualBlade2Item::new);
 		POWERFUL_RED = register("powerful_red", DualBlade1Item::new);
+
+		SWORDSMP_TAB_ITEMS = List.of(WIND_BLADE, CHORUS_SLAYER, SMELTER_PICKAXE, THUNDER_SWORD, PHANTOM_BLADE, TNT_SWORD, TNT_SWORD_2, WARDEN_BLASTER, DRAGON_SLAYER, GRAY_APPLE, LIFE_STEALER, EARTH_WAVE_SWORD, LEVITATION_WAND,
+				REINFORCED_STICK, TNT_ROD, GODS_VIEW, BREACHER, GHOST_BLADE, BERSERK_HAND, ANCIENT_VOID_RELIC, AMETHYST_SWORD, CORROSIVE_DUST, XP_ORB, SHARPENED_AMETHYST_SHARD, TEST_ROD, SWIFT_BLUE, POWERFUL_RED);
 	}
 
-	// Start of user code block custom items
-	// End of user code block custom items
 	private static <I extends Item> I register(String name, Function<Item.Properties, ? extends I> supplier) {
 		return (I) Items.registerItem(ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(SwordssmpMod.MODID, name)), (Function<Item.Properties, Item>) supplier);
 	}

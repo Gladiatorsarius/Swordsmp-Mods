@@ -6,7 +6,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.effect.MobEffectInstance;
 
 public class GrayApplePlayerFinishesUsingItemProcedure {
-	public static boolean eventResult = true;
 
 	public static void execute(Entity entity) {
 		if (entity == null)

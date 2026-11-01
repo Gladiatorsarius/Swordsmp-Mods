@@ -1,9 +1,6 @@
 package net.mcreator.swordssmp.procedures;
 
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -14,18 +11,9 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.resources.Identifier;
-import net.minecraft.network.chat.Component;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.CommandSource;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.component.CustomData;
 
-import net.mcreator.swordssmp.network.SwordssmpModVariables;
 import net.mcreator.swordssmp.init.SwordssmpModItems;
-import net.mcreator.swordssmp.SwordssmpMod;
 
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 
@@ -47,21 +35,9 @@ public class TNTSwordRightclickedOnBlockProcedure {
 			return;
 		ItemStack mainHandStack = (entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY);
 		if (mainHandStack.getItem() == SwordssmpModItems.TNT_SWORD) {
-			CustomData customData = mainHandStack.get(DataComponents.CUSTOM_DATA);
-			CompoundTag cooldownTag = customData != null ? customData.copyTag() : new CompoundTag();
-			boolean tagChanged = false;
-			if (entity instanceof Player player) {
-				String ownerId = cooldownTag.getString("TNTSwordCooldownOwner").orElse("");
-				if (!ownerId.isEmpty() && !ownerId.equals(player.getStringUUID())) {
-					cooldownTag.remove("TNTSwordCooldownUntil");
-					cooldownTag.remove("TNTSwordCooldownOwner");
-					tagChanged = true;
-				}
-			}
-			long now = 0L;
-			if (world instanceof Level _level) {
-				now = _level.getGameTime();
-			}
+			CompoundTag cooldownTag = ProcedureUtils.getCustomTag(mainHandStack);
+			boolean tagChanged = ProcedureUtils.resetCooldownIfOwnerChanged(cooldownTag, "TNTSword", entity);
+			long now = ProcedureUtils.gameTime(world);
 			long cooldownUntil = cooldownTag.getLong("TNTSwordCooldownUntil").orElse(0L);
 			if (cooldownUntil > 0L) {
 				if (now < cooldownUntil) {
@@ -72,37 +48,19 @@ public class TNTSwordRightclickedOnBlockProcedure {
 				tagChanged = true;
 			}
 			if (tagChanged) {
-				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
+				ProcedureUtils.saveCustomTag(mainHandStack, cooldownTag);
 			}
 			// native cooldown guard
 			if (entity instanceof Player _player && _player.getCooldowns().isOnCooldown(mainHandStack))
 				return;
-			{
-				if (world instanceof Level _level) {
-					if (!_level.isClientSide()) {
-						_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("entity.tnt.primed")), SoundSource.NEUTRAL, 50, 1);
-					} else {
-						_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("entity.tnt.primed")), SoundSource.NEUTRAL, 50, 1, false);
-					}
+			ProcedureUtils.playBlockSound(world, x, y, z, "entity.tnt.primed", SoundSource.NEUTRAL, 50, 1);
+			if (world instanceof ServerLevel _level) {
+				Entity entityToSpawn = EntityType.TNT_MINECART.spawn(_level, BlockPos.containing(x, y, z), EntitySpawnReason.MOB_SUMMONED);
+				if (entityToSpawn != null) {
+					entityToSpawn.setDeltaMovement(0, 1.5, 0);
 				}
-				if (world instanceof ServerLevel _level) {
-					Entity entityToSpawn_3 = EntityType.TNT_MINECART.spawn(_level, BlockPos.containing(x, y, z), EntitySpawnReason.MOB_SUMMONED);
-					if (entityToSpawn_3 != null) {
-						entityToSpawn_3.setDeltaMovement(0, 1.5, 0);
-					}
-				}
-				// replace chat countdowns with native cooldown overlay
-				if (entity instanceof Player _player && !_player.level().isClientSide()) {
-					_player.getCooldowns().addCooldown(_player.getMainHandItem(), 300); // 15 seconds
-				}
-
-				cooldownTag.putLong("TNTSwordCooldownUntil", now + 300L);
-				if (entity instanceof Player player) {
-					cooldownTag.putString("TNTSwordCooldownOwner", player.getStringUUID());
-				}
-				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
-				// reset handled by native cooldown overlay; no PlayerVariables reset required
 			}
+			ProcedureUtils.startCooldown(mainHandStack, cooldownTag, "TNTSword", entity, now, 300L);
 		}
 	}
 }

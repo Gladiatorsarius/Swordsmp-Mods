@@ -10,40 +10,26 @@ import net.minecraft.server.level.ServerLevel;
 import net.mcreator.swordssmp.SwordssmpMod;
 
 public class CorrosiveFireEffectStartedappliedProcedure {
-	public static boolean eventResult = true;
-
 	public static void execute(LevelAccessor world, Entity entity) {
 		if (entity == null)
 			return;
-		if (world instanceof ServerLevel _level) {
-			(entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-			});
-			(entity instanceof LivingEntity _livEnt ? _livEnt.getOffhandItem() : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-			});
-			(entity instanceof LivingEntity _entGetArmor ? _entGetArmor.getItemBySlot(EquipmentSlot.FEET) : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-			});
-			(entity instanceof LivingEntity _entGetArmor ? _entGetArmor.getItemBySlot(EquipmentSlot.LEGS) : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-			});
-			(entity instanceof LivingEntity _entGetArmor ? _entGetArmor.getItemBySlot(EquipmentSlot.CHEST) : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-			});
-			(entity instanceof LivingEntity _entGetArmor ? _entGetArmor.getItemBySlot(EquipmentSlot.HEAD) : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-			});
+		damageGear(world, entity);
+		SwordssmpMod.queueServerWork(200, () -> damageGear(world, entity));
+	}
+
+	private static void damageGear(LevelAccessor world, Entity entity) {
+		if (world instanceof ServerLevel level && entity instanceof LivingEntity living) {
+			damage(living.getMainHandItem(), level);
+			damage(living.getOffhandItem(), level);
+			damage(living.getItemBySlot(EquipmentSlot.FEET), level);
+			damage(living.getItemBySlot(EquipmentSlot.LEGS), level);
+			damage(living.getItemBySlot(EquipmentSlot.CHEST), level);
+			damage(living.getItemBySlot(EquipmentSlot.HEAD), level);
 		}
-		SwordssmpMod.queueServerWork(200, () -> {
-			if (world instanceof ServerLevel _level) {
-				(entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-				});
-				(entity instanceof LivingEntity _livEnt ? _livEnt.getOffhandItem() : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-				});
-				(entity instanceof LivingEntity _entGetArmor ? _entGetArmor.getItemBySlot(EquipmentSlot.FEET) : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-				});
-				(entity instanceof LivingEntity _entGetArmor ? _entGetArmor.getItemBySlot(EquipmentSlot.LEGS) : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-				});
-				(entity instanceof LivingEntity _entGetArmor ? _entGetArmor.getItemBySlot(EquipmentSlot.CHEST) : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-				});
-				(entity instanceof LivingEntity _entGetArmor ? _entGetArmor.getItemBySlot(EquipmentSlot.HEAD) : ItemStack.EMPTY).hurtAndBreak(50, _level, null, _stkprov -> {
-				});
-			}
+	}
+
+	private static void damage(ItemStack stack, ServerLevel level) {
+		stack.hurtAndBreak(50, level, null, item -> {
 		});
 	}
 }

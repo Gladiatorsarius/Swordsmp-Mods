@@ -19,7 +19,6 @@ import net.mcreator.swordssmp.init.SwordssmpModItems;
 import net.mcreator.swordssmp.event.PlayerEvents;
 
 public class PhantomBladeToolInInventoryTickProcedure {
-	public static boolean eventResult = true;
 
 	public PhantomBladeToolInInventoryTickProcedure() {
 		PlayerEvents.END_PLAYER_TICK.register(entity -> {

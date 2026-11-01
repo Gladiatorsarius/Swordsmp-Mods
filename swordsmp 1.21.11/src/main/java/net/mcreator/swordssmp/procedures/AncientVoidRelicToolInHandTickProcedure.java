@@ -15,7 +15,6 @@ import net.minecraft.network.chat.Component;
 import net.mcreator.swordssmp.init.SwordssmpModItems;
 
 public class AncientVoidRelicToolInHandTickProcedure {
-	public static boolean eventResult = true;
 
 	private static final long COOLDOWN_TICKS = 12000L;
 	private static final long ACTIVE_WINDOW_TICKS = 200L;

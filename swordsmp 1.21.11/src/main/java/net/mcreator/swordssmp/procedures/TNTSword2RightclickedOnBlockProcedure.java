@@ -2,7 +2,6 @@ package net.mcreator.swordssmp.procedures;
 
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -13,11 +12,7 @@ import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.resources.Identifier;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.component.CustomData;
 
 import net.mcreator.swordssmp.init.SwordssmpModItems;
 
@@ -44,8 +39,7 @@ public class TNTSword2RightclickedOnBlockProcedure {
 
 				PrimedTnt tnt = null;
 				for (ServerLevel level : server.getAllLevels()) {
-					Entity entity = level.getEntity(uuid);
-					if (entity instanceof PrimedTnt primedTnt) {
+					if (level.getEntity(uuid) instanceof PrimedTnt primedTnt) {
 						tnt = primedTnt;
 						break;
 					}
@@ -78,21 +72,9 @@ public class TNTSword2RightclickedOnBlockProcedure {
 			return;
 		ItemStack mainHandStack = (entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY);
 		if (mainHandStack.getItem() == SwordssmpModItems.TNT_SWORD_2) {
-			CustomData customData = mainHandStack.get(DataComponents.CUSTOM_DATA);
-			CompoundTag cooldownTag = customData != null ? customData.copyTag() : new CompoundTag();
-			boolean tagChanged = false;
-			if (entity instanceof Player player) {
-				String ownerId = cooldownTag.getString("TNTSword2CooldownOwner").orElse("");
-				if (!ownerId.isEmpty() && !ownerId.equals(player.getStringUUID())) {
-					cooldownTag.remove("TNTSword2CooldownUntil");
-					cooldownTag.remove("TNTSword2CooldownOwner");
-					tagChanged = true;
-				}
-			}
-			long now = 0L;
-			if (world instanceof Level _level) {
-				now = _level.getGameTime();
-			}
+			CompoundTag cooldownTag = ProcedureUtils.getCustomTag(mainHandStack);
+			boolean tagChanged = ProcedureUtils.resetCooldownIfOwnerChanged(cooldownTag, "TNTSword2", entity);
+			long now = ProcedureUtils.gameTime(world);
 			long cooldownUntil = cooldownTag.getLong("TNTSword2CooldownUntil").orElse(0L);
 			if (cooldownUntil > 0L) {
 				if (now < cooldownUntil) {
@@ -103,41 +85,25 @@ public class TNTSword2RightclickedOnBlockProcedure {
 				tagChanged = true;
 			}
 			if (tagChanged) {
-				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
+				ProcedureUtils.saveCustomTag(mainHandStack, cooldownTag);
 			}
 			if (entity instanceof Player _player && _player.getCooldowns().isOnCooldown(mainHandStack))
 				return;
-			{
-				if (world instanceof Level _level) {
-					if (!_level.isClientSide()) {
-						_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("entity.tnt.primed")), SoundSource.NEUTRAL, 50, 1);
-					} else {
-						_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("entity.tnt.primed")), SoundSource.NEUTRAL, 50, 1, false);
-					}
+			ProcedureUtils.playBlockSound(world, x, y, z, "entity.tnt.primed", SoundSource.NEUTRAL, 50, 1);
+			if (world instanceof ServerLevel serverLevel && entity instanceof Player player) {
+				Vec3 lookAngle = player.getLookAngle();
+				Vec3 spawnPos = player.getEyePosition().add(lookAngle.scale(0.5));
+				PrimedTnt tnt = EntityType.TNT.create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
+				if (tnt != null) {
+					tnt.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
+					tnt.setDeltaMovement(lookAngle.x * 2.5, lookAngle.y * 2.5, lookAngle.z * 2.5);
+					tnt.setFuse(99999);
+					serverLevel.addFreshEntity(tnt);
+					TNT_GROUND_TICKS.put(tnt.getUUID(), 0);
+					BIG_TNT_UUIDS.add(tnt.getUUID());
 				}
-				if (world instanceof ServerLevel serverLevel && entity instanceof Player player) {
-					Vec3 lookAngle = player.getLookAngle();
-					Vec3 spawnPos = player.getEyePosition().add(lookAngle.scale(0.5));
-					PrimedTnt tnt = EntityType.TNT.create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
-					if (tnt != null) {
-						tnt.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
-						tnt.setDeltaMovement(lookAngle.x * 2.5, lookAngle.y * 2.5, lookAngle.z * 2.5);
-						tnt.setFuse(99999);
-						serverLevel.addFreshEntity(tnt);
-						TNT_GROUND_TICKS.put(tnt.getUUID(), 0);
-						BIG_TNT_UUIDS.add(tnt.getUUID());
-					}
-				}
-				if (entity instanceof Player _player && !_player.level().isClientSide()) {
-					_player.getCooldowns().addCooldown(_player.getMainHandItem(), 300);
-				}
-
-				cooldownTag.putLong("TNTSword2CooldownUntil", now + 300L);
-				if (entity instanceof Player player) {
-					cooldownTag.putString("TNTSword2CooldownOwner", player.getStringUUID());
-				}
-				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
 			}
+			ProcedureUtils.startCooldown(mainHandStack, cooldownTag, "TNTSword2", entity, now, 300L);
 		}
 	}
 }
