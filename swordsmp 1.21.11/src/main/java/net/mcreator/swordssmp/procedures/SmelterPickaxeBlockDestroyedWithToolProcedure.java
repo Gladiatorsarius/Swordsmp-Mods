@@ -36,13 +36,20 @@ public class SmelterPickaxeBlockDestroyedWithToolProcedure {
 		if (!(world instanceof ServerLevel _level))
 			return;
 		BlockPos pos = BlockPos.containing(x, y, z);
-		net.minecraft.world.phys.Vec3 center = pos.getCenter();
 		boolean smeltedAny = false;
-		// Only upgrade drops provably from THIS break: spawned this tick (age 0), within 0.6 blocks
-		// of the block center (vanilla popResource scatters within ~0.51), and not player-thrown
-		// (thrown items carry an owner; block drops do not). Adjacent breaks and tossed items pass.
-		for (ItemEntity drop : _level.getEntitiesOfClass(ItemEntity.class, new AABB(pos),
-				e -> e.getAge() == 0 && !e.getItem().isEmpty() && e.getOwner() == null && e.position().distanceToSqr(center) <= 0.36)) {
+		// Only upgrade drops provably from THIS break. Bytecode-verified: Block.popResource places the
+		// item entity's feet at x/z = center +/- uniform(0.25), y = center + uniform(-0.25,0.25) minus
+		// half the item entity's height - so relative to the block center, the drop's bounding-box
+		// CENTER sits within +/-0.25 on every axis exactly, independent of entity height. Any drop
+		// from an adjacent block (including straight above/below) is at least 0.75 away on that axis.
+		// The 0.26 bounds (small fp margin) therefore include every own drop and provably exclude
+		// every adjacent one. The owner check excludes player-thrown items (block drops have none).
+		for (ItemEntity drop : _level.getEntitiesOfClass(ItemEntity.class, new AABB(pos), e -> {
+			if (e.getAge() != 0 || e.getItem().isEmpty() || e.getOwner() != null)
+				return false;
+			net.minecraft.world.phys.Vec3 c = e.getBoundingBox().getCenter();
+			return Math.abs(c.x - (pos.getX() + 0.5)) <= 0.26 && Math.abs(c.y - (pos.getY() + 0.5)) <= 0.26 && Math.abs(c.z - (pos.getZ() + 0.5)) <= 0.26;
+		})) {
 			ItemStack stack = drop.getItem();
 			ItemStack smelted = getSmeltingResult(_level, stack);
 			if (!smelted.isEmpty()) {
