@@ -1,8 +1,11 @@
 package net.mcreator.swordssmp;
 
 import net.mcreator.swordssmp.network.SwordssmpModVariables;
+import net.mcreator.swordssmp.network.InvisibilityAmplifierSyncMessage;
+import net.mcreator.swordssmp.network.InvisibilityAmplifierClientCache;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ClientModInitializer;
@@ -15,6 +18,8 @@ public class SwordssmpModClient implements ClientModInitializer {
 		// End of user code block mod constructor
 
 		ClientPlayNetworking.registerGlobalReceiver(SwordssmpModVariables.PlayerVariablesSyncMessage.TYPE, SwordssmpModVariables.PlayerVariablesSyncMessage::handleData);
+		ClientPlayNetworking.registerGlobalReceiver(InvisibilityAmplifierSyncMessage.TYPE, InvisibilityAmplifierSyncMessage::handleData);
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> InvisibilityAmplifierClientCache.clear());
 		// Start of user code block mod init
 		// End of user code block mod init
 	}

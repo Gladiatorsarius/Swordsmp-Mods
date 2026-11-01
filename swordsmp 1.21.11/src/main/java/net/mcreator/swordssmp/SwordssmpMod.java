@@ -13,6 +13,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.component.CustomData;
 
 import net.mcreator.swordssmp.network.SwordssmpModVariables;
+import net.mcreator.swordssmp.network.InvisibilityAmplifierSync;
 import net.mcreator.swordssmp.init.*;
 
 import net.fabricmc.loader.api.FabricLoader;
@@ -43,6 +44,7 @@ public class SwordssmpMod implements ModInitializer {
 		SwordssmpModTabs.load();
 		SwordssmpCustomItemGroups.register();
 		SwordssmpModVariables.variablesLoad();
+		InvisibilityAmplifierSync.register();
 		SwordssmpModItems.load();
 
 		SwordssmpModBrewingRecipes.load();
