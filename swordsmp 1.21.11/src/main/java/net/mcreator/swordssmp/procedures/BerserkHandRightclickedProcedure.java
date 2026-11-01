@@ -3,6 +3,7 @@ package net.mcreator.swordssmp.procedures;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Entity;
@@ -29,7 +30,12 @@ public class BerserkHandRightclickedProcedure {
 		Holder<Enchantment> knockback = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.KNOCKBACK);
 		Holder<Enchantment> sharpness = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SHARPNESS);
 		ItemStack stack = living.getMainHandItem();
-		stack.enchant(knockback, level);
-		stack.enchant(sharpness, level);
+		// set() replaces the level; ItemStack.enchant() is a max-semantics upsert (Mutable.upgrade) that can only
+		// ratchet up - after one low-HP episode the enchants would stay at 10 forever (persists in NBT). Baseline
+		// re-set the exact band level every tick in both directions via removeIf + re-add; set() is identical.
+		EnchantmentHelper.updateEnchantments(stack, mutable -> {
+			mutable.set(knockback, level);
+			mutable.set(sharpness, level);
+		});
 	}
 }
