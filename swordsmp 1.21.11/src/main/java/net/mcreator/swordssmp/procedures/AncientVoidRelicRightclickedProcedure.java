@@ -32,7 +32,7 @@ public class AncientVoidRelicRightclickedProcedure {
 		if (entity instanceof Player player) {
 			String ownerId = relicTag.getString("VoidRelicOwner").orElse("");
 			if (!ownerId.isEmpty() && !ownerId.equals(player.getStringUUID())) {
-				relicTag.remove("VoidRelicCooldownUntil");
+				relicTag.remove("VoidRelicCooldownRemaining");
 				relicTag.remove("VoidRelicActiveUntil");
 				relicTag.remove("VoidRelicWarned");
 				relicTag.remove("VoidRelicOwner");
