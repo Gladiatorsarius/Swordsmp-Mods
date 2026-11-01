@@ -63,7 +63,7 @@ public class SwordssmpMod implements ModInitializer {
 			List<Tuple<Runnable, Integer>> actions = new ArrayList<>();
 			workQueue.forEach(work -> {
 				work.setB(work.getB() - 1);
-				if (work.getB() == 0)
+				if (work.getB() <= 0)
 					actions.add(work);
 			});
 			actions.forEach(e -> e.getA().run());
