@@ -20,9 +20,14 @@ public final class InvisibilityAmplifierSync {
 	public static void register() {
 		PayloadTypeRegistry.playS2C().register(InvisibilityAmplifierSyncMessage.TYPE, InvisibilityAmplifierSyncMessage.STREAM_CODEC);
 		EntityTrackingEvents.START_TRACKING.register((trackedEntity, player) -> {
+			// Only send when there is something to say: no -1 spam for every
+			// tracked mob. Stale client entries are dropped on entity unload
+			// (ClientEntityEvents.ENTITY_UNLOAD), so "absent means -1" holds.
 			if (trackedEntity instanceof LivingEntity living) {
 				MobEffectInstance effect = living.getEffect(MobEffects.INVISIBILITY);
-				ServerPlayNetworking.send(player, new InvisibilityAmplifierSyncMessage(living.getId(), effect != null ? effect.getAmplifier() : -1));
+				if (effect != null && ServerPlayNetworking.canSend(player, InvisibilityAmplifierSyncMessage.TYPE)) {
+					ServerPlayNetworking.send(player, new InvisibilityAmplifierSyncMessage(living.getId(), effect.getAmplifier()));
+				}
 			}
 		});
 	}
