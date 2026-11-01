@@ -9,10 +9,6 @@ import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 
 public class SwordssmpModTabs {
 	public static void load() {
-		ItemGroupEvents.modifyEntriesEvent(SwordssmpCustomItemGroups.SWORDSMP_TAB).register(tabData -> {
-			// Custom Swordsmp Items tab - all items except Chaos Crystal and The Abomination
-			SwordssmpModItems.SWORDSMP_TAB_ITEMS.forEach(tabData::accept);
-		});
 		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.COMBAT).register(tabData -> {
 			tabData.accept(SwordssmpModItems.WIND_BLADE);
 			tabData.accept(SwordssmpModItems.CHORUS_SLAYER);
