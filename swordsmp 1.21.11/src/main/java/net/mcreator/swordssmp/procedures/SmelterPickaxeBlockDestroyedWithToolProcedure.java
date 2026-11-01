@@ -49,6 +49,9 @@ public class SmelterPickaxeBlockDestroyedWithToolProcedure {
 				Block.dropResources(world.getBlockState(pos), world, pos, null);
 				world.destroyBlock(pos, false);
 			}
+			// The block is fully handled here; cancel vanilla's own break so it
+			// does not drop the same resources a second time.
+			eventResult = false;
 		}
 	}
 
