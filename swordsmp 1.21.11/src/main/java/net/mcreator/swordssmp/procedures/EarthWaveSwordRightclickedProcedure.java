@@ -19,6 +19,7 @@ import net.mcreator.swordssmp.SwordssmpMod;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 
 public class EarthWaveSwordRightclickedProcedure {
+	private static final java.util.concurrent.atomic.AtomicLong CAST_COUNTER = new java.util.concurrent.atomic.AtomicLong();
 	public static boolean eventResult = true;
 
 	public EarthWaveSwordRightclickedProcedure() {
@@ -57,6 +58,9 @@ public class EarthWaveSwordRightclickedProcedure {
 			}
 			// execute ability (no per-player variable gating)
 			if (world instanceof ServerLevel _level) {
+				// Unique tag per cast so the cleanup only removes THIS cast's displays - a
+				// simultaneous second caster's displays were previously discarded early too.
+				final String castTag = "swordssmp_earthwave_cast_" + CAST_COUNTER.getAndIncrement();
 				// Summon expanding rings of dripstone block displays from inside out
 				for (int ringIndex = 0; ringIndex < 5; ringIndex++) {
 					final int ring = ringIndex;
@@ -68,7 +72,7 @@ public class EarthWaveSwordRightclickedProcedure {
 							double angle = Math.toRadians(i * (360.0 / blocksPerRing));
 							double sx = x + Math.cos(angle) * radius;
 							double sz = z + Math.sin(angle) * radius;
-							String cmd = String.format(java.util.Locale.ROOT, "/summon block_display %.3f %.3f %.3f {block_state:{Name:\"minecraft:pointed_dripstone\"},Tags:[\"swordssmp_earthwave\"]}", sx, y, sz);
+							String cmd = String.format(java.util.Locale.ROOT, "/summon block_display %.3f %.3f %.3f {block_state:{Name:\"minecraft:pointed_dripstone\"},Tags:[\"swordssmp_earthwave\",\"" + castTag + "\"]}", sx, y, sz);
 							ProcedureUtils.runCommand(_level, sx, y, sz, cmd);
 						}
 					});
@@ -88,7 +92,7 @@ public class EarthWaveSwordRightclickedProcedure {
 
 				// Clean up the spawned displays shortly after
 				SwordssmpMod.queueServerWork(30, () -> {
-					for (Display.BlockDisplay display : _level.getEntitiesOfClass(Display.BlockDisplay.class, area.inflate(4), e -> e.getTags().contains("swordssmp_earthwave"))) {
+					for (Display.BlockDisplay display : _level.getEntitiesOfClass(Display.BlockDisplay.class, area.inflate(4), e -> e.getTags().contains(castTag))) {
 						display.discard();
 					}
 				});
