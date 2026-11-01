@@ -68,7 +68,7 @@ public class EarthWaveSwordRightclickedProcedure {
 							double angle = Math.toRadians(i * (360.0 / blocksPerRing));
 							double sx = x + Math.cos(angle) * radius;
 							double sz = z + Math.sin(angle) * radius;
-							String cmd = String.format(java.util.Locale.ROOT, "/summon block_display %.3f %.3f %.3f {block_state:{Name:\"minecraft:pointed_dripstone\"}}", sx, y, sz);
+							String cmd = String.format(java.util.Locale.ROOT, "/summon block_display %.3f %.3f %.3f {block_state:{Name:\"minecraft:pointed_dripstone\"},Tags:[\"swordssmp_earthwave\"]}", sx, y, sz);
 							ProcedureUtils.runCommand(_level, sx, y, sz, cmd);
 						}
 					});
@@ -88,7 +88,7 @@ public class EarthWaveSwordRightclickedProcedure {
 
 				// Clean up the spawned displays shortly after
 				SwordssmpMod.queueServerWork(30, () -> {
-					for (Display.BlockDisplay display : _level.getEntitiesOfClass(Display.BlockDisplay.class, area.inflate(4))) {
+					for (Display.BlockDisplay display : _level.getEntitiesOfClass(Display.BlockDisplay.class, area.inflate(4), e -> e.getTags().contains("swordssmp_earthwave"))) {
 						display.discard();
 					}
 				});
