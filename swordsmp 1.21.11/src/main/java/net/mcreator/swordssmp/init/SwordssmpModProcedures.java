@@ -20,7 +20,6 @@ public class SwordssmpModProcedures {
 		new EarthWaveSwordRightclickedProcedure();
 		new GhostBladeRightclickedProcedure();
 		new BerserkHandRightclickedProcedure();
-		new TNTRodRightclickedProcedure();
 		new TheAbominationRightclickedProcedure();
 	}
 }
