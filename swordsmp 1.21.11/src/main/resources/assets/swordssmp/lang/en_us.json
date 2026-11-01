@@ -42,6 +42,6 @@
   "item.swordssmp.the_abomination": "The Abomination",
   "item.swordssmp.swift_blue": "Swift Blue",
   "item.swordssmp.powerful_red": "Powerful Red",
-  "gamerule.lifeStealerHardcore": "lifestealerhardcore",
-  "gamerule.lifeStealerHardcore.description": "lifestealerhardcore"
+  "gamerule.swordssmp.life_stealer_hardcore": "Life Stealer Hardcore",
+  "gamerule.swordssmp.life_stealer_hardcore.description": "Killing a player with the Life Stealer permanently grants the killer 2 extra max health."
 }
