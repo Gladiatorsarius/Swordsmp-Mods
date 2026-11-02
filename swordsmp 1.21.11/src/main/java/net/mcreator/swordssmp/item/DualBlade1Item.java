@@ -8,17 +8,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.tags.TagKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.resources.Identifier;
-import net.minecraft.core.registries.Registries;
 
 import net.mcreator.swordssmp.procedures.DualBlade1ToolInHandTickProcedure;
 import net.mcreator.swordssmp.procedures.DualBlade1LivingEntityIsHitWithToolProcedure;
 
 public class DualBlade1Item extends Item {
-	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 50000, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:powerful_red_repair_items")));
+	private static final ToolMaterial TOOL_MATERIAL = ModToolMaterials.of(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 50000, 2, "powerful_red_repair_items");
 
 	public DualBlade1Item(Item.Properties properties) {
 		super(properties.sword(TOOL_MATERIAL, 7f, -2.4f));

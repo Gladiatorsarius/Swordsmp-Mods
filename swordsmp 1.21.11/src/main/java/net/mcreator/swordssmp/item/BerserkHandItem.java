@@ -8,16 +8,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.tags.TagKey;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.resources.Identifier;
-import net.minecraft.core.registries.Registries;
 
 import net.mcreator.swordssmp.procedures.BerserkHandRightclickedProcedure;
 import net.mcreator.swordssmp.procedures.BerserkHandLivingEntityIsHitWithToolProcedure;
 
 public class BerserkHandItem extends Item {
-	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 7210, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:berserk_hand_repair_items")));
+	private static final ToolMaterial TOOL_MATERIAL = ModToolMaterials.of(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 7210, 2, "berserk_hand_repair_items");
 
 	public BerserkHandItem(Item.Properties properties) {
 		super(properties.sword(TOOL_MATERIAL, 7f, -2.4f));

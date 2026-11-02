@@ -26,6 +26,6 @@ public class TheAbominationItem extends Item {
 	@Override
 	public void hurtEnemy(ItemStack itemstack, LivingEntity entity, LivingEntity sourceentity) {
 		super.hurtEnemy(itemstack, entity, sourceentity);
-		TheAbominationRightclickedProcedure.execute(entity.level(), entity.getX(), entity.getY(), entity.getZ(), entity);
+		TheAbominationRightclickedProcedure.execute(sourceentity.level(), sourceentity);
 	}
 }

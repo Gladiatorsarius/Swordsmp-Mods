@@ -15,7 +15,6 @@ import net.minecraft.network.chat.Component;
 import net.mcreator.swordssmp.init.SwordssmpModItems;
 
 public class AncientVoidRelicRightclickedProcedure {
-	public static boolean eventResult = true;
 
 	private static final long COOLDOWN_TICKS = 12000L;
 	private static final long ACTIVE_WINDOW_TICKS = 200L;
@@ -33,7 +32,7 @@ public class AncientVoidRelicRightclickedProcedure {
 		if (entity instanceof Player player) {
 			String ownerId = relicTag.getString("VoidRelicOwner").orElse("");
 			if (!ownerId.isEmpty() && !ownerId.equals(player.getStringUUID())) {
-				relicTag.remove("VoidRelicCooldownUntil");
+				relicTag.remove("VoidRelicCooldownRemaining");
 				relicTag.remove("VoidRelicActiveUntil");
 				relicTag.remove("VoidRelicWarned");
 				relicTag.remove("VoidRelicOwner");

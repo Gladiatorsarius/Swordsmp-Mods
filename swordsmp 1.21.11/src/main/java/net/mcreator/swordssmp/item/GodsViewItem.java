@@ -6,15 +6,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.tags.TagKey;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.resources.Identifier;
-import net.minecraft.core.registries.Registries;
 
 import net.mcreator.swordssmp.procedures.GodsViewRightclickedProcedure;
 
 public class GodsViewItem extends Item {
-	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_DIAMOND_TOOL, 290, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:gods_view_repair_items")));
+	private static final ToolMaterial TOOL_MATERIAL = ModToolMaterials.of(BlockTags.INCORRECT_FOR_DIAMOND_TOOL, 290, 2, "gods_view_repair_items");
 
 	public GodsViewItem(Item.Properties properties) {
 		super(properties.sword(TOOL_MATERIAL, 6f, -2.7f));

@@ -12,18 +12,15 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.tags.TagKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.resources.Identifier;
-import net.minecraft.core.registries.Registries;
 
 import net.mcreator.swordssmp.procedures.AncientVoidRelicLivingEntityIsHitWithToolProcedure;
 import net.mcreator.swordssmp.procedures.AncientVoidRelicToolInHandTickProcedure;
 import net.mcreator.swordssmp.procedures.AncientVoidRelicRightclickedProcedure;
 
 public class AncientVoidRelicItem extends Item {
-	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 100, 4f, 0, 2, TagKey.create(Registries.ITEM, Identifier.parse("swordssmp:ancient_void_relic_repair_items")));
+	private static final ToolMaterial TOOL_MATERIAL = ModToolMaterials.of(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 100, 2, "ancient_void_relic_repair_items");
 
 	public AncientVoidRelicItem(Item.Properties properties) {
 		super(properties.sword(TOOL_MATERIAL, 7f, -2.4f));

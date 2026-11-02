@@ -1,7 +1,6 @@
 package net.mcreator.swordssmp.procedures;
 
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,46 +9,41 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.resources.Identifier;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.BlockPos;
 
 import net.mcreator.swordssmp.init.SwordssmpModGameRules;
 
 public class LifeStealerLivingEntityIsHitWithToolProcedure {
-	public static boolean eventResult = true;
+	public static final String KILL_REWARDED_TAG = "swordssmp_lifestealer_kill_rewarded";
+	// Written by LifeStealerDyingStateMixin (hurtServer HEAD) with the victim's dying state just before
+	// each hit's damage lands; consumed here after the hit. Lets the claim distinguish "this
+	// hit caused the dying state" (a kill by this attacker) from "the victim was already
+	// dying of something else" (a corpse touch, which pays nothing).
+	public static final String DYING_BEFORE_HIT_TAG = "swordssmp_lifestealer_dying_before_hit";
 
 	public static void execute(LevelAccessor world, double x, double y, double z, Entity entity, Entity sourceentity) {
 		if (entity == null || sourceentity == null)
 			return;
-		if (world instanceof ServerLevel _serverLevelGR0 && Boolean.TRUE.equals(_serverLevelGR0.getGameRules().get(SwordssmpModGameRules.LIFE_STEALER_HARDCORE))) {
-			if (entity instanceof Player) {
-				if (entity instanceof LivingEntity _livEnt && _livEnt.isDeadOrDying()) {
-					if (sourceentity instanceof LivingEntity _livingEntity4 && _livingEntity4.getAttributes().hasAttribute(Attributes.MAX_HEALTH)) {
-						_livingEntity4.getAttribute(Attributes.MAX_HEALTH).setBaseValue((_livingEntity4.getMaxHealth() + 2));
-					}
-					if (world instanceof Level _level) {
-						if (!_level.isClientSide()) {
-							_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.NEUTRAL, 1, 1);
-						} else {
-							_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.NEUTRAL, 1, 1, false);
-						}
-					}
+		if (world instanceof ServerLevel serverLevel && Boolean.TRUE.equals(serverLevel.getGameRules().get(SwordssmpModGameRules.LIFE_STEALER_HARDCORE))) {
+			// +2 max health is granted once per kill: only the hit whose own damage transitioned the
+			// victim into dying - the killing blow, applied just before this callback - may claim it,
+			// via an atomic tag on the victim. Later hits on the dying victim, by anyone, grant
+			// nothing; and a hit on a victim who was ALREADY dying of another cause (fall damage,
+			// another weapon, poison) grants nothing either - the reward belongs to the kill, not to
+			// the first sword to touch the corpse. Both tags live in the victim's entity NBT, so they
+			// survive chunk unload/reload while dying and disappear when the victim is removed;
+			// SwordssmpMod clears them on player respawn.
+			if (entity instanceof Player && entity instanceof LivingEntity victim && victim.isDeadOrDying() && !victim.getTags().contains(DYING_BEFORE_HIT_TAG) && victim.addTag(KILL_REWARDED_TAG)) {
+				if (sourceentity instanceof LivingEntity attacker && attacker.getAttributes().hasAttribute(Attributes.MAX_HEALTH)) {
+					attacker.getAttribute(Attributes.MAX_HEALTH).setBaseValue((attacker.getMaxHealth() + 2));
 				}
+				ProcedureUtils.playBlockSound(world, x, y, z, "block.beacon.activate", SoundSource.NEUTRAL, 1, 1);
 			}
 		}
-		if (entity instanceof LivingEntity _livEnt && _livEnt.isDeadOrDying()) {
-			if (sourceentity instanceof LivingEntity _livingEntity) {
-				_livingEntity.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, Integer.MAX_VALUE, 1, false, false));
+		if (entity instanceof LivingEntity victim && victim.isDeadOrDying()) {
+			if (sourceentity instanceof LivingEntity attacker) {
+				attacker.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, Integer.MAX_VALUE, 1, false, false));
 			}
-			if (world instanceof Level _level) {
-				if (!_level.isClientSide()) {
-					_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.NEUTRAL, 1, 1);
-				} else {
-					_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("block.beacon.activate")), SoundSource.NEUTRAL, 1, 1, false);
-				}
-			}
+			ProcedureUtils.playBlockSound(world, x, y, z, "block.beacon.activate", SoundSource.NEUTRAL, 1, 1);
 		}
-		
 	}
 }

@@ -15,7 +15,11 @@ public abstract class PrimedTntMixin {
 	@Inject(method = "explode", at = @At("HEAD"), cancellable = true)
 	private void onExplode(CallbackInfo ci) {
 		PrimedTnt tnt = (PrimedTnt) (Object) this;
-		if (TNTSword2RightclickedOnBlockProcedure.BIG_TNT_UUIDS.remove(tnt.getUUID())) {
+		// The UUID set is per-world SavedData so it survives a server restart together
+		// with the still-fused TNT entity. explode() runs server-side; guard anyway.
+		var server = tnt.level().getServer();
+		if (server != null && TNTSword2RightclickedOnBlockProcedure.isBigTnt(server, tnt.getUUID())) {
+			TNTSword2RightclickedOnBlockProcedure.consumeBigTnt(server, tnt.getUUID());
 			Level level = tnt.level();
 			level.explode(tnt, tnt.getX(), tnt.getY(0.0625), tnt.getZ(), 8.0F, Level.ExplosionInteraction.TNT);
 			ci.cancel();

@@ -1,94 +1,43 @@
 package net.mcreator.swordssmp.procedures;
 
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.permissions.PermissionSet;
-
-import net.minecraft.network.chat.Component;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.CommandSource;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.sounds.SoundSource;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.FishingHook;
 
 import net.mcreator.swordssmp.init.SwordssmpModItems;
 import net.mcreator.swordssmp.SwordssmpMod;
 
-import net.fabricmc.fabric.api.event.player.UseItemCallback;
-
 public class TNTRodRightclickedProcedure {
-	public static boolean eventResult = true;
-
-	public TNTRodRightclickedProcedure() {
-		UseItemCallback.EVENT.register((player, level, hand) -> {
-			if (hand == player.getUsedItemHand())
-				execute(level, player.getX(), player.getY(), player.getZ(), player);
-			boolean result = eventResult;
-			eventResult = true;
-			return result ? InteractionResult.PASS : InteractionResult.FAIL;
-		});
-	}
 
 	public static void execute(LevelAccessor world, double x, double y, double z, Entity entity) {
 		if (entity == null)
 			return;
-		if ((entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).getItem() == SwordssmpModItems.TNT_ROD) {
-			SwordssmpMod.queueServerWork(10, () -> {
-				if (world instanceof ServerLevel _level) {
-					_level.getServer().getCommands().performPrefixedCommand(new CommandSourceStack(CommandSource.NULL, new Vec3(x, y, z), Vec2.ZERO, _level, PermissionSet.ALL_PERMISSIONS, "", Component.literal(""), _level.getServer(), null).withSuppressedOutput(),
-							"/execute at @e[type=minecraft:fishing_bobber] run summon tnt ~ ~ ~");
-					(entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).hurtAndBreak(100, _level, null, _stkprov -> {
-					});
-				}
-				SwordssmpMod.queueServerWork(10, () -> {
-					if (world instanceof ServerLevel _level) {
-						_level.getServer().getCommands().performPrefixedCommand(new CommandSourceStack(CommandSource.NULL, new Vec3(x, y, z), Vec2.ZERO, _level, PermissionSet.ALL_PERMISSIONS, "", Component.literal(""), _level.getServer(), null).withSuppressedOutput(),
-								"/execute at @e[type=minecraft:fishing_bobber] run summon tnt ~ ~ ~");
-						(entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).hurtAndBreak(100, _level, null, _stkprov -> {
-						});
-					}
-					SwordssmpMod.queueServerWork(10, () -> {
+		// Capture the rod stack now so the delayed durability cost always lands on the
+		// rod, not on whatever the player happens to hold when the timer fires.
+		ItemStack rodStack = (entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY);
+		if (rodStack.getItem() == SwordssmpModItems.TNT_ROD) {
+			// Capture the caster's own bobber: the ability rains TNT on YOUR cast,
+			// not on every fishing bobber loaded anywhere in the world.
+			FishingHook hook = (entity instanceof Player _player) ? _player.fishing : null;
+			// Queue only on the server: the queue is drained by server ticks, so entries
+			// queued from a physical client (item use() fires on both sides) would never
+			// run there and would accumulate for the whole session.
+			if (world instanceof ServerLevel) {
+				for (int i = 1; i <= 5; i++) {
+					SwordssmpMod.queueServerWork(10 * i, () -> {
 						if (world instanceof ServerLevel _level) {
-							_level.getServer().getCommands().performPrefixedCommand(new CommandSourceStack(CommandSource.NULL, new Vec3(x, y, z), Vec2.ZERO, _level, PermissionSet.ALL_PERMISSIONS, "", Component.literal(""), _level.getServer(), null).withSuppressedOutput(),
-									"/execute at @e[type=minecraft:fishing_bobber] run summon tnt ~ ~ ~");
-							(entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).hurtAndBreak(100, _level, null, _stkprov -> {
+							if (hook != null && hook.isAlive()) {
+								ProcedureUtils.runCommand(_level, hook.getX(), hook.getY(), hook.getZ(), "/summon minecraft:tnt ~ ~ ~");
+							}
+							rodStack.hurtAndBreak(100, _level, (entity instanceof ServerPlayer _sp ? _sp : null), _stkprov -> {
 							});
 						}
-						SwordssmpMod.queueServerWork(10, () -> {
-							if (world instanceof ServerLevel _level) {
-								_level.getServer().getCommands().performPrefixedCommand(new CommandSourceStack(CommandSource.NULL, new Vec3(x, y, z), Vec2.ZERO, _level, PermissionSet.ALL_PERMISSIONS, "", Component.literal(""), _level.getServer(), null).withSuppressedOutput(),
-										"/execute at @e[type=minecraft:fishing_bobber] run summon tnt ~ ~ ~");
-								(entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).hurtAndBreak(100, _level, null, _stkprov -> {
-								});
-							}
-							SwordssmpMod.queueServerWork(10, () -> {
-								if (world instanceof ServerLevel _level) {
-									_level.getServer().getCommands().performPrefixedCommand(
-											new CommandSourceStack(CommandSource.NULL, new Vec3(x, y, z), Vec2.ZERO, _level, PermissionSet.ALL_PERMISSIONS, "", Component.literal(""), _level.getServer(), null).withSuppressedOutput(),
-											"/execute at @e[type=minecraft:fishing_bobber] run summon tnt ~ ~ ~");
-									(entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).hurtAndBreak(100, _level, null, _stkprov -> {
-									});
-								}
-							});
-						});
 					});
-				});
-			});
-		} else {
-			if ((entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY).getItem() == SwordssmpModItems.TNT_ROD) {
-				if (world instanceof Level _level) {
-					if (!_level.isClientSide()) {
-						_level.playSound(null, new Vec3(x, y, z).x, new Vec3(x, y, z).y, new Vec3(x, y, z).z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("ui.button.click")), SoundSource.PLAYERS, 1, 1);
-					} else {
-						_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("ui.button.click")), SoundSource.PLAYERS, 1, 1, false);
-					}
 				}
 			}
 		}

@@ -2,7 +2,6 @@ package net.mcreator.swordssmp.procedures;
 
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -13,13 +12,18 @@ import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.resources.Identifier;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.component.CustomData;
+
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.util.datafix.DataFixTypes;
 
 import net.mcreator.swordssmp.init.SwordssmpModItems;
+
+import com.mojang.serialization.Codec;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
@@ -28,47 +32,88 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.UUID;
-import java.util.Iterator;
-import java.util.Map.Entry;
 
 public class TNTSword2RightclickedOnBlockProcedure {
+	// Ground tick counter: short-lived runtime state, recomputed from the still-live
+	// entity after a restart, so it stays in memory.
 	public static final Map<UUID, Integer> TNT_GROUND_TICKS = new HashMap<>();
-	public static final Set<UUID> BIG_TNT_UUIDS = new HashSet<>();
+
+	// The set of UUIDs belonging to TNT Sword 2's thrown TNT lives in per-world
+	// SavedData: the thrown PrimedTnt itself survives a server restart via its NBT, so
+	// the tracking has to survive too. Before this, the set was a static in-memory
+	// field - after a restart a parked TNT lost its landing detonation and eventually
+	// exploded at normal size.
+	public static class BigTntUuids extends SavedData {
+		public final Set<UUID> uuids;
+
+		public BigTntUuids(Set<UUID> uuids) {
+			this.uuids = uuids;
+		}
+	}
+
+	private static final SavedDataType<BigTntUuids> BIG_TNT_TYPE = new SavedDataType<>("swordssmp_tntsword2_big_tnts", () -> new BigTntUuids(new HashSet<>()),
+			Codec.list(UUIDUtil.CODEC).xmap(uuids -> new BigTntUuids(new HashSet<>(uuids)), data -> java.util.List.copyOf(data.uuids)), DataFixTypes.SAVED_DATA_COMMAND_STORAGE);
+
+	private static BigTntUuids data(MinecraftServer server) {
+		DimensionDataStorage storage = server.overworld().getDataStorage();
+		return storage.computeIfAbsent(BIG_TNT_TYPE);
+	}
+
+	// Looked up by PrimedTntMixin right before the TNT explodes.
+	public static boolean isBigTnt(MinecraftServer server, UUID uuid) {
+		return data(server).uuids.contains(uuid);
+	}
+
+	public static void consumeBigTnt(MinecraftServer server, UUID uuid) {
+		BigTntUuids data = data(server);
+		if (data.uuids.remove(uuid)) {
+			data.setDirty();
+		}
+		TNT_GROUND_TICKS.remove(uuid);
+	}
 
 	public TNTSword2RightclickedOnBlockProcedure() {
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
-			Iterator<Entry<UUID, Integer>> iterator = TNT_GROUND_TICKS.entrySet().iterator();
-			while (iterator.hasNext()) {
-				Entry<UUID, Integer> entry = iterator.next();
-				UUID uuid = entry.getKey();
-
+			BigTntUuids data = data(server);
+			boolean dirty = false;
+			for (UUID uuid : new HashSet<>(data.uuids)) {
 				PrimedTnt tnt = null;
 				for (ServerLevel level : server.getAllLevels()) {
-					Entity entity = level.getEntity(uuid);
-					if (entity instanceof PrimedTnt primedTnt) {
+					if (level.getEntity(uuid) instanceof PrimedTnt primedTnt) {
 						tnt = primedTnt;
 						break;
 					}
 				}
 
-				if (tnt == null || !tnt.isAlive()) {
-					iterator.remove();
-					BIG_TNT_UUIDS.remove(uuid);
+				// Not found usually means its chunk is not loaded right now (a UUID lookup
+				// only sees loaded entities) - keep the entry: vanilla freezes the entity
+				// with the chunk and resumes it on load. Purging here would silently drop
+				// the tracking on every restart outside spawn-force-loaded chunks.
+				if (tnt == null) {
+					continue;
+				}
+				if (!tnt.isAlive()) {
+					data.uuids.remove(uuid);
+					TNT_GROUND_TICKS.remove(uuid);
+					dirty = true;
 					continue;
 				}
 
 				if (tnt.onGround()) {
-					int ticks = entry.getValue() + 1;
+					int ticks = TNT_GROUND_TICKS.getOrDefault(uuid, 0) + 1;
 					if (ticks >= 5) {
 						tnt.setFuse(0);
-						iterator.remove();
+						TNT_GROUND_TICKS.remove(uuid);
 					} else {
-						entry.setValue(ticks);
+						TNT_GROUND_TICKS.put(uuid, ticks);
 					}
 				} else {
-					entry.setValue(0);
+					TNT_GROUND_TICKS.put(uuid, 0);
 					tnt.setFuse(99999);
 				}
+			}
+			if (dirty) {
+				data.setDirty();
 			}
 		});
 	}
@@ -78,21 +123,9 @@ public class TNTSword2RightclickedOnBlockProcedure {
 			return;
 		ItemStack mainHandStack = (entity instanceof LivingEntity _livEnt ? _livEnt.getMainHandItem() : ItemStack.EMPTY);
 		if (mainHandStack.getItem() == SwordssmpModItems.TNT_SWORD_2) {
-			CustomData customData = mainHandStack.get(DataComponents.CUSTOM_DATA);
-			CompoundTag cooldownTag = customData != null ? customData.copyTag() : new CompoundTag();
-			boolean tagChanged = false;
-			if (entity instanceof Player player) {
-				String ownerId = cooldownTag.getString("TNTSword2CooldownOwner").orElse("");
-				if (!ownerId.isEmpty() && !ownerId.equals(player.getStringUUID())) {
-					cooldownTag.remove("TNTSword2CooldownUntil");
-					cooldownTag.remove("TNTSword2CooldownOwner");
-					tagChanged = true;
-				}
-			}
-			long now = 0L;
-			if (world instanceof Level _level) {
-				now = _level.getGameTime();
-			}
+			CompoundTag cooldownTag = ProcedureUtils.getCustomTag(mainHandStack);
+			boolean tagChanged = ProcedureUtils.resetCooldownIfOwnerChanged(cooldownTag, "TNTSword2", entity);
+			long now = ProcedureUtils.gameTime(world);
 			long cooldownUntil = cooldownTag.getLong("TNTSword2CooldownUntil").orElse(0L);
 			if (cooldownUntil > 0L) {
 				if (now < cooldownUntil) {
@@ -103,41 +136,27 @@ public class TNTSword2RightclickedOnBlockProcedure {
 				tagChanged = true;
 			}
 			if (tagChanged) {
-				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
+				ProcedureUtils.saveCustomTag(mainHandStack, cooldownTag);
 			}
 			if (entity instanceof Player _player && _player.getCooldowns().isOnCooldown(mainHandStack))
 				return;
-			{
-				if (world instanceof Level _level) {
-					if (!_level.isClientSide()) {
-						_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("entity.tnt.primed")), SoundSource.NEUTRAL, 50, 1);
-					} else {
-						_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.getValue(Identifier.parse("entity.tnt.primed")), SoundSource.NEUTRAL, 50, 1, false);
-					}
+			ProcedureUtils.playBlockSound(world, x, y, z, "entity.tnt.primed", SoundSource.NEUTRAL, 50, 1);
+			if (world instanceof ServerLevel serverLevel && entity instanceof Player player) {
+				Vec3 lookAngle = player.getLookAngle();
+				Vec3 spawnPos = player.getEyePosition().add(lookAngle.scale(0.5));
+				PrimedTnt tnt = EntityType.TNT.create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
+				if (tnt != null) {
+					tnt.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
+					tnt.setDeltaMovement(lookAngle.x * 2.5, lookAngle.y * 2.5, lookAngle.z * 2.5);
+					tnt.setFuse(99999);
+					serverLevel.addFreshEntity(tnt);
+					TNT_GROUND_TICKS.put(tnt.getUUID(), 0);
+					BigTntUuids data = data(serverLevel.getServer());
+					data.uuids.add(tnt.getUUID());
+					data.setDirty();
 				}
-				if (world instanceof ServerLevel serverLevel && entity instanceof Player player) {
-					Vec3 lookAngle = player.getLookAngle();
-					Vec3 spawnPos = player.getEyePosition().add(lookAngle.scale(0.5));
-					PrimedTnt tnt = EntityType.TNT.create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
-					if (tnt != null) {
-						tnt.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
-						tnt.setDeltaMovement(lookAngle.x * 2.5, lookAngle.y * 2.5, lookAngle.z * 2.5);
-						tnt.setFuse(99999);
-						serverLevel.addFreshEntity(tnt);
-						TNT_GROUND_TICKS.put(tnt.getUUID(), 0);
-						BIG_TNT_UUIDS.add(tnt.getUUID());
-					}
-				}
-				if (entity instanceof Player _player && !_player.level().isClientSide()) {
-					_player.getCooldowns().addCooldown(_player.getMainHandItem(), 300);
-				}
-
-				cooldownTag.putLong("TNTSword2CooldownUntil", now + 300L);
-				if (entity instanceof Player player) {
-					cooldownTag.putString("TNTSword2CooldownOwner", player.getStringUUID());
-				}
-				mainHandStack.set(DataComponents.CUSTOM_DATA, CustomData.of(cooldownTag));
 			}
+			ProcedureUtils.startCooldown(mainHandStack, cooldownTag, "TNTSword2", entity, now, 300L);
 		}
 	}
 }
