@@ -5,7 +5,8 @@
   "mixins": [
     "BlockSmelterMixin",
     "PlayerMixin",
-    "PrimedTntMixin"
+    "PrimedTntMixin",
+    "LifeStealerDyingStateMixin"
   ],
   "client": [],
   "injectors": {

@@ -14,17 +14,25 @@ import net.mcreator.swordssmp.init.SwordssmpModGameRules;
 
 public class LifeStealerLivingEntityIsHitWithToolProcedure {
 	public static final String KILL_REWARDED_TAG = "swordssmp_lifestealer_kill_rewarded";
+	// Written by LifeStealerDyingStateMixin (hurtServer HEAD) with the victim's dying state just before
+	// each hit's damage lands; consumed here after the hit. Lets the claim distinguish "this
+	// hit caused the dying state" (a kill by this attacker) from "the victim was already
+	// dying of something else" (a corpse touch, which pays nothing).
+	public static final String DYING_BEFORE_HIT_TAG = "swordssmp_lifestealer_dying_before_hit";
 
 	public static void execute(LevelAccessor world, double x, double y, double z, Entity entity, Entity sourceentity) {
 		if (entity == null || sourceentity == null)
 			return;
 		if (world instanceof ServerLevel serverLevel && Boolean.TRUE.equals(serverLevel.getGameRules().get(SwordssmpModGameRules.LIFE_STEALER_HARDCORE))) {
-			// +2 max health is granted once per kill: the first hit that observes the victim dying
-			// (i.e. the killing blow, applied just before this callback) claims it via an atomic tag
-			// on the victim. Later hits on the dying victim, by anyone, grant nothing. The tag is
-			// stored in the victim's entity NBT, so it survives chunk unload/reload while dying and
-			// disappears when the victim is removed; SwordssmpMod clears it on player respawn.
-			if (entity instanceof Player && entity instanceof LivingEntity victim && victim.isDeadOrDying() && victim.addTag(KILL_REWARDED_TAG)) {
+			// +2 max health is granted once per kill: only the hit whose own damage transitioned the
+			// victim into dying - the killing blow, applied just before this callback - may claim it,
+			// via an atomic tag on the victim. Later hits on the dying victim, by anyone, grant
+			// nothing; and a hit on a victim who was ALREADY dying of another cause (fall damage,
+			// another weapon, poison) grants nothing either - the reward belongs to the kill, not to
+			// the first sword to touch the corpse. Both tags live in the victim's entity NBT, so they
+			// survive chunk unload/reload while dying and disappear when the victim is removed;
+			// SwordssmpMod clears them on player respawn.
+			if (entity instanceof Player && entity instanceof LivingEntity victim && victim.isDeadOrDying() && !victim.getTags().contains(DYING_BEFORE_HIT_TAG) && victim.addTag(KILL_REWARDED_TAG)) {
 				if (sourceentity instanceof LivingEntity attacker && attacker.getAttributes().hasAttribute(Attributes.MAX_HEALTH)) {
 					attacker.getAttribute(Attributes.MAX_HEALTH).setBaseValue((attacker.getMaxHealth() + 2));
 				}

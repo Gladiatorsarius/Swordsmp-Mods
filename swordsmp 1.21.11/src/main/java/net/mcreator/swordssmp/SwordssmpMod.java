@@ -55,6 +55,7 @@ public class SwordssmpMod implements ModInitializer {
 		// that player can reward again even if the tag were ever carried over.
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
 			newPlayer.removeTag(net.mcreator.swordssmp.procedures.LifeStealerLivingEntityIsHitWithToolProcedure.KILL_REWARDED_TAG);
+			newPlayer.removeTag(net.mcreator.swordssmp.procedures.LifeStealerLivingEntityIsHitWithToolProcedure.DYING_BEFORE_HIT_TAG);
 		});
 	}
 
