@@ -133,8 +133,8 @@ These were introduced during the cleanup and corrected before release. They are 
 
 - Broken (intermediate only): the first closed-form rewrite of the ten-branch if-ladder handled health <= 0 differently from the original (returned 11 or left the level unchanged instead of 10).
 - Cause: hand-rewritten formula edge case, caught when review A re-checked the original ladder branch by branch.
-- Fix: the final formula - clamp(((20 - health) / 2) + 1, 1, 10) - reproduces the original ladder for every health value above zero, which is every value a living player can have. At exactly zero or negative health the original ladder had no matching branch and simply left the previous level unchanged, while the formula returns 10; that state is only reachable briefly while dying and the attribute is recalculated from living health afterwards, so the difference has no gameplay effect. Commit 1f3ffa3.
-- Verified: exhaustive equivalence argument over the original branches for health > 0; the zero/negative difference above was re-checked in a later review round and the claim corrected. Not exercised in a running game.
+- Fix (current behavior): the formula clamp(((20 - health) / 2) + 1, 1, 10) (commit 1f3ffa3) plus a health <= 0 guard (commit cfcb74a) that returns early - the original ladder had no branch at zero or negative health and left the enchants untouched that tick, and the guard preserves exactly that. The rewrite now reproduces the original ladder for every reachable input, dying tick included. (History: before the guard, the bare formula assigned band 10 at health <= 0 - a difference reachable only while dying, with no gameplay effect since the attribute is recalculated from living health afterwards.)
+- Verified: exhaustive equivalence argument over the original branches, including the health <= 0 case by construction via the guard. Not exercised in a running game.
 
 ### B3. Player save fields nearly dropped by the cleanup
 
@@ -215,6 +215,7 @@ E1-E5 came out of the review passes that ran after the 1.0.11 candidate was prep
 - Reproduce on 1.0.7: in Creative, wear armor and stand where corrosive fire applies its effect - the armor loses durability.
 - Fix: the wearer is passed through (players only; non-players keep the previous behavior). Commit 7cc3779.
 - Verified: runtime. Automated in-server test: Survival wearer took exactly 50 chestplate damage; Creative wearer took 0.
+- Behavior note: with a real wearer now passed to the durability call, the Unbreaking enchantment can reduce corrosive wear on enchanted gear, as it does for other damage sources. This matches vanilla durability semantics; pre-fix, no entity was passed, so Unbreaking never applied.
 
 ### E8. TNT Sword 2's thrown TNT lost its big explosion after a server restart
 
