@@ -1,8 +1,8 @@
 # Swords SMP 1.0.12 - detailed bug reports
 
-Branch simplify-swordsmp. 26 commits took main @ c157794 (version 1.0.7) to 1.0.11 (commit f5de153, delivered); four further bug fixes on top bring the branch to 1.0.12. This document describes every bug fixed along the way: what was broken, the root cause, how to reproduce it on your current 1.0.7 build, what the fix does, and exactly how it was verified.
+Branch simplify-swordsmp. 26 commits took main @ c157794 (version 1.0.7) to 1.0.11 (commit f5de153, the previous candidate - prepared and reviewed, but its build was never shipped); eight further bug fixes on top (Section E) bring the branch to 1.0.12. This document describes every bug fixed along the way: what was broken, the root cause, how to reproduce it on your current 1.0.7 build, what the fix does, and exactly how it was verified.
 
-The bugs split into groups. Section A covers bugs that already existed in 1.0.7 and were fixed in 1.0.11. Section B covers mistakes the cleanup itself introduced, which were caught during the two independent review rounds and fixed before delivery - listed separately so you can see what the review process was for. Section C lists the pure cleanup commits, Section D two suspected bugs that turned out not to be bugs, Section E the bugs found and fixed after the 1.0.11 delivery (all of them also present in 1.0.7), and Section F the exact state of testing.
+The bugs split into groups. Section A covers bugs that already existed in 1.0.7 and were fixed in 1.0.11. Section B covers mistakes the cleanup itself introduced, which were caught during the two independent review rounds and fixed while that candidate was being prepared - listed separately so you can see what the review process was for. Section C lists the pure cleanup commits, Section D two suspected bugs that turned out not to be bugs, Section E the bugs found and fixed after that candidate was prepared (all of them also present in 1.0.7), and Section F the exact state of testing.
 
 # Section A - Bugs that existed in 1.0.7
 
@@ -118,9 +118,9 @@ The bugs split into groups. Section A covers bugs that already existed in 1.0.7 
 - Fix: the tab builder is the single source. Commit 8fae3ca.
 - Verified: code-path analysis. The tab is client-side, so the visual result is owed an in-game look.
 
-# Section B - Mistakes the cleanup introduced, caught in review, fixed before delivery
+# Section B - Mistakes the cleanup introduced, caught in review, fixed before the candidate was prepared
 
-These never existed in any delivered build. They are listed because you asked for full detail on what was fixed in this branch.
+These were introduced during the cleanup and corrected before release. They are listed because you asked for full detail on what was fixed in this branch.
 
 ### B1. Berserk Hand enchant ratcheted to max and stuck
 
@@ -133,8 +133,8 @@ These never existed in any delivered build. They are listed because you asked fo
 
 - Broken (intermediate only): the first closed-form rewrite of the ten-branch if-ladder handled health <= 0 differently from the original (returned 11 or left the level unchanged instead of 10).
 - Cause: hand-rewritten formula edge case, caught when review A re-checked the original ladder branch by branch.
-- Fix: the final formula - clamp(((20 - health) / 2) + 1, 1, 10) - reproduces the original ladder for every possible float input, including above-max and zero/negative health. Commit 1f3ffa3.
-- Verified: exhaustive equivalence argument over the original branches. Not exercised in a running game.
+- Fix: the final formula - clamp(((20 - health) / 2) + 1, 1, 10) - reproduces the original ladder for every health value above zero, which is every value a living player can have. At exactly zero or negative health the original ladder had no matching branch and simply left the previous level unchanged, while the formula returns 10; that state is only reachable briefly while dying and the attribute is recalculated from living health afterwards, so the difference has no gameplay effect. Commit 1f3ffa3.
+- Verified: exhaustive equivalence argument over the original branches for health > 0; the zero/negative difference above was re-checked in a later review round and the claim corrected. Not exercised in a running game.
 
 ### B3. Player save fields nearly dropped by the cleanup
 
@@ -147,7 +147,7 @@ These never existed in any delivered build. They are listed because you asked fo
 
 - Broken (intermediate only): the first fix for A2 simply returned false in the BEFORE handler - which cancelled vanilla's whole break path, silently skipping tool durability, ore XP, mined stats and the tool-aware loot context. The second fix moved the work to the AFTER event, but bytecode review proved the AFTER event fires before the drops exist, so that version was silently inert (plain raw drops, no smelting at all) and could only ever catch container spill.
 - Cause: each approach assumed something about Fabric's event timing that the actual 1.21.11 bytecode disproved. Both were caught in review rounds with bytecode evidence.
-- Fix: the shipped implementation (described in A2) intercepts the exact vanilla drop call with exact provenance and leaves the rest of the break lifecycle to vanilla. Commit f5de153.
+- Fix: the final implementation (described in A2) intercepts the exact vanilla drop call with exact provenance and leaves the rest of the break lifecycle to vanilla. Commit f5de153.
 - Verified: runtime, 6 of 6 in-server checks passed (see A2).
 
 # Section C - Pure cleanup (no behavior change)
@@ -161,9 +161,9 @@ These never existed in any delivered build. They are listed because you asked fo
 - Wind Blade double-fire: retracted. The suspected second invocation path was never registered, so it fires exactly once.
 - Berserk formula vs original ladder above 20 health: retracted after re-checking - the original ladder returns 1 there, and so does the formula. The formula matches the original at every health value.
 
-# Section E - Bugs found and fixed after the 1.0.11 delivery
+# Section E - Bugs found and fixed after the 1.0.11 candidate
 
-These four came out of the post-delivery review passes. Every one of them also exists in your current 1.0.7 build.
+E1-E5 came out of the review passes that ran after the 1.0.11 candidate was prepared; E6-E8 came out of the whole-mod review of 1.0.12. Every one of them also exists in your current 1.0.7 build.
 
 ### E1. TNT Rod: reeling in re-triggered the whole TNT cast
 
@@ -201,6 +201,29 @@ These four came out of the post-delivery review passes. Every one of them also e
 - Fix: pack.mcmeta now declares the supported_formats range 1.21.11 requires. Commit d238aea.
 - Verified: boot test - the warning is gone; 1479 recipes and 1610 advancements load exactly as before.
 
+### E6. Server-work queue grew forever on connected clients
+
+- Broken: the mod's shared server-work queue (used for timed follow-ups like the TNT Rod's staggered TNT spawns) is drained only by server tick events - but item use runs on both sides, so a physical client connected to a dedicated server queued entries that could never run and never drained. Every TNT Rod cast leaked about 5 dead entries, every Earth Wave cast 1, every Wind Blade 4-jump reset 1, every Corrosive Fire application 1, accumulating for the whole client session (slow memory growth; on very long sessions, growing per-tick iteration cost).
+- Cause: the queueing calls sat outside the existing server-side checks, so they fired on the client side too.
+- Fix: the queueing now happens only inside server-side paths (TNT Rod, Earth Wave, Wind Blade, Corrosive Fire). The queued lambdas never executed client-side before, so this changes no behavior - vanilla client prediction is untouched; it only stops the leak. Commits 6271602 and 7cc3779.
+- Verified: code-path analysis (the drain is server-only and the lambdas were already dead on the client, so guarding cannot change behavior). Not exercised with a real connected client.
+
+### E7. Corrosive Fire damaged Creative players' gear
+
+- Broken: the corrosive fire effect's gear damage (50 durability to hand and armor slots, repeated after 200 ticks) also applied in Creative. Tools and armor should not wear in Creative.
+- Cause: the durability call passed no entity, so vanilla could not apply its Creative exemption - the same class of bug as E3 on the TNT Rod.
+- Reproduce on 1.0.7: in Creative, wear armor and stand where corrosive fire applies its effect - the armor loses durability.
+- Fix: the wearer is passed through (players only; non-players keep the previous behavior). Commit 7cc3779.
+- Verified: runtime. Automated in-server test: Survival wearer took exactly 50 chestplate damage; Creative wearer took 0.
+
+### E8. TNT Sword 2's thrown TNT lost its big explosion after a server restart
+
+- Broken: TNT Sword 2 throws a live TNT (very long fuse) that explodes with a bigger radius once it lands. The thrown TNT entity survives a server restart in the world save, but the set marking which TNT are "big" was kept in memory only. After a restart, a parked TNT never got its landing detonation and eventually exploded at normal radius - and the old cleanup would also have dropped the tracking for any TNT sitting in an unloaded chunk, restart or not.
+- Cause: the tracking set was a static in-memory field while the entity it tracks is persistent.
+- Reproduce on 1.0.7: throw a TNT with TNT Sword 2, stop the server before it lands, start it again - the TNT eventually explodes at normal size.
+- Fix: the marking set now lives in per-world saved data (same storage pattern the Abomination's pending Creative restores already use), so it survives restarts together with the entity; entries whose chunk is not currently loaded are kept instead of purged. The short-lived landing counter stays in memory and is recomputed from the still-live entity. Commit c293d48.
+- Verified: runtime. Automated two-boot in-server test: threw the TNT, stopped the server while it was airborne; after the restart the reloaded TNT was still marked (loaded from disk), landed, and detonated with the big explosion, which consumed its marking.
+
 # Section F - How the fixes were verified, and what is still owed
 
 Runtime-tested on a real dedicated server:
@@ -208,8 +231,10 @@ Runtime-tested on a real dedicated server:
 - The Smelter Pickaxe passed an automated in-server block-break test, 6 of 6 checks: iron ore gives exactly 1 ingot with normal tool wear; clay gives 1 terracotta; diamond ore gives 1 diamond plus XP; a chest keeps its contents; plain blocks drop normally; container spill untouched.
 - The TNT Rod passed an automated in-server test: a cast spawns exactly 5 TNT at the caster's own bobber and costs exactly 500 durability in Survival, 0 in Creative; reeling in is plain vanilla - no TNT, no cost (E1-E3).
 - The Life Stealer passed an automated in-server test: +2 max health exactly once per kill, no payout for hitting the dying victim again, no payout for a second attacker (E4).
+- Corrosive Fire passed an automated in-server test: Survival wearer took exactly 50 durability damage, Creative wearer took 0 (E7).
+- TNT Sword 2 passed an automated two-boot restart test: a TNT thrown before the shutdown was still marked as big after the restart, landed and detonated at the big radius (E8).
 
-Verified statically (source diff, exact API and bytecode semantics, two independent review rounds) but NOT exercised in a running game: every other fix in Sections A and B.
+Verified statically (source diff, exact API and bytecode semantics, two independent review rounds) but NOT exercised in a running game: every other fix in Sections A and B, plus the client-queue leak fix E6 (its queued lambdas never ran client-side, so guarding them is provably behavior-neutral, but no real connected client has exercised it).
 
 Still owed before you ship, as an in-game pass: the Fortune/Silk Smelter run; every other ability firing once at the right cost and cooldown; the Berserk ladder at runtime; the Abomination borrow/restore across relog and restart; Earth Wave spawning and cleanup; the gamerule migration on a real old save; and the client-side surfaces (creative tab, recipe book, gamerule screen).
 
