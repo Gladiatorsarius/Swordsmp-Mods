@@ -15,8 +15,13 @@ public class TNTRodItem extends ModFishingRodItem {
 
 	@Override
 	public InteractionResult use(Level world, Player entity, InteractionHand hand) {
+		boolean wasFishing = entity.fishing != null;
 		InteractionResult result = super.use(world, entity, hand);
-		TNTRodRightclickedProcedure.execute(world, entity.getX(), entity.getY(), entity.getZ(), entity);
+		// Only a fresh cast triggers the ability; reeling the bobber back in is
+		// plain vanilla rod behavior (no TNT, no ability durability cost).
+		if (!wasFishing) {
+			TNTRodRightclickedProcedure.execute(world, entity.getX(), entity.getY(), entity.getZ(), entity);
+		}
 		return result;
 	}
 }
