@@ -224,6 +224,7 @@ E1-E5 came out of the review passes that ran after the 1.0.11 candidate was prep
 - Reproduce on 1.0.7: throw a TNT with TNT Sword 2, stop the server before it lands, start it again - the TNT eventually explodes at normal size.
 - Fix: the marking set now lives in per-world saved data (same storage pattern the Abomination's pending Creative restores already use), so it survives restarts together with the entity; entries whose chunk is not currently loaded are kept instead of purged. The short-lived landing counter stays in memory and is recomputed from the still-live entity. Commit c293d48.
 - Verified: runtime. Automated two-boot in-server test: threw the TNT, stopped the server while it was airborne; after the restart the reloaded TNT was still marked (loaded from disk), landed, and detonated with the big explosion, which consumed its marking.
+- Known limitation: a marked TNT that is removed while its chunk IS loaded (for example /kill or falling into the void) can leave its UUID in the world save indefinitely - the tick handler cannot distinguish 'entity was removed' from 'chunk is not loaded' without a marker stored on the entity itself. Each leftover costs one entity lookup per server tick for as long as the world save keeps it, so the cost grows with the number of such removals rather than being bounded. Cleaning these up reliably would need an on-entity marker - a larger persistence change, deliberately not made here.
 
 ### E9. Life Stealer: a bystander could claim +2 for a kill they never made
 
