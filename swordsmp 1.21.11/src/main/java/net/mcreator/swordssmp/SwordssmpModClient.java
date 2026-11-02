@@ -19,7 +19,7 @@ public class SwordssmpModClient implements ClientModInitializer {
 		// End of user code block mod constructor
 
 		ClientPlayNetworking.registerGlobalReceiver(SwordssmpModVariables.PlayerVariablesSyncMessage.TYPE, SwordssmpModVariables.PlayerVariablesSyncMessage::handleData);
-		ClientPlayNetworking.registerGlobalReceiver(InvisibilityAmplifierSyncMessage.TYPE, InvisibilityAmplifierSyncMessage::handleData);
+		ClientPlayNetworking.registerGlobalReceiver(InvisibilityAmplifierSyncMessage.TYPE, (message, context) -> InvisibilityAmplifierClientCache.set(message.entityId(), message.amplifier()));
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> InvisibilityAmplifierClientCache.clear());
 		ClientEntityEvents.ENTITY_UNLOAD.register((entity, world) -> InvisibilityAmplifierClientCache.set(entity.getId(), -1));
 		// Start of user code block mod init

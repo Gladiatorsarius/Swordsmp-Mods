@@ -45,11 +45,8 @@ public abstract class LivingEntityInvisSyncMixin {
 
 	@Unique
 	private void swordsmp$syncInvisibilityAmplifier(MobEffectInstance changedEffect) {
-		if (!changedEffect.is(MobEffects.INVISIBILITY)) {
-			return;
-		}
 		LivingEntity self = (LivingEntity) (Object) this;
-		if (self.level().isClientSide() || !(self.level() instanceof ServerLevel serverLevel)) {
+		if (!changedEffect.is(MobEffects.INVISIBILITY) || !(self.level() instanceof ServerLevel serverLevel)) {
 			return;
 		}
 		MobEffectInstance current = self.getEffect(MobEffects.INVISIBILITY);

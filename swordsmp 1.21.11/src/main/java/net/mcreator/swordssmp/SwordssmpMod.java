@@ -5,6 +5,9 @@ import org.jetbrains.annotations.Nullable;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
@@ -13,12 +16,15 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.component.CustomData;
 
 import net.mcreator.swordssmp.network.SwordssmpModVariables;
-import net.mcreator.swordssmp.network.InvisibilityAmplifierSync;
+import net.mcreator.swordssmp.network.InvisibilityAmplifierSyncMessage;
 import net.mcreator.swordssmp.init.*;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.api.EnvType;
 
@@ -44,7 +50,21 @@ public class SwordssmpMod implements ModInitializer {
 		SwordssmpModTabs.load();
 		SwordssmpCustomItemGroups.register();
 		SwordssmpModVariables.variablesLoad();
-		InvisibilityAmplifierSync.register();
+		// Vanilla only sends mob-effect packets to the affected player (and
+		// passengers), so observers cannot read other entities' Invisibility
+		// amplifiers. Effect changes are pushed by LivingEntityInvisSyncMixin;
+		// this fills in late trackers (join, dimension change, into range).
+		// No -1 spam for plain mobs: stale client entries are dropped on
+		// entity unload, so "absent means no effect" holds.
+		PayloadTypeRegistry.playS2C().register(InvisibilityAmplifierSyncMessage.TYPE, InvisibilityAmplifierSyncMessage.STREAM_CODEC);
+		EntityTrackingEvents.START_TRACKING.register((trackedEntity, player) -> {
+			if (trackedEntity instanceof LivingEntity living) {
+				MobEffectInstance effect = living.getEffect(MobEffects.INVISIBILITY);
+				if (effect != null && ServerPlayNetworking.canSend(player, InvisibilityAmplifierSyncMessage.TYPE)) {
+					ServerPlayNetworking.send(player, new InvisibilityAmplifierSyncMessage(living.getId(), effect.getAmplifier()));
+				}
+			}
+		});
 		SwordssmpModItems.load();
 
 		SwordssmpModBrewingRecipes.load();
