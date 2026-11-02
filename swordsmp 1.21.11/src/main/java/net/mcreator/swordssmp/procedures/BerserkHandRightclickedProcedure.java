@@ -25,7 +25,11 @@ public class BerserkHandRightclickedProcedure {
 		if (!(entity instanceof LivingEntity living) || living.getMainHandItem().getItem() != SwordssmpModItems.BERSERK_HAND)
 			return;
 		float health = living.getHealth();
-		// health > 18 -> 1, (16,18] -> 2, ... , (2,4] -> 9, <= 2 -> 10 (matches the original ladder for every value, incl. >20 max health and 0/negative)
+		// The original ladder had no branch for health <= 0 (reachable only while dying) and left
+		// the enchants untouched that tick - preserve that exactly instead of assigning a band.
+		if (health <= 0)
+			return;
+		// health > 18 -> 1, (16,18] -> 2, ... , (2,4] -> 9, (0,2] -> 10 (matches the original ladder for every reachable value, incl. >20 max health)
 		int level = Mth.clamp((int) ((20f - health) / 2f) + 1, 1, 10);
 		Holder<Enchantment> knockback = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.KNOCKBACK);
 		Holder<Enchantment> sharpness = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SHARPNESS);
