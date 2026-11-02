@@ -13,11 +13,18 @@ import net.minecraft.server.level.ServerLevel;
 import net.mcreator.swordssmp.init.SwordssmpModGameRules;
 
 public class LifeStealerLivingEntityIsHitWithToolProcedure {
+	public static final String KILL_REWARDED_TAG = "swordssmp_lifestealer_kill_rewarded";
+
 	public static void execute(LevelAccessor world, double x, double y, double z, Entity entity, Entity sourceentity) {
 		if (entity == null || sourceentity == null)
 			return;
 		if (world instanceof ServerLevel serverLevel && Boolean.TRUE.equals(serverLevel.getGameRules().get(SwordssmpModGameRules.LIFE_STEALER_HARDCORE))) {
-			if (entity instanceof Player && entity instanceof LivingEntity victim && victim.isDeadOrDying()) {
+			// +2 max health is granted once per kill: the first hit that observes the victim dying
+			// (i.e. the killing blow, applied just before this callback) claims it via an atomic tag
+			// on the victim. Later hits on the dying victim, by anyone, grant nothing. The tag is
+			// stored in the victim's entity NBT, so it survives chunk unload/reload while dying and
+			// disappears when the victim is removed; SwordssmpMod clears it on player respawn.
+			if (entity instanceof Player && entity instanceof LivingEntity victim && victim.isDeadOrDying() && victim.addTag(KILL_REWARDED_TAG)) {
 				if (sourceentity instanceof LivingEntity attacker && attacker.getAttributes().hasAttribute(Attributes.MAX_HEALTH)) {
 					attacker.getAttribute(Attributes.MAX_HEALTH).setBaseValue((attacker.getMaxHealth() + 2));
 				}

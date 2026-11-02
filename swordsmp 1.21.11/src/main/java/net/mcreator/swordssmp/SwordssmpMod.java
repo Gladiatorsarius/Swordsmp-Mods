@@ -13,6 +13,7 @@ import net.minecraft.world.item.component.CustomData;
 import net.mcreator.swordssmp.network.SwordssmpModVariables;
 import net.mcreator.swordssmp.init.*;
 
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.api.ModInitializer;
@@ -29,7 +30,6 @@ public class SwordssmpMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Initializing SwordssmpMod");
-
 		SwordssmpModTabs.load();
 		SwordssmpCustomItemGroups.register();
 		SwordssmpModVariables.variablesLoad();
@@ -49,6 +49,12 @@ public class SwordssmpMod implements ModInitializer {
 			if (player != null) {
 				clearThunderBladeCooldown(player);
 			}
+		});
+		// Life Stealer grants +2 max health once per kill; the claim tag lives on the dying victim.
+		// A respawned player is a fresh entity, but clear the tag defensively so a future kill of
+		// that player can reward again even if the tag were ever carried over.
+		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+			newPlayer.removeTag(net.mcreator.swordssmp.procedures.LifeStealerLivingEntityIsHitWithToolProcedure.KILL_REWARDED_TAG);
 		});
 	}
 
