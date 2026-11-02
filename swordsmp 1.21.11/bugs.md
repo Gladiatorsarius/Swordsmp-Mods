@@ -1,6 +1,6 @@
 # Swords SMP 1.0.12 - detailed bug reports
 
-Branch simplify-swordsmp. 26 commits took main @ c157794 (version 1.0.7) to 1.0.11 (commit f5de153, the previous candidate - prepared and reviewed, but its build was never shipped); eight further bug fixes on top (Section E) bring the branch to 1.0.12. This document describes every bug fixed along the way: what was broken, the root cause, how to reproduce it on your current 1.0.7 build, what the fix does, and exactly how it was verified.
+Branch simplify-swordsmp. 26 commits took main @ c157794 (version 1.0.7) to 1.0.11 (commit f5de153, the previous candidate - prepared and reviewed, but its build was never shipped); nine further bug fixes on top (Section E) bring the branch to 1.0.12. This document describes every bug fixed along the way: what was broken, the root cause, how to reproduce it on your current 1.0.7 build, what the fix does, and exactly how it was verified.
 
 The bugs split into groups. Section A covers bugs that already existed in 1.0.7 and were fixed in 1.0.11. Section B covers mistakes the cleanup itself introduced, which were caught during the two independent review rounds and fixed while that candidate was being prepared - listed separately so you can see what the review process was for. Section C lists the pure cleanup commits, Section D two suspected bugs that turned out not to be bugs, Section E the bugs found and fixed after that candidate was prepared (all of them also present in 1.0.7), and Section F the exact state of testing.
 
@@ -224,6 +224,14 @@ E1-E5 came out of the review passes that ran after the 1.0.11 candidate was prep
 - Fix: the marking set now lives in per-world saved data (same storage pattern the Abomination's pending Creative restores already use), so it survives restarts together with the entity; entries whose chunk is not currently loaded are kept instead of purged. The short-lived landing counter stays in memory and is recomputed from the still-live entity. Commit c293d48.
 - Verified: runtime. Automated two-boot in-server test: threw the TNT, stopped the server while it was airborne; after the restart the reloaded TNT was still marked (loaded from disk), landed, and detonated with the big explosion, which consumed its marking.
 
+### E9. Life Stealer: a bystander could claim +2 for a kill they never made
+
+- Broken: the once-per-kill reward (E4's fix) fired for the first hit that OBSERVED the victim dying - including a bystander's sword hit on a victim already dying of fall damage, poison, or someone else's weapon. Hitting a dying corpse with a Life Stealer paid +2 max health for a kill the attacker never made.
+- Cause: the claim checked only "is the victim dying now", which any hit on an already-dying victim satisfies - it never asked whether this hit's own damage caused the dying state.
+- Reproduce on 1.0.7 (and on the E4-only build): a victim falls to their death; before the corpse disappears, hit them once with a Life Stealer - +2 max health, no kill required.
+- Fix: a small hurtServer mixin records the victim's dying state just before each hit's damage lands; only the hit whose own damage transitioned the victim into dying - the actual killing blow - may claim the reward. Hits on a victim already dying of another cause pay nothing and leave the reward unclaimed. The absorption effect on kill is unchanged. Commits c80cd5d.
+- Verified: runtime. Automated in-server test: the pre-hit dying state is recorded correctly in both directions; a killing blow still pays 20 -> 22; a second attacker on the claimed corpse gets nothing; a sword hit on a victim already dying of another cause gets nothing and does not consume the reward.
+
 # Section F - How the fixes were verified, and what is still owed
 
 Runtime-tested on a real dedicated server:
@@ -233,6 +241,7 @@ Runtime-tested on a real dedicated server:
 - The Life Stealer passed an automated in-server test: +2 max health exactly once per kill, no payout for hitting the dying victim again, no payout for a second attacker (E4).
 - Corrosive Fire passed an automated in-server test: Survival wearer took exactly 50 durability damage, Creative wearer took 0 (E7).
 - TNT Sword 2 passed an automated two-boot restart test: a TNT thrown before the shutdown was still marked as big after the restart, landed and detonated at the big radius (E8).
+- The Life Stealer attribution passed an automated in-server test: pre-hit dying state recorded correctly both ways; killing blow pays 20 -> 22; bystander on the claimed corpse gets nothing; a hit on a victim already dying of another cause gets nothing and leaves the reward unclaimed (E9).
 
 Verified statically (source diff, exact API and bytecode semantics, two independent review rounds) but NOT exercised in a running game: every other fix in Sections A and B, plus the client-queue leak fix E6 (its queued lambdas never ran client-side, so guarding them is provably behavior-neutral, but no real connected client has exercised it).
 
