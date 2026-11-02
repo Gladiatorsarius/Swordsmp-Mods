@@ -96,8 +96,10 @@ public class EarthWaveSwordRightclickedProcedure {
 						display.discard();
 					}
 				});
+				// Queued work only ever runs on the server - queue the sound here too, or a
+				// physical client would accumulate one dead queue entry per cast.
+				SwordssmpMod.queueServerWork(1, () -> ProcedureUtils.playBlockSound(_level, x, y, z, "item.mace.smash_ground", SoundSource.NEUTRAL, 3, 1));
 			}
-			SwordssmpMod.queueServerWork(1, () -> ProcedureUtils.playBlockSound(world, x, y, z, "item.mace.smash_ground", SoundSource.NEUTRAL, 3, 1));
 
 			ProcedureUtils.startCooldown(mainHandStack, cooldownTag, "EarthWave", entity, now, 400L);
 		}

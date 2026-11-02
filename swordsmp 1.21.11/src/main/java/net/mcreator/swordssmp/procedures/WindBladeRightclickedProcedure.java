@@ -85,12 +85,15 @@ public class WindBladeRightclickedProcedure {
 				// Native cooldown after 4 jumps
 				ProcedureUtils.startCooldown(mainHandStack, cooldownTag, "WindBlade", entity, now, 100L);
 
-				// Reset state after cooldown
-				SwordssmpMod.queueServerWork(100, () -> {
-					_vars.Djump = 0;
-					_vars.WindBladeBautaReset = 0;
-					_vars.markSyncDirty();
-				});
+				// Reset state after cooldown. Server-side only: queued work never drains on a
+				// physical client, and the synced variables arrive from the server's reset.
+				if (world instanceof ServerLevel) {
+					SwordssmpMod.queueServerWork(100, () -> {
+						_vars.Djump = 0;
+						_vars.WindBladeBautaReset = 0;
+						_vars.markSyncDirty();
+					});
+				}
 			}
 		}
 	}

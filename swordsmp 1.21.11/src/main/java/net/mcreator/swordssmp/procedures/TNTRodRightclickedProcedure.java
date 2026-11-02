@@ -24,16 +24,21 @@ public class TNTRodRightclickedProcedure {
 			// Capture the caster's own bobber: the ability rains TNT on YOUR cast,
 			// not on every fishing bobber loaded anywhere in the world.
 			FishingHook hook = (entity instanceof Player _player) ? _player.fishing : null;
-			for (int i = 1; i <= 5; i++) {
-				SwordssmpMod.queueServerWork(10 * i, () -> {
-					if (world instanceof ServerLevel _level) {
-						if (hook != null && hook.isAlive()) {
-							ProcedureUtils.runCommand(_level, hook.getX(), hook.getY(), hook.getZ(), "/summon minecraft:tnt ~ ~ ~");
+			// Queue only on the server: the queue is drained by server ticks, so entries
+			// queued from a physical client (item use() fires on both sides) would never
+			// run there and would accumulate for the whole session.
+			if (world instanceof ServerLevel) {
+				for (int i = 1; i <= 5; i++) {
+					SwordssmpMod.queueServerWork(10 * i, () -> {
+						if (world instanceof ServerLevel _level) {
+							if (hook != null && hook.isAlive()) {
+								ProcedureUtils.runCommand(_level, hook.getX(), hook.getY(), hook.getZ(), "/summon minecraft:tnt ~ ~ ~");
+							}
+							rodStack.hurtAndBreak(100, _level, (entity instanceof ServerPlayer _sp ? _sp : null), _stkprov -> {
+							});
 						}
-						rodStack.hurtAndBreak(100, _level, (entity instanceof ServerPlayer _sp ? _sp : null), _stkprov -> {
-						});
-					}
-				});
+					});
+				}
 			}
 		}
 	}
