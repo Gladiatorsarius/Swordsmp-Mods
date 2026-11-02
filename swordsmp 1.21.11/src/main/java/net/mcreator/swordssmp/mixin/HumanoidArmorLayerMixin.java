@@ -12,10 +12,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(HumanoidArmorLayer.class)
 public class HumanoidArmorLayerMixin {
-    @Inject(at = @At("HEAD"), method = "submit", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V", cancellable = true)
     private void swordsmp$hideArmorOnInvisibility(PoseStack poseStack, SubmitNodeCollector bufferSource, int packedLight, HumanoidRenderState state, float limbSwing, float limbSwingAmount, CallbackInfo ci) {
-        int amplifier = ((SwordsmpInvisibilityState) state).swordsmp_getInvisibilityAmplifier();
-        if (amplifier >= 1) {
+        if (state instanceof SwordsmpInvisibilityState invisibilityState && invisibilityState.swordsmp_getInvisibilityAmplifier() >= 1) {
             ci.cancel();
         }
     }

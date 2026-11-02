@@ -12,7 +12,8 @@
     "BoneMealItemMixin",
     "CommandsMixin",
     "ExperienceOrbMixin",
-    "PrimedTntMixin"
+    "PrimedTntMixin",
+    "LivingEntityInvisSyncMixin"
   ],
   "client": [
     "HumanoidArmorLayerMixin",
