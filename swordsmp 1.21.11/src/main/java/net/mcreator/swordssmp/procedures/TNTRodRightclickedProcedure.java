@@ -5,6 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
 import net.mcreator.swordssmp.init.SwordssmpModItems;
 import net.mcreator.swordssmp.SwordssmpMod;
@@ -22,7 +23,7 @@ public class TNTRodRightclickedProcedure {
 				SwordssmpMod.queueServerWork(10 * i, () -> {
 					if (world instanceof ServerLevel _level) {
 						ProcedureUtils.runCommand(_level, x, y, z, "/execute at @e[type=minecraft:fishing_bobber] run summon tnt ~ ~ ~");
-						rodStack.hurtAndBreak(100, _level, null, _stkprov -> {
+						rodStack.hurtAndBreak(100, _level, (entity instanceof ServerPlayer _sp ? _sp : null), _stkprov -> {
 						});
 					}
 				});
